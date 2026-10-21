@@ -5,6 +5,12 @@ on:
   pull_request:
 permissions:
   contents: read
+defaults:
+  run:
+    shell: bash
+env:
+  MAINNET_WRITES_ENABLED: 'false'
+  NEXT_TELEMETRY_DISABLED: '1'
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -19,13 +25,35 @@ jobs:
           cache: npm
       - name: Require supported Node runtime
         run: node -e "if (+process.versions.node.split('.')[0] < 22) throw new Error('Node 22+ required')"
-      - run: npm ci
-      - run: npm run typecheck
-      - run: npm test
-      - run: npm run contracts:verify
-      - run: npm run test:integration
-      - run: npm audit --audit-level=moderate
-      - run: npm run build
-        env:
-          NEXT_TELEMETRY_DISABLED: '1'
-          MAINNET_WRITES_ENABLED: 'false'
+      - name: Initialize evidence directory
+        run: |
+          mkdir -p artifacts/ci
+          git rev-parse HEAD > artifacts/ci/commit.txt
+          node --version > artifacts/ci/node-version.txt
+      - name: Dependency installation
+        run: npm ci 2>&1 | tee artifacts/ci/install.txt
+      - name: TypeScript checks
+        run: npm run typecheck 2>&1 | tee artifacts/ci/typecheck.txt
+      - name: Unit tests
+        run: npm test -- --reporter=default --reporter=json --outputFile=artifacts/ci/unit.json 2>&1 | tee artifacts/ci/unit.txt
+      - name: Contract verification
+        run: npm run contracts:verify 2>&1 | tee artifacts/ci/contracts.txt
+      - name: Migration permissions and recovery verification
+        run: npm run db:verify 2>&1 | tee artifacts/ci/migration.txt
+      - name: Integration tests
+        run: npm run test:integration 2>&1 | tee artifacts/ci/integration.txt
+      - name: Dependency security audit
+        run: npm audit --audit-level=moderate --json > artifacts/ci/dependency-audit.json
+      - name: Production build
+        run: npm run build 2>&1 | tee artifacts/ci/build.txt
+      - name: Preserve verification logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: verification-${{ github.sha }}-${{ github.run_attempt }}
+          retention-days: 30
+          if-no-files-found: error
+          path: |
+            artifacts/ci/
+            docs/evidence/integration-results.json
+            docs/evidence/migration-verification.json

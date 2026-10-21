@@ -1,0 +1,21 @@
+{
+  "migrationPath": "supabase/migrations/20261021111911_core.sql",
+  "sha256": "5913b36084f40c1b8f9d56c4841e55ba0d3a6811c1669989555e416eca9913e6",
+  "results": [
+    {
+      "defaults": "supabase",
+      "postgres": "17.5",
+      "status": "PASS"
+    },
+    {
+      "defaults": "broad",
+      "postgres": "17.5",
+      "status": "PASS"
+    },
+    {
+      "defaults": "restricted",
+      "postgres": "17.5",
+      "status": "PASS"
+    }
+  ]
+}

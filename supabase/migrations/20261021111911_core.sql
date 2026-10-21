@@ -21,6 +21,10 @@ create index if not exists publication_records_collection_idx on public.publicat
 create index if not exists publication_records_page_idx on public.publication_records(page_id);
 create index if not exists media_assets_collection_idx on public.media_assets(chain_id,contract);
 create index if not exists publication_records_actor_idx on public.publication_records(actor,status);
+-- Bound the cost of expiry cleanup as sessions/challenges/rate-limit keys grow.
+create index if not exists auth_challenges_expiry_idx on public.auth_challenges(expires_at);
+create index if not exists app_sessions_expiry_idx on public.app_sessions(expires_at);
+create index if not exists rate_limits_reset_idx on public.rate_limits(reset_at);
 
 alter table public.collections enable row level security;
 alter table public.collection_profiles enable row level security;
@@ -33,7 +37,10 @@ alter table public.auth_challenges enable row level security;
 alter table public.app_sessions enable row level security;
 alter table public.rate_limits enable row level security;
 -- No anon/authenticated policies: raw REST access to drafts, sessions, and audit records is denied.
-revoke all on public.collections,public.collection_profiles,public.mint_pages,public.mint_page_revisions,public.media_assets,public.publication_records,public.audit_logs,public.auth_challenges,public.app_sessions,public.rate_limits from anon,authenticated;
+-- Reset inherited/default object grants before granting the exact server permissions.
+-- Supabase projects may still have broad table AND sequence default privileges.
+revoke all on public.collections,public.collection_profiles,public.mint_pages,public.mint_page_revisions,public.media_assets,public.publication_records,public.audit_logs,public.auth_challenges,public.app_sessions,public.rate_limits from public,anon,authenticated,service_role;
+revoke all on sequence public.audit_logs_id_seq from public,anon,authenticated,service_role;
 
 create or replace function public.tcm_command(op text,p jsonb default '{}') returns jsonb language plpgsql security invoker set search_path=pg_catalog,public as $$
 declare r public.mint_pages; j jsonb; hit_count integer; pub public.publication_records;

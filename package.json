@@ -13,6 +13,7 @@
     "audit:protocol": "node --import tsx scripts/audit-protocol.ts",
     "audit:supply": "node --import tsx scripts/audit-supply.ts",
     "contracts:verify": "node scripts/compile-contracts.mjs",
+    "db:verify": "node --import tsx scripts/verify-migration.ts",
     "test:http": "node --import tsx scripts/http-smoke.ts",
     "format": "prettier --write src scripts tests README.md docs/*.md .github/workflows/*.yml *.json"
   },

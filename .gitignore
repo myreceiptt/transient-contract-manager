@@ -9,3 +9,4 @@ coverage/
 .vercel/
 supabase/.temp/
 *.log
+artifacts/

@@ -1,0 +1,36 @@
+{
+  "originalCommit": "c2974ab556a3c233f43b0a4d21d85fd551ea9fa6",
+  "originalTree": "a4544f8b1689e29588d6427a43e42715f099fec8",
+  "sourceZipSha256": "c7d2589a56563f14e5a87007cf81961e749ff47d83bbbc237ac3d25fc26b078e",
+  "bundleSha256": "b3fbe93ced6c0f6442858f195f381c9e68cfba4daf0a6386bb7fe3d497835351",
+  "manifestFilesVerified": 75,
+  "gitFsck": "PASS",
+  "bundleVerification": "PASS",
+  "zipCrc": "PASS",
+  "sourceVsManifestVsGit": "PASS",
+  "gitleaks": {
+    "version": "8.30.1",
+    "commits": 1,
+    "bytes": 1598521,
+    "findings": 0
+  },
+  "supplementalScan": {
+    "realCredentials": 0,
+    "falsePositives": [
+      {
+        "file": "tests/domain.test.ts",
+        "line": 94,
+        "reason": "Deliberate invalid userinfo URL fixture"
+      }
+    ]
+  },
+  "originalMigrationSha256": "80040843848a8f4940eecb451a53753b0c2bcd5f93f4d58c62e3d4ed866c2bf7",
+  "reviewedMigrationSha256": "5913b36084f40c1b8f9d56c4841e55ba0d3a6811c1669989555e416eca9913e6",
+  "restoreRun": "https://github.com/myreceiptt/transient-contract-manager/actions/runs/39616318980",
+  "originalSourceCiRun": "https://github.com/myreceiptt/transient-contract-manager/actions/runs/39616318957",
+  "originalSourceCiBootstrapCommit": "a714584068f30c859b76bca4d4ab02b61e1444ee",
+  "temporaryBootstrapPathsRemoved": [
+    ".restore/source.bundle.base64",
+    ".github/workflows/restore-source.yml"
+  ]
+}

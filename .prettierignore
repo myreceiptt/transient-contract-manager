@@ -1,0 +1,6 @@
+node_modules
+.next
+.local
+contracts
+docs/evidence
+package-lock.json

@@ -1,0 +1,140 @@
+{
+  "started": "2026-10-21T12:23:46.635Z",
+  "finished": "2026-10-21T12:23:54.929Z",
+  "environment": "Anvil 31337 + actual pinned contracts + PGlite PostgreSQL + Next API handlers",
+  "mainnetTransactions": 0,
+  "passed": 26,
+  "failed": 0,
+  "results": [
+    {
+      "name": "Pinned creator and Stacks runtime; owner and admin recognition",
+      "status": "PASS",
+      "ms": 139
+    },
+    {
+      "name": "SIWE login, nonce replay rejection, cookie flags and CSRF",
+      "status": "PASS",
+      "ms": 89
+    },
+    {
+      "name": "Invalid signature, expired nonce, wrong session chain and oversized request are rejected",
+      "status": "PASS",
+      "ms": 61
+    },
+    {
+      "name": "Unsigned and unauthorized wallets cannot mutate the workspace",
+      "status": "PASS",
+      "ms": 72
+    },
+    {
+      "name": "Persistent draft shared by owner/admin; optimistic concurrency and private drafts",
+      "status": "PASS",
+      "ms": 280
+    },
+    {
+      "name": "Revoked admin loses access without waiting for session expiration",
+      "status": "PASS",
+      "ms": 115
+    },
+    {
+      "name": "Database roles cannot read private rows or execute service RPC",
+      "status": "PASS",
+      "ms": 6
+    },
+    {
+      "name": "Create token overloads and batch creation execute exact ABI",
+      "status": "PASS",
+      "ms": 622
+    },
+    {
+      "name": "Batch token creation with per-token royalties uses the five-argument overload",
+      "status": "PASS",
+      "ms": 212
+    },
+    {
+      "name": "Airdrop, token URI, default royalty, token royalty and Stacks grant",
+      "status": "PASS",
+      "ms": 975
+    },
+    {
+      "name": "Unsupported destructive action, invalid royalty, missing token and locked mint fail",
+      "status": "PASS",
+      "ms": 68
+    },
+    {
+      "name": "Prepare, simulate, attach, finalize and publish native sale",
+      "status": "PASS",
+      "ms": 283
+    },
+    {
+      "name": "Native mint transfers editions, exact payout and per-unit protocol fee",
+      "status": "PASS",
+      "ms": 176
+    },
+    {
+      "name": "Duplicate confirmation is idempotent; wrong wallet cannot read collector intent",
+      "status": "PASS",
+      "ms": 180
+    },
+    {
+      "name": "Changed draft keeps old public content until explicit content publication",
+      "status": "PASS",
+      "ms": 174
+    },
+    {
+      "name": "External sale change blocks mint and publication until baseline review",
+      "status": "PASS",
+      "ms": 393
+    },
+    {
+      "name": "Changed configuration between simulation and wallet signing is rejected",
+      "status": "PASS",
+      "ms": 82
+    },
+    {
+      "name": "ERC-20 sale quotes 6-decimal units; exact approval then purchase with native fee",
+      "status": "PASS",
+      "ms": 499
+    },
+    {
+      "name": "Nonzero insufficient ERC-20 allowance is reset before exact approval",
+      "status": "PASS",
+      "ms": 367
+    },
+    {
+      "name": "Presale Merkle proof, invalid proof and per-recipient allowance",
+      "status": "PASS",
+      "ms": 404
+    },
+    {
+      "name": "Publication rejects an unsent review after another draft revision is saved",
+      "status": "PASS",
+      "ms": 318
+    },
+    {
+      "name": "Receipt reports actual quantity when another buyer consumes supply after preflight",
+      "status": "PASS",
+      "ms": 248
+    },
+    {
+      "name": "Pending transaction recovery, replacement cancellation and no automatic retry",
+      "status": "PASS",
+      "ms": 190
+    },
+    {
+      "name": "Insufficient ETH, ended sale, locked token and unsafe media fail closed",
+      "status": "PASS",
+      "ms": 118
+    },
+    {
+      "name": "Request throttling rejects overflow in an active window",
+      "status": "PASS",
+      "ms": 2
+    },
+    {
+      "name": "Session logout invalidates server token; mainnet write gate remains closed",
+      "status": "PASS",
+      "ms": 5
+    }
+  ]
+}

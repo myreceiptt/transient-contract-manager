@@ -1,0 +1,31 @@
+name: Verify application
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24
+          cache: npm
+      - name: Require supported Node runtime
+        run: node -e "if (+process.versions.node.split('.')[0] < 22) throw new Error('Node 22+ required')"
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run contracts:verify
+      - run: npm run test:integration
+      - run: npm audit --audit-level=moderate
+      - run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+          MAINNET_WRITES_ENABLED: 'false'

@@ -1,0 +1,23 @@
+{
+  "chainId": 1,
+  "contract": "0x5807e66182a38788a3854853225a2b6d8e0480f2",
+  "tokenId": "1",
+  "deploymentBlock": "26234362",
+  "toBlock": "26240441",
+  "blockHash": "0x58f0cdfc9a713ddca16f7f45cf93a4bdec1e50f5eef17f98d7f16c8aba5af248",
+  "observedAt": "2026-10-21T10:42:10.202Z",
+  "completeFromDeployment": true,
+  "minted": "0",
+  "burned": "0",
+  "circulating": "0",
+  "holders": [],
+  "transfers": [
+    {
+      "from": "0x0000000000000000000000000000000000000000",
+      "to": "0x000000000000000000000000000000000000dEaD",
+      "value": "0",
+      "blockNumber": "26234486",
+      "transactionHash": "0xcbd6f07d50f5c2d68babb81a6dec22a06e427177e3588f78f2be09a3ac10b3c5"
+    }
+  ]
+}

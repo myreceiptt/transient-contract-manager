@@ -1,0 +1,11 @@
+.git
+.local
+.env*
+!.env.example
+research
+node_modules
+.next
+docs/evidence
+contracts/*.standard-input.json
+contracts/*.artifact.json
+tests

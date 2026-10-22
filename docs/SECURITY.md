@@ -2,6 +2,8 @@
 
 This is an implementation review with automated tests, not an independent security audit. Mainnet writes remain disabled. No private key, recovery phrase, production database secret or live wallet approval was requested or used.
 
+Current hosted-preview remediation and regression coverage: [PREVIEW_SECURITY.md](PREVIEW_SECURITY.md). Deployment approval scope: [PREVIEW_PLAN.md](PREVIEW_PLAN.md).
+
 ## Enforced boundaries
 
 | Threat                     | Control                                                                           | Evidence                                                               |
@@ -43,7 +45,7 @@ Production build and type checking are required. CI repeats tests/build and has 
 
 ## Remaining production risks / acceptance gates
 
-- Remote Supabase migration and advisor checks have not run. Local SQL passes do not prove a hosted project is correctly configured. No existing production database was modified.
+- The isolated Supabase migration and read-only catalog/advisor checks are complete. Actual hosted PostgREST, browser security and persistence acceptance remain open. No production database was accessed.
 - The homepage rendered and was visually inspected after an initial browser timeout. Interactions were not confirmed, and a later reload was blocked by browser URL policy. Responsive CSS and semantic form labels are implemented, but interactive/mobile/wallet acceptance remains open.
 - A real injected wallet and WalletConnect must be exercised on the intended HTTPS preview origin. WalletConnect needs a separately configured project ID and allowed origin.
 - Mainnet `finalized` behavior must be checked on each production RPC, especially L2s. No live mint or mainnet transaction was sent.
@@ -53,8 +55,8 @@ Production build and type checking are required. CI repeats tests/build and has 
 - Only standard ERC-20 transfer behavior is tested. Fee-on-transfer/rebasing/nonstandard approval currencies need explicit compatibility review.
 - Public RPCs are development defaults, not an availability commitment. Configure paid/provider RPCs only with approval; apply provider quotas/monitoring for release.
 - Media hosts are operator-approved. Do not approve arbitrary user-controlled hostnames; that would weaken the SSRF trust boundary. Remote image availability and large-image behavior still require visual QA.
-- The CSP retains `unsafe-inline` for Next hydration scripts and styles. A nonce-based strict policy is recommended before a public write-enabled release. No unsafe HTML rendering is used.
-- API throttling is basic database-backed protection. Vercel's trusted forwarding header and gateway controls must be validated for the deployed topology. Public media needs platform-level bandwidth protection.
+- Production scripts now require per-response nonces; inline styles remain allowed for existing React/wallet styling. The production HTTP regression checks real rendered script attributes. Hosted wallet/CSP acceptance remains open.
+- API/media limits now use separate per-operation/client/wallet quotas, byte/time bounds and local concurrency lanes. Vercel's actual forwarding boundary and protected access must still be verified on deployment; public release needs measured gateway/bandwidth controls.
 - `collection_profiles` and `media_assets` are reserved; upload/pinning, storage quotas and automatic retention jobs are not implemented. Currently administrators supply pinned IPFS or approved HTTPS URIs.
 - Errors intentionally avoid logging credentials or raw session material. Production monitoring/alerts and backup/restore drills remain to be configured.
 

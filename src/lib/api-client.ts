@@ -3,7 +3,9 @@ export async function api(op: string, p: unknown = {}) {
     typeof document !== 'undefined'
       ? document.cookie
           .split('; ')
-          .find((c) => c.startsWith('tcm_csrf='))
+          .find((c) =>
+            c.startsWith(window.location.protocol === 'https:' ? '__Host-tcm_csrf=' : 'tcm_csrf='),
+          )
           ?.split('=')[1]
       : undefined;
   const res = await fetch('/api', {

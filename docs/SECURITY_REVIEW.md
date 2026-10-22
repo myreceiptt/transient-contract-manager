@@ -1,6 +1,8 @@
 # Source-restoration security review — 21 October 2026
 
-Scope: source, Git history, CI, unapplied database migration, and release controls. This is a focused engineering review, not an independent security audit. The existing protocol investigations and pinned contract evidence were retained; no real contract or mainnet state was changed.
+Historical source-restoration review. **22 October update:** the approved migration is applied and independently verified; hosted-preview remediation is recorded in [PREVIEW_SECURITY.md](PREVIEW_SECURITY.md). Deployment remains subject to [PREVIEW_PLAN.md](PREVIEW_PLAN.md).
+
+Scope of the original review: source, Git history, CI, then-unapplied database migration, and release controls. This is a focused engineering review, not an independent security audit. The existing protocol investigations and pinned contract evidence were retained; no real contract or mainnet state was changed.
 
 ## Secret and artifact scan
 
@@ -12,7 +14,7 @@ The archived ZIP passed CRC validation. Every source SHA-256 matched its manifes
 
 ## Global gate and proposed granular release policy
 
-`writesAllowed()` currently permits all supported mainnet write categories when `MAINNET_WRITES_ENABLED=true`. Preparation and preflight enforce that gate. It is suitable as an emergency master stop, but is too coarse for phased release. It remains **false**. No new write permission was enabled in this stage.
+**Original finding, fixed for this preview:** `writesAllowed()` previously permitted all supported mainnet write categories when `MAINNET_WRITES_ENABLED=true`. Preparation and preflight enforce that gate. It is suitable as an emergency master stop, but is too coarse for phased release. It remains **false**. No new write permission was enabled in this stage.
 
 Use a server-only policy with the following conjunction; missing/invalid policy values must deny:
 
@@ -27,19 +29,21 @@ Use a server-only policy with the following conjunction; missing/invalid policy 
 
 Approval of one network must never activate another. Unknown chain IDs and local chain 31337 in production must fail closed. Store release policies on the server, never in NEXT_PUBLIC variables or request bodies. Bind policy version, network, collection, token, action and limits into each persisted intent. Re-evaluate immediately before returning signable calldata and at preflight. A policy change invalidates unsent reviews. Keep receipt recovery/read operations available when the master gate is off.
 
-| Action category                                                           | Required release control                                                                                                                                                                    |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Public purchase                                                           | Separate per-network mint switch; exact collection/token and currency allowlist; amount/quantity/value limits; approved adapter/runtime; fresh sale and fee snapshot; staged cap and expiry |
-| ERC-20 approval/reset                                                     | Separate permission tied to an approved purchase, exact token/spender/amount; no unlimited approval; purchase must not inherit approval-only permission                                     |
-| Token creation / batch creation / airdrop                                 | Separate switches and total recipient/quantity caps; fresh owner/admin authorization; explicit operator release approval                                                                    |
-| Sale creation / price / window / wallet limits / allocation / Merkle root | Separate settings permissions; protect active sales; single publication reservation; require a new simulation and visible change review                                                     |
-| Payout recipient / royalties / metadata                                   | Sensitive-action approval scoped to the exact payload, with independent human review; owner-only application policy where supported; maximum royalty and immutable/frozen-token checks      |
-| Stacks minter grant                                                       | Dedicated capability, exact verified Stacks address/runtime; explicit owner approval; never a generic role-grant endpoint                                                                   |
-| Ownership transfer, upgrade, lock, burn, arbitrary calls or roles         | Unsupported and denied until separately designed, audited and authorized                                                                                                                    |
+| Action category                                                           | Required release control                                                                                                                                                                                                 |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Public purchase                                                           | Separate per-network mint switch; exact collection/token and currency allowlist; amount/quantity/value limits; approved adapter/runtime; fresh sale and fee snapshot; staged cap and expiry                              |
+| ERC-20 approval/reset                                                     | Separate permission tied to an approved purchase, exact token/spender/amount; no unlimited approval; purchase must not inherit approval-only permission                                                                  |
+| Token creation / batch creation / airdrop                                 | Separate switches and total recipient/quantity caps; fresh owner/admin authorization; explicit operator release approval                                                                                                 |
+| Sale creation / price / window / wallet limits / allocation / Merkle root | Separate settings permissions; protect active sales; single publication reservation; require a new simulation and visible change review                                                                                  |
+| Payout recipient / royalties / metadata                                   | Current on-chain owner/admin authorization, exact-payload transaction review, simulation and explicit wallet signing; maximum royalty and immutable/frozen-token checks; no additional owner approval in the application |
+| Stacks minter grant                                                       | Dedicated capability, exact verified Stacks address/runtime; appropriate current on-chain permission, transaction review, simulation and wallet signing; never a generic role-grant endpoint                             |
+| Ownership transfer, upgrade, lock, burn, arbitrary calls or roles         | Unsupported and denied until separately designed, audited and authorized                                                                                                                                                 |
 
 Apply value/gas budgets to the concrete intent, log approval and policy versions without credentials, and maintain an emergency stop with a tested operator procedure. Do not treat a static environment flag as a two-person approval system. A server gate cannot recall signed transactions or disable permissionless minting directly against an already configured on-chain contract; contract-level pause/change requires separate authority and is not performed here.
 
-## Required before hosted browser acceptance
+## Original blockers before hosted browser acceptance
+
+Items 1–4 have been remediated for a protected preview; see the current remediation report. Hosted browser acceptance and operational limits remain explicit gates. The descriptions below preserve the original findings.
 
 1. **Approved database migration and remote verification.** The local grant fix is prepared; the target remains empty. Service credentials must be entered securely into server-only secret settings for the isolated preview, with no production keys or browser exposure. Verify actual PostgREST behavior and restart persistence.
 2. **HTTPS/origin enforcement.** Production currently checks that APP_ORIGIN exists but permits an HTTP value, which makes cookies non-Secure. Require an HTTPS origin in production and test SIWE domain/URI, Secure/HttpOnly/SameSite cookies, CSRF, session expiry, chain switching and revoked permissions on the hosted origin.

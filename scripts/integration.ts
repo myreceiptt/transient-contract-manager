@@ -405,7 +405,7 @@ try {
       'VALIDATION_ERROR',
     );
   });
-  await test('Prepare, simulate, attach, finalize and publish native sale', async () => {
+  await test('Autonomous non-owner admin prepares, signs and publishes native sale', async () => {
     const i = await admin.call('prepare_publication', {
       id: page.id,
       expectedVersion: page.version,
@@ -684,6 +684,63 @@ try {
   await test('Request throttling rejects overflow in an active window', async () => {
     await command('rate', { key: 'test-window', limit: 1 });
     assert.equal((await command('rate', { key: 'test-window', limit: 1 })).allowed, false);
+  });
+  await test('Public quota exhaustion does not consume authenticated workspace capacity', async () => {
+    const { hash } = await import('../src/server/auth');
+    await db.query(
+      "insert into public.rate_limits(key,hits,reset_at) values($1,40,now()+interval '1 minute')",
+      ['v2:public:ip:' + hash('local')],
+    );
+    await anon.denied('inspect', identity, 'RATE_LIMIT');
+    assert.ok(Array.isArray(await owner.call('pages', identity)));
+    const consumed = await db.query(
+      "select key from public.rate_limits where key='v2:public:total'",
+    );
+    assert.equal(consumed.rows.length, 0);
+  });
+  await test('Media GET is throttled before network fetch and returns retry/no-store headers', async () => {
+    const { hash } = await import('../src/server/auth');
+    const { GET } = await import('../src/app/media/route');
+    await db.query(
+      "insert into public.rate_limits(key,hits,reset_at) values($1,60,now()+interval '1 minute')",
+      ['v2:media:ip:' + hash('local')],
+    );
+    const response = await GET(
+      new NextRequest('http://localhost:3000/media?url=ipfs://bafyLocalFixture123'),
+    );
+    assert.equal(response.status, 429);
+    assert.equal(response.headers.get('retry-after'), '60');
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+  });
+  await test('Bounded private lists paginate and preserve collection isolation', async () => {
+    const first = await owner.call('pages', { ...identity, limit: 1 });
+    const next = await owner.call('pages', { ...identity, limit: 1, offset: 1 });
+    assert.equal(first.length, 1);
+    assert.equal(next.length, 1);
+    assert.notEqual(first[0].id, next[0].id);
+    const { listRecords } = await import('../src/server/db');
+    assert.deepEqual(
+      await listRecords('pages', {
+        ...identity,
+        contract: '0x1111111111111111111111111111111111111111',
+        limit: 25,
+        offset: 0,
+      }),
+      [],
+    );
+    const revisions = await owner.call('revisions', { id: page.id, limit: 1 });
+    const older = await owner.call('revisions', { id: page.id, limit: 1, offset: 1 });
+    assert.equal(revisions.length, 1);
+    assert.equal(older.length, 1);
+    assert.ok(revisions[0].version > older[0].version);
+    await owner.denied('pages', { ...identity, limit: 26 }, 'VALIDATION_ERROR');
+    await owner.denied('pages', { ...identity, offset: 10001 }, 'VALIDATION_ERROR');
+    await anon.denied('pages', { ...identity, limit: 1 }, 'SIGN_IN_REQUIRED');
+  });
+  await test('Malformed envelopes and unknown operations fail before upstream work', async () => {
+    await anon.denied('unknown_operation', {}, 'UNKNOWN_OPERATION');
+    await anon.denied('inspect', null, 'VALIDATION_ERROR');
+    await anon.denied('inspect', [], 'VALIDATION_ERROR');
   });
   await test('Session logout invalidates server token; mainnet write gate remains closed', async () => {
     await owner.call('logout');

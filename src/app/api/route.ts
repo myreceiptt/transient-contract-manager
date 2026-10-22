@@ -3,7 +3,9 @@ import { z } from 'zod';
 import type { Hex } from 'viem';
 import { readMetadata } from '@/server/media';
 import { creatorAbi } from '@/lib/abi';
-import { client } from '@/server/chain';
+import { client, networkWritePermissions } from '@/server/chain';
+import { acquireSlot, operationBudget, rateLimit } from '@/server/abuse';
+import { errorHeaders } from '@/server/security';
 import { AppError, serializable, addressSchema, chainSchema, positive, uint } from '@/lib/domain';
 import {
   challenge,
@@ -12,11 +14,10 @@ import {
   session,
   readBody,
   checkOrigin,
-  rateLimit,
   requireSessionChain,
 } from '@/server/auth';
 import { inspect, authorize, tokenInventory, currencyInfo } from '@/server/chain';
-import { command } from '@/server/db';
+import { command, listRecords } from '@/server/db';
 import { createPage, savePage, rebasePage, pageForAdmin, baseline } from '@/server/workspace';
 import {
   prepareAdmin,
@@ -34,12 +35,28 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 const identity = z.object({ chainId: chainSchema, contract: addressSchema });
 const idSchema = z.string().uuid();
+const pagination = z.object({
+  limit: z.number().int().min(1).max(25).default(25),
+  offset: z.number().int().min(0).max(10000).default(0),
+});
 export async function POST(req: NextRequest) {
+  let release: (() => void) | undefined;
   try {
     checkOrigin(req);
+    release = acquireSlot(req, 'api');
+    await rateLimit(req, 'intake');
     const raw = await readBody(req);
-    const { op, p = {} } = z.object({ op: z.string().max(40), p: z.any().optional() }).parse(raw);
-    await rateLimit(req);
+    const { op, p } = z
+      .object({ op: z.string().max(40), p: z.record(z.string(), z.unknown()).default({}) })
+      .strict()
+      .parse(raw);
+    const budget = operationBudget(op);
+    if (!['workspace', 'transaction'].includes(budget)) {
+      release();
+      release = acquireSlot(req, budget);
+    }
+    // Workspace/transaction shared quotas are consumed only after session verification.
+    if (!['workspace', 'transaction'].includes(budget)) await rateLimit(req, budget);
     if (op === 'challenge') return await challenge(req, p);
     if (op === 'login') return await login(req, p);
     if (op === 'logout') return await logout(req);
@@ -56,7 +73,7 @@ export async function POST(req: NextRequest) {
       const a = z.object({ chainId: chainSchema, address: addressSchema }).parse(p);
       result = await currencyInfo(a.chainId, a.address);
     } else if (op === 'metadata') {
-      result = await readMetadata(z.string().max(2048).parse(p.uri));
+      result = await readMetadata(z.string().max(2048).parse(p.uri), req.signal);
     } else if (op === 'balance') {
       const a = identity.extend({ holder: addressSchema, tokenId: positive }).parse(p);
       const info = await inspect(a.chainId, a.contract, undefined, BigInt(a.tokenId));
@@ -73,12 +90,15 @@ export async function POST(req: NextRequest) {
       result = await publicPage(z.string().min(3).max(80).parse(p.slug));
     } else {
       const s = await session(req, true);
+      release();
+      release = acquireSlot(req, budget);
+      await rateLimit(req, budget, s.wallet);
       if (op === 'session') result = s;
       else if (op === 'pages') {
         const a = identity.parse(p);
         requireSessionChain(s, a.chainId);
         await authorize(a.chainId, a.contract, s.wallet);
-        result = await command('page_list', a);
+        result = await listRecords('pages', { ...a, ...pagination.parse(p) });
       } else if (op === 'page') {
         const { page, info } = await pageForAdmin(idSchema.parse(p.id), s);
         result = {
@@ -108,7 +128,7 @@ export async function POST(req: NextRequest) {
       else if (op === 'revisions' || op === 'audit') {
         const id = idSchema.parse(p.id);
         await pageForAdmin(id, s);
-        result = await command(op, { id });
+        result = await listRecords(op, { id, ...pagination.parse(p) });
       } else if (op === 'prepare_admin') {
         const a = identity.parse(p);
         result = await prepareAdmin(a.chainId, a.contract, p.action, s);
@@ -169,7 +189,7 @@ export async function POST(req: NextRequest) {
         const a = identity.parse(p);
         requireSessionChain(s, a.chainId);
         await authorize(a.chainId, a.contract, s.wallet);
-        result = await command('intent_list', a);
+        result = await listRecords('history', { ...a, ...pagination.parse(p) });
       } else throw new AppError('UNKNOWN_OPERATION', 'Unknown operation', 404);
     }
     return NextResponse.json(serializable(result), { headers: { 'Cache-Control': 'no-store' } });
@@ -180,18 +200,23 @@ export async function POST(req: NextRequest) {
           error: 'VALIDATION_ERROR',
           message: e.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; '),
         },
-        { status: 400 },
+        { status: 400, headers: errorHeaders(400) },
       );
     if (e instanceof AppError)
-      return NextResponse.json({ error: e.code, message: e.message }, { status: e.status });
+      return NextResponse.json(
+        { error: e.code, message: e.message },
+        { status: e.status, headers: errorHeaders(e.status) },
+      );
     console.error('TCM_REQUEST_FAILED', e instanceof Error ? e.name : 'unknown');
     return NextResponse.json(
       {
         error: 'REQUEST_FAILED',
         message: 'The request could not be completed. Check your network connection and try again.',
       },
-      { status: 503 },
+      { status: 503, headers: errorHeaders(503) },
     );
+  } finally {
+    release?.();
   }
 }
 export async function GET() {
@@ -199,7 +224,8 @@ export async function GET() {
     {
       name: 'Transient Contract Manager',
       version: '0.1.0',
-      mainnetWrites: process.env.MAINNET_WRITES_ENABLED === 'true',
+      mainnetWrites: false,
+      networkWritePermissions,
       databaseConfigured:
         !!(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) ||
         process.env.NODE_ENV !== 'production',

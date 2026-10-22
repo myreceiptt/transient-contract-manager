@@ -1,0 +1,1784 @@
+{
+  "checked_at_utc": "2026-10-22T14:57:34.522Z",
+  "project_id": "ztiegrqflrpoksuocrze",
+  "organization_id": "kmvzxndegliuwirjzskb",
+  "source_commit": "ce29b03e5ad406ee6687f7d797e2472f7fd2a4eb",
+  "migration": {
+    "version": "20261021111911",
+    "name": "core",
+    "count": 1,
+    "approved_sql_sha256": "5913b36084f40c1b8f9d56c4841e55ba0d3a6811c1669989555e416eca9913e6",
+    "reapplied": false
+  },
+  "verification": {
+    "grants": [
+      {
+        "role": "anon",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "anon",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "anon",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "anon",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "anon",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "anon",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "anon",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "anon",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "authenticated",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "authenticated",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "authenticated",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "authenticated",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "authenticated",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "authenticated",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "service_role",
+        "table": "collections",
+        "allowed": true,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "service_role",
+        "table": "collections",
+        "allowed": true,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "service_role",
+        "table": "collections",
+        "allowed": true,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "service_role",
+        "table": "collections",
+        "allowed": true,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "service_role",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "service_role",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "service_role",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "service_role",
+        "table": "collections",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "anon",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "anon",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "anon",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "anon",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "anon",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "anon",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "anon",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "anon",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "authenticated",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "authenticated",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "authenticated",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "authenticated",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "authenticated",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "authenticated",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "service_role",
+        "table": "collection_profiles",
+        "allowed": true,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "service_role",
+        "table": "collection_profiles",
+        "allowed": true,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "service_role",
+        "table": "collection_profiles",
+        "allowed": true,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "service_role",
+        "table": "collection_profiles",
+        "allowed": true,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "service_role",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "service_role",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "service_role",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "service_role",
+        "table": "collection_profiles",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "anon",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "anon",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "anon",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "anon",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "anon",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "anon",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "anon",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "anon",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "authenticated",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "authenticated",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "authenticated",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "authenticated",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "authenticated",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "authenticated",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "service_role",
+        "table": "mint_pages",
+        "allowed": true,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "service_role",
+        "table": "mint_pages",
+        "allowed": true,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "service_role",
+        "table": "mint_pages",
+        "allowed": true,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "service_role",
+        "table": "mint_pages",
+        "allowed": true,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "service_role",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "service_role",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "service_role",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "service_role",
+        "table": "mint_pages",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "anon",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "anon",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "anon",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "anon",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "anon",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "anon",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "anon",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "anon",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "authenticated",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "authenticated",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "authenticated",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "authenticated",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "authenticated",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "authenticated",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "service_role",
+        "table": "mint_page_revisions",
+        "allowed": true,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "service_role",
+        "table": "mint_page_revisions",
+        "allowed": true,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "service_role",
+        "table": "mint_page_revisions",
+        "allowed": true,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "service_role",
+        "table": "mint_page_revisions",
+        "allowed": true,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "service_role",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "service_role",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "service_role",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "service_role",
+        "table": "mint_page_revisions",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "anon",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "anon",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "anon",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "anon",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "anon",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "anon",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "anon",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "anon",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "authenticated",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "authenticated",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "authenticated",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "authenticated",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "authenticated",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "authenticated",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "service_role",
+        "table": "media_assets",
+        "allowed": true,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "service_role",
+        "table": "media_assets",
+        "allowed": true,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "service_role",
+        "table": "media_assets",
+        "allowed": true,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "service_role",
+        "table": "media_assets",
+        "allowed": true,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "service_role",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "service_role",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "service_role",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "service_role",
+        "table": "media_assets",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "anon",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "anon",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "anon",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "anon",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "anon",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "anon",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "anon",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "anon",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "authenticated",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "authenticated",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "authenticated",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "authenticated",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "authenticated",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "authenticated",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "service_role",
+        "table": "publication_records",
+        "allowed": true,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "service_role",
+        "table": "publication_records",
+        "allowed": true,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "service_role",
+        "table": "publication_records",
+        "allowed": true,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "service_role",
+        "table": "publication_records",
+        "allowed": true,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "service_role",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "service_role",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "service_role",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "service_role",
+        "table": "publication_records",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "anon",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "anon",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "anon",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "anon",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "anon",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "anon",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "anon",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "anon",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "authenticated",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "authenticated",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "authenticated",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "authenticated",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "authenticated",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "authenticated",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "service_role",
+        "table": "audit_logs",
+        "allowed": true,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "service_role",
+        "table": "audit_logs",
+        "allowed": true,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "service_role",
+        "table": "audit_logs",
+        "allowed": true,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "service_role",
+        "table": "audit_logs",
+        "allowed": true,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "service_role",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "service_role",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "service_role",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "service_role",
+        "table": "audit_logs",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "anon",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "anon",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "anon",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "anon",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "anon",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "anon",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "anon",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "anon",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "authenticated",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "authenticated",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "authenticated",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "authenticated",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "authenticated",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "authenticated",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "service_role",
+        "table": "auth_challenges",
+        "allowed": true,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "service_role",
+        "table": "auth_challenges",
+        "allowed": true,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "service_role",
+        "table": "auth_challenges",
+        "allowed": true,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "service_role",
+        "table": "auth_challenges",
+        "allowed": true,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "service_role",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "service_role",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "service_role",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "service_role",
+        "table": "auth_challenges",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "anon",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "anon",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "anon",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "anon",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "anon",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "anon",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "anon",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "anon",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "authenticated",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "authenticated",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "authenticated",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "authenticated",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "authenticated",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "authenticated",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "service_role",
+        "table": "app_sessions",
+        "allowed": true,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "service_role",
+        "table": "app_sessions",
+        "allowed": true,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "service_role",
+        "table": "app_sessions",
+        "allowed": true,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "service_role",
+        "table": "app_sessions",
+        "allowed": true,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "service_role",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "service_role",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "service_role",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "service_role",
+        "table": "app_sessions",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "anon",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "anon",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "anon",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "anon",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "anon",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "anon",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "anon",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "anon",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "authenticated",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "authenticated",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "authenticated",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "authenticated",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "authenticated",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "authenticated",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      },
+      {
+        "role": "service_role",
+        "table": "rate_limits",
+        "allowed": true,
+        "privilege": "SELECT"
+      },
+      {
+        "role": "service_role",
+        "table": "rate_limits",
+        "allowed": true,
+        "privilege": "INSERT"
+      },
+      {
+        "role": "service_role",
+        "table": "rate_limits",
+        "allowed": true,
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "service_role",
+        "table": "rate_limits",
+        "allowed": true,
+        "privilege": "DELETE"
+      },
+      {
+        "role": "service_role",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "service_role",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "service_role",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "service_role",
+        "table": "rate_limits",
+        "allowed": false,
+        "privilege": "MAINTAIN"
+      }
+    ],
+    "tables": [
+      {
+        "rls": true,
+        "name": "app_sessions"
+      },
+      {
+        "rls": true,
+        "name": "audit_logs"
+      },
+      {
+        "rls": true,
+        "name": "auth_challenges"
+      },
+      {
+        "rls": true,
+        "name": "collection_profiles"
+      },
+      {
+        "rls": true,
+        "name": "collections"
+      },
+      {
+        "rls": true,
+        "name": "media_assets"
+      },
+      {
+        "rls": true,
+        "name": "mint_page_revisions"
+      },
+      {
+        "rls": true,
+        "name": "mint_pages"
+      },
+      {
+        "rls": true,
+        "name": "publication_records"
+      },
+      {
+        "rls": true,
+        "name": "rate_limits"
+      }
+    ],
+    "indexes": [
+      {
+        "name": "app_sessions_expiry_idx",
+        "table": "app_sessions",
+        "definition": "CREATE INDEX app_sessions_expiry_idx ON public.app_sessions USING btree (expires_at)"
+      },
+      {
+        "name": "app_sessions_pkey",
+        "table": "app_sessions",
+        "definition": "CREATE UNIQUE INDEX app_sessions_pkey ON public.app_sessions USING btree (token_hash)"
+      },
+      {
+        "name": "audit_logs_page_idx",
+        "table": "audit_logs",
+        "definition": "CREATE INDEX audit_logs_page_idx ON public.audit_logs USING btree (page_id, created_at)"
+      },
+      {
+        "name": "audit_logs_pkey",
+        "table": "audit_logs",
+        "definition": "CREATE UNIQUE INDEX audit_logs_pkey ON public.audit_logs USING btree (id)"
+      },
+      {
+        "name": "auth_challenges_expiry_idx",
+        "table": "auth_challenges",
+        "definition": "CREATE INDEX auth_challenges_expiry_idx ON public.auth_challenges USING btree (expires_at)"
+      },
+      {
+        "name": "auth_challenges_pkey",
+        "table": "auth_challenges",
+        "definition": "CREATE UNIQUE INDEX auth_challenges_pkey ON public.auth_challenges USING btree (id)"
+      },
+      {
+        "name": "collection_profiles_pkey",
+        "table": "collection_profiles",
+        "definition": "CREATE UNIQUE INDEX collection_profiles_pkey ON public.collection_profiles USING btree (chain_id, contract)"
+      },
+      {
+        "name": "collections_pkey",
+        "table": "collections",
+        "definition": "CREATE UNIQUE INDEX collections_pkey ON public.collections USING btree (chain_id, address)"
+      },
+      {
+        "name": "media_assets_collection_idx",
+        "table": "media_assets",
+        "definition": "CREATE INDEX media_assets_collection_idx ON public.media_assets USING btree (chain_id, contract)"
+      },
+      {
+        "name": "media_assets_pkey",
+        "table": "media_assets",
+        "definition": "CREATE UNIQUE INDEX media_assets_pkey ON public.media_assets USING btree (id)"
+      },
+      {
+        "name": "mint_page_revisions_pkey",
+        "table": "mint_page_revisions",
+        "definition": "CREATE UNIQUE INDEX mint_page_revisions_pkey ON public.mint_page_revisions USING btree (page_id, version)"
+      },
+      {
+        "name": "mint_pages_collection_idx",
+        "table": "mint_pages",
+        "definition": "CREATE INDEX mint_pages_collection_idx ON public.mint_pages USING btree (chain_id, contract)"
+      },
+      {
+        "name": "mint_pages_pkey",
+        "table": "mint_pages",
+        "definition": "CREATE UNIQUE INDEX mint_pages_pkey ON public.mint_pages USING btree (id)"
+      },
+      {
+        "name": "mint_pages_slug_key",
+        "table": "mint_pages",
+        "definition": "CREATE UNIQUE INDEX mint_pages_slug_key ON public.mint_pages USING btree (slug)"
+      },
+      {
+        "name": "publication_records_actor_idx",
+        "table": "publication_records",
+        "definition": "CREATE INDEX publication_records_actor_idx ON public.publication_records USING btree (actor, status)"
+      },
+      {
+        "name": "publication_records_chain_id_tx_hash_key",
+        "table": "publication_records",
+        "definition": "CREATE UNIQUE INDEX publication_records_chain_id_tx_hash_key ON public.publication_records USING btree (chain_id, tx_hash)"
+      },
+      {
+        "name": "publication_records_collection_idx",
+        "table": "publication_records",
+        "definition": "CREATE INDEX publication_records_collection_idx ON public.publication_records USING btree (chain_id, contract, created_at DESC)"
+      },
+      {
+        "name": "publication_records_page_idx",
+        "table": "publication_records",
+        "definition": "CREATE INDEX publication_records_page_idx ON public.publication_records USING btree (page_id)"
+      },
+      {
+        "name": "publication_records_pkey",
+        "table": "publication_records",
+        "definition": "CREATE UNIQUE INDEX publication_records_pkey ON public.publication_records USING btree (id)"
+      },
+      {
+        "name": "rate_limits_pkey",
+        "table": "rate_limits",
+        "definition": "CREATE UNIQUE INDEX rate_limits_pkey ON public.rate_limits USING btree (key)"
+      },
+      {
+        "name": "rate_limits_reset_idx",
+        "table": "rate_limits",
+        "definition": "CREATE INDEX rate_limits_reset_idx ON public.rate_limits USING btree (reset_at)"
+      }
+    ],
+    "policies": 0,
+    "functions": [
+      {
+        "name": "tcm_command(text,jsonb)",
+        "settings": [
+          "search_path=pg_catalog, public"
+        ],
+        "security_definer": false
+      }
+    ],
+    "row_counts": {
+      "audit_logs": 0,
+      "mint_pages": 0,
+      "collections": 0,
+      "rate_limits": 0,
+      "app_sessions": 0,
+      "media_assets": 0,
+      "auth_challenges": 0,
+      "collection_profiles": 0,
+      "mint_page_revisions": 0,
+      "publication_records": 0
+    },
+    "constraints": [
+      {
+        "name": "app_sessions_pkey",
+        "type": "p",
+        "definition": "PRIMARY KEY (token_hash)"
+      },
+      {
+        "name": "audit_logs_page_id_fkey",
+        "type": "f",
+        "definition": "FOREIGN KEY (page_id) REFERENCES mint_pages(id)"
+      },
+      {
+        "name": "audit_logs_pkey",
+        "type": "p",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "auth_challenges_pkey",
+        "type": "p",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "collection_profiles_chain_id_contract_fkey",
+        "type": "f",
+        "definition": "FOREIGN KEY (chain_id, contract) REFERENCES collections(chain_id, address)"
+      },
+      {
+        "name": "collection_profiles_pkey",
+        "type": "p",
+        "definition": "PRIMARY KEY (chain_id, contract)"
+      },
+      {
+        "name": "collections_address_check",
+        "type": "c",
+        "definition": "CHECK ((address ~ '^0x[0-9a-f]{40}$'::text))"
+      },
+      {
+        "name": "collections_pkey",
+        "type": "p",
+        "definition": "PRIMARY KEY (chain_id, address)"
+      },
+      {
+        "name": "media_assets_chain_id_contract_fkey",
+        "type": "f",
+        "definition": "FOREIGN KEY (chain_id, contract) REFERENCES collections(chain_id, address)"
+      },
+      {
+        "name": "media_assets_pkey",
+        "type": "p",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "mint_page_revisions_page_id_fkey",
+        "type": "f",
+        "definition": "FOREIGN KEY (page_id) REFERENCES mint_pages(id)"
+      },
+      {
+        "name": "mint_page_revisions_pkey",
+        "type": "p",
+        "definition": "PRIMARY KEY (page_id, version)"
+      },
+      {
+        "name": "mint_pages_chain_id_contract_fkey",
+        "type": "f",
+        "definition": "FOREIGN KEY (chain_id, contract) REFERENCES collections(chain_id, address)"
+      },
+      {
+        "name": "mint_pages_pkey",
+        "type": "p",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "mint_pages_slug_check",
+        "type": "c",
+        "definition": "CHECK ((slug ~ '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'::text))"
+      },
+      {
+        "name": "mint_pages_slug_key",
+        "type": "u",
+        "definition": "UNIQUE (slug)"
+      },
+      {
+        "name": "mint_pages_state_check",
+        "type": "c",
+        "definition": "CHECK ((state = ANY (ARRAY['DRAFT'::text, 'READY_FOR_REVIEW'::text, 'PUBLISHING'::text, 'PUBLISHED'::text, 'PUBLISH_FAILED'::text, 'OUT_OF_SYNC'::text, 'ACTION_REQUIRED'::text])))"
+      },
+      {
+        "name": "publication_records_chain_id_tx_hash_key",
+        "type": "u",
+        "definition": "UNIQUE (chain_id, tx_hash)"
+      },
+      {
+        "name": "publication_records_page_id_fkey",
+        "type": "f",
+        "definition": "FOREIGN KEY (page_id) REFERENCES mint_pages(id)"
+      },
+      {
+        "name": "publication_records_pkey",
+        "type": "p",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "rate_limits_pkey",
+        "type": "p",
+        "definition": "PRIMARY KEY (key)"
+      }
+    ],
+    "rpc_sequence": [
+      {
+        "rpc": false,
+        "role": "anon",
+        "usage": false,
+        "select": false,
+        "update": false
+      },
+      {
+        "rpc": false,
+        "role": "authenticated",
+        "usage": false,
+        "select": false,
+        "update": false
+      },
+      {
+        "rpc": true,
+        "role": "service_role",
+        "usage": true,
+        "select": true,
+        "update": false
+      }
+    ]
+  },
+  "secondary_indexes": [
+    "app_sessions_expiry_idx",
+    "audit_logs_page_idx",
+    "auth_challenges_expiry_idx",
+    "media_assets_collection_idx",
+    "mint_pages_collection_idx",
+    "publication_records_actor_idx",
+    "publication_records_collection_idx",
+    "publication_records_page_idx",
+    "rate_limits_reset_idx"
+  ],
+  "security_advisor": {
+    "severity": "INFO",
+    "name": "rls_enabled_no_policy",
+    "count": 10,
+    "expected": true,
+    "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy"
+  },
+  "performance_advisor": {
+    "severity": "INFO",
+    "name": "unused_index",
+    "count": 9,
+    "expected": true,
+    "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index"
+  },
+  "remote_writes_performed": false
+}

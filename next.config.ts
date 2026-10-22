@@ -3,13 +3,30 @@ const config: NextConfig = {
   poweredByHeader: false,
   serverExternalPackages: ['@electric-sql/pglite'],
   async headers() {
-    return [{source:'/:path*',headers:[
-      {key:'X-Content-Type-Options',value:'nosniff'},
-      {key:'Referrer-Policy',value:'strict-origin-when-cross-origin'},
-      {key:'X-Frame-Options',value:'DENY'},
-      {key:'Permissions-Policy',value:'camera=(), microphone=(), geolocation=()'},
-      {key:'Content-Security-Policy',value:"default-src 'self'; script-src 'self' 'unsafe-inline'"+(process.env.NODE_ENV==='development'?" 'unsafe-eval'":"")+"; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https: wss:; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; frame-src https://verify.walletconnect.com https://verify.walletconnect.org"}
-    ]}];
-  }
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          ...(process.env.NODE_ENV === 'production'
+            ? [{ key: 'Strict-Transport-Security', value: 'max-age=31536000' }]
+            : []),
+        ],
+      },
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'none'; frame-ancestors 'none'; sandbox",
+          },
+          { key: 'Cross-Origin-Resource-Policy', value: 'same-origin' },
+        ],
+      },
+    ];
+  },
 };
 export default config;

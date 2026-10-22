@@ -249,9 +249,16 @@ function Tokens({ info }: { info: any }) {
       .then(async (r) => {
         if (!live) return;
         setTokens(r.tokens);
-        const results = await Promise.allSettled(
-          r.tokens.map(async (t: any) => [t.id, await api('metadata', { uri: t.uri })]),
-        );
+        const results: PromiseSettledResult<any>[] = [];
+        for (let i = 0; i < r.tokens.length && live; i += 4) {
+          results.push(
+            ...(await Promise.allSettled(
+              r.tokens
+                .slice(i, i + 4)
+                .map(async (t: any) => [t.id, await api('metadata', { uri: t.uri })]),
+            )),
+          );
+        }
         if (live)
           setMetadata(
             Object.fromEntries(

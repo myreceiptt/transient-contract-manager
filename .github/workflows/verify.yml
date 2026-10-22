@@ -46,6 +46,8 @@ jobs:
         run: npm audit --audit-level=moderate --json > artifacts/ci/dependency-audit.json
       - name: Production build
         run: npm run build 2>&1 | tee artifacts/ci/build.txt
+      - name: Production CSP and HTTP security regression
+        run: npm run test:preview 2>&1 | tee artifacts/ci/preview-http.txt
       - name: Preserve verification logs
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Providers } from '@/components/providers';
 import { Shell } from '@/components/shell';
 import './globals.css';
+export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Transient Contract Manager · ENDHONESA',
   description:

@@ -1,12 +1,17 @@
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
+import { request } from 'node:https';
+import { checkServerIdentity } from 'node:tls';
+import { publicIp } from './public-ip';
 import { AppError, isSafeUrl } from '../lib/domain';
 export function mediaTarget(uri: string) {
   if (
     uri.split('/').some((s) => {
       try {
         const decoded = decodeURIComponent(s);
-        return decoded === '.' || decoded === '..' || decoded.includes('\\');
+        return (
+          decoded === '.' || decoded === '..' || decoded.includes('\\') || decoded.includes('/')
+        );
       } catch {
         return true;
       }
@@ -42,58 +47,122 @@ export function mediaTarget(uri: string) {
     throw new AppError('MEDIA_PATH', 'Use the gateway IPFS path');
   return url;
 }
-function publicIp(ip: string) {
-  if (isIP(ip) === 6) return !/^(::|f[cd]|fe[89ab]|2001:db8)/i.test(ip) && !ip.includes('.');
-  const [a, b] = ip.split('.').map(Number);
-  return !(
-    a === 0 ||
-    a === 10 ||
-    a === 127 ||
-    (a === 169 && b === 254) ||
-    (a === 172 && b >= 16 && b <= 31) ||
-    (a === 192 && b === 168) ||
-    (a === 100 && b >= 64 && b <= 127) ||
-    a >= 224 ||
-    (a === 198 && (b === 18 || b === 19))
-  );
-}
-export async function fetchMedia(uri: string, max: number) {
+export async function fetchMedia(uri: string, max: number, callerSignal?: AbortSignal) {
   const url = mediaTarget(uri);
-  const addresses = await lookup(url.hostname, { all: true });
-  if (!addresses.length || addresses.some((x) => !publicIp(x.address)))
-    throw new AppError('MEDIA_NETWORK', 'Private network destinations are blocked');
-  const r = await fetch(url, {
-    redirect: 'error',
-    signal: AbortSignal.timeout(10000),
-    headers: { Accept: 'application/json,image/png,image/jpeg,image/webp,image/gif' },
-  });
-  if (!r.ok) throw new AppError('MEDIA_UNAVAILABLE', 'Media gateway is unavailable', 502);
-  if (Number(r.headers.get('content-length') || 0) > max)
-    throw new AppError('MEDIA_SIZE', 'Media exceeds the size limit', 413);
-  if (!r.body) throw new AppError('MEDIA_EMPTY', 'No media returned');
-  const reader = r.body.getReader();
-  let size = 0;
-  const chunks: Uint8Array[] = [];
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    size += value.byteLength;
-    if (size > max) {
-      await reader.cancel();
-      throw new AppError('MEDIA_SIZE', 'Media exceeds the size limit', 413);
-    }
-    chunks.push(value);
+  const signal = AbortSignal.any([
+    AbortSignal.timeout(10000),
+    ...(callerSignal ? [callerSignal] : []),
+  ]);
+  try {
+    const addresses = await new Promise<Awaited<ReturnType<typeof resolveAddresses>>>(
+      (resolve, reject) => {
+        const abort = () => reject(new AppError('MEDIA_TIMEOUT', 'Media request timed out', 504));
+        if (signal.aborted) {
+          abort();
+          return;
+        }
+        signal.addEventListener('abort', abort, { once: true });
+        resolveAddresses(url.hostname)
+          .then(resolve, reject)
+          .finally(() => signal.removeEventListener('abort', abort));
+      },
+    );
+    if (!addresses.length || addresses.some((x) => !publicIp(x.address)))
+      throw new AppError(
+        'MEDIA_NETWORK',
+        'Private or special-use network destinations are blocked',
+      );
+    const destination = addresses[0];
+    // Connect to the checked IP itself. No second hostname resolution, redirects,
+    // connection reuse or proxy agent. TLS still authenticates the original name.
+    return await new Promise<Buffer>((resolve, reject) => {
+      const r = request(
+        {
+          protocol: 'https:',
+          hostname: destination.address,
+          family: destination.family,
+          port: 443,
+          path: url.pathname + url.search,
+          method: 'GET',
+          agent: false,
+          servername: url.hostname,
+          rejectUnauthorized: true,
+          checkServerIdentity: (_hostname, cert) => checkServerIdentity(url.hostname, cert),
+          signal,
+          maxHeaderSize: 16384,
+          headers: {
+            Host: url.host,
+            Accept: 'application/json,image/png,image/jpeg,image/webp,image/gif',
+            'Accept-Encoding': 'identity',
+          },
+        },
+        (res) => {
+          const fail = (e: AppError) => {
+            reject(e);
+            res.destroy();
+            r.destroy();
+          };
+          if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
+            fail(
+              new AppError(
+                'MEDIA_UNAVAILABLE',
+                'Media gateway failed or attempted a redirect',
+                502,
+              ),
+            );
+            return;
+          }
+          if (res.headers['content-encoding'] && res.headers['content-encoding'] !== 'identity') {
+            fail(
+              new AppError('MEDIA_ENCODING', 'Compressed media responses are not accepted', 502),
+            );
+            return;
+          }
+          const length = res.headers['content-length'];
+          if (length && (!/^\d+$/.test(length) || Number(length) > max)) {
+            fail(new AppError('MEDIA_SIZE', 'Media exceeds the size limit', 413));
+            return;
+          }
+          let size = 0;
+          const chunks: Buffer[] = [];
+          res.on('data', (value: Buffer) => {
+            size += value.length;
+            if (size > max) {
+              fail(new AppError('MEDIA_SIZE', 'Media exceeds the size limit', 413));
+              return;
+            }
+            chunks.push(value);
+          });
+          res.on('error', reject);
+          res.on('aborted', () =>
+            reject(new AppError('MEDIA_UNAVAILABLE', 'Media response interrupted', 502)),
+          );
+          res.on('end', () => {
+            if (!size) reject(new AppError('MEDIA_EMPTY', 'No media returned'));
+            else resolve(Buffer.concat(chunks));
+          });
+        },
+      );
+      r.on('error', reject);
+      r.end();
+    });
+  } catch (e) {
+    if (e instanceof AppError) throw e;
+    if (signal.aborted) throw new AppError('MEDIA_TIMEOUT', 'Media request timed out', 504);
+    throw new AppError('MEDIA_UNAVAILABLE', 'Media gateway is unavailable', 502);
   }
-  return Buffer.concat(chunks);
 }
-export async function readMetadata(uri: string) {
-  const bytes = await fetchMedia(uri, 256 * 1024);
+const resolveAddresses = (hostname: string) => lookup(hostname, { all: true, verbatim: true });
+export async function readMetadata(uri: string, signal?: AbortSignal) {
+  const bytes = await fetchMedia(uri, 256 * 1024, signal);
   let raw;
   try {
     raw = JSON.parse(bytes.toString('utf8'));
   } catch {
     throw new AppError('METADATA_JSON', 'Token metadata must be JSON');
   }
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw))
+    throw new AppError('METADATA_JSON', 'Token metadata must be a JSON object');
   const text = (v: unknown, n: number) => (typeof v === 'string' ? v.slice(0, n) : '');
   const image = text(raw.image, 2048);
   return {
@@ -103,8 +172,8 @@ export async function readMetadata(uri: string) {
     externalUrl: isSafeUrl(raw.external_url) ? raw.external_url : '',
     attributes: Array.isArray(raw.attributes)
       ? raw.attributes.slice(0, 60).map((a: any) => ({
-          trait_type: text(a.trait_type, 100),
-          value: text(String(a.value ?? ''), 200),
+          trait_type: text(a?.trait_type, 100),
+          value: text(String(a?.value ?? ''), 200),
         }))
       : [],
   };

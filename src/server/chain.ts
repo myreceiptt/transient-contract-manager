@@ -39,7 +39,9 @@ export function client(id: number) {
   getChain(id);
   if (
     id === 31337 &&
-    (process.env.NODE_ENV === 'production' || process.env.LOCAL_CHAIN_ENABLED !== 'true')
+    (process.env.NODE_ENV === 'production' ||
+      process.env.VERCEL === '1' ||
+      process.env.LOCAL_CHAIN_ENABLED !== 'true')
   )
     throw new AppError('CHAIN_DISABLED', 'Local chain is not enabled', 400);
   return createPublicClient({
@@ -59,10 +61,20 @@ export async function exactChain(c: ReturnType<typeof client>, id: number) {
   if ((await c.getChainId()) !== id)
     throw new AppError('CHAIN_MISMATCH', 'RPC returned a different chain ID', 503);
 }
+// This reviewed preview release has no supported-network transaction capability.
+// Enabling a network requires a separate reviewed code/release policy change.
+export const networkWritePermissions: Readonly<Record<number, boolean>> = Object.freeze({
+  1: false,
+  4663: false,
+  8453: false,
+  360: false,
+});
 export function writesAllowed(id: number) {
   return id === 31337
-    ? process.env.NODE_ENV !== 'production' && process.env.LOCAL_CHAIN_ENABLED === 'true'
-    : process.env.MAINNET_WRITES_ENABLED === 'true';
+    ? process.env.NODE_ENV !== 'production' &&
+        process.env.VERCEL !== '1' &&
+        process.env.LOCAL_CHAIN_ENABLED === 'true'
+    : process.env.MAINNET_WRITES_ENABLED === 'true' && networkWritePermissions[id] === true;
 }
 export function requireWrites(id: number) {
   if (!writesAllowed(id))

@@ -39,6 +39,8 @@ export function MintStudio({
 }) {
   const { ensureSession } = useSession();
   const [pages, setPages] = useState<PageRecord[]>([]);
+  const [morePages, setMorePages] = useState(false);
+  const [moreRevisions, setMoreRevisions] = useState(false);
   const [page, setPage] = useState<PageRecord>();
   const [draft, setDraft] = useState<Draft>();
   const [saved, setSaved] = useState('');
@@ -71,8 +73,14 @@ export function MintStudio({
       setBusy(false);
     }
   }
-  async function list() {
-    setPages(await api('pages', { chainId: info.chainId, contract: info.address }));
+  async function list(append = false) {
+    const batch = await api('pages', {
+      chainId: info.chainId,
+      contract: info.address,
+      offset: append ? pages.length : 0,
+    });
+    setPages((previous) => (append ? [...previous, ...batch] : batch));
+    setMorePages(batch.length === 25);
   }
   function select(p: PageRecord | undefined, d: Draft) {
     setPage(p);
@@ -176,7 +184,11 @@ export function MintStudio({
             <Plus size={18} />
           </button>
         </div>
-        <button className="button secondary compact wide" disabled={busy} onClick={() => run(list)}>
+        <button
+          className="button secondary compact wide"
+          disabled={busy}
+          onClick={() => run(() => list())}
+        >
           Refresh shared drafts
         </button>
         {pages.length === 0 && <p className="muted">Create the first home for your drop.</p>}
@@ -193,6 +205,15 @@ export function MintStudio({
             </small>
           </button>
         ))}
+        {morePages && (
+          <button
+            className="button secondary compact wide"
+            disabled={busy}
+            onClick={() => run(() => list(true))}
+          >
+            Load more drafts
+          </button>
+        )}
       </aside>
       <div className="studio-main">
         {error && <Notice type="error">{error}</Notice>}
@@ -632,6 +653,7 @@ export function MintStudio({
                         api('audit', { id: page.id }),
                       ]);
                       setRevisions(r);
+                      setMoreRevisions(r.length === 25);
                       setAudit(a);
                       setShowHistory(!showHistory);
                     })
@@ -669,9 +691,27 @@ export function MintStudio({
                           </button>
                         </div>
                       ))}
+                      {moreRevisions && (
+                        <button
+                          className="button secondary compact"
+                          disabled={busy}
+                          onClick={() =>
+                            run(async () => {
+                              const batch = await api('revisions', {
+                                id: page.id,
+                                offset: revisions.length,
+                              });
+                              setRevisions((previous) => [...previous, ...batch]);
+                              setMoreRevisions(batch.length === 25);
+                            })
+                          }
+                        >
+                          Load older revisions
+                        </button>
+                      )}
                     </div>
                     <div>
-                      <h4>Audit log</h4>
+                      <h4>Latest audit entries</h4>
                       {audit.map((a) => (
                         <div className="history-row" key={a.id}>
                           <span>

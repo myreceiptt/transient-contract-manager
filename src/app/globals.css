@@ -1623,3 +1623,121 @@ th {
 .collection-metadata dd,.token-card dd { margin:0; overflow-wrap:anywhere; font-weight:600; }
 .collection-metadata p { white-space:pre-wrap; }
 @media (max-width:700px) { .collection-metadata { grid-template-columns:1fr; } }
+
+
+/* Prof. NOTA monochrome identity, derived from the supplied nota.endhonesa.com screenshots.
+   Presentation-only layer: retains layouts, content, form behavior and security logic. */
+:root {
+  color-scheme: dark;
+  --nota-void: #000000;
+  --nota-background: #101011;
+  --nota-surface: #161618;
+  --nota-border: #35353a;
+  --nota-muted: #a1a1aa;
+  --nota-secondary: #c1c1c8;
+  --nota-text: #f4f4f5;
+  --nota-high-contrast: #ffffff;
+  --ink: var(--nota-text);
+  --muted: var(--nota-muted);
+  --bg: var(--nota-background);
+  --line: var(--nota-border);
+  --accent: #f4f4f5;
+  --dark: #000000;
+  --white: var(--nota-surface);
+  --error: #ff9898;
+}
+html, body { background: var(--nota-background); color: var(--nota-text); }
+::selection { color: #000; background: #e0e0e3; }
+.sidebar { background: #0a0a0b; }
+.topbar { background: #101011; }
+.panel, .stat-row > div, .token-card, .wallet-popover, .review-modal {
+  background: var(--nota-surface); color: var(--nota-text);
+}
+.sidebar-label, .sidebar nav a, .sidebar-note, .sidebar-note strong,
+.breadcrumb, .breadcrumb span, .eyebrow, .muted-heading, .header-stamp,
+.section-number, .back-link, .network-label, .page-footer, .feature-row svg,
+.network-strip svg, .reference-disclaimer, .art-caption, .artwork-credit,
+.verified-caption, .sale-stats span, .page-list-item > span, .page-list-item small {
+  color: var(--nota-muted);
+}
+.sidebar nav a.active, .sidebar nav a:hover, .page-list-item.selected {
+  background: #27272a;
+  color: #fff;
+}
+.sidebar nav a.active { border-left: 2px solid #f4f4f5; }
+.sidebar-note p, .sidebar-footer p, .reference-bottom p { color: var(--nota-muted); }
+.header-stamp { border-color: var(--nota-border); }
+.tiny-square, .online-dot { background: #f4f4f5; }
+.online-dot.inactive { background: #71717b; }
+button:focus-visible, a:focus-visible { outline: 3px solid #f4f4f5; outline-offset: 3px; }
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid #f4f4f5; outline-offset: 2px; }
+input, select, textarea {
+  color: #f4f4f5; background: #0c0c0d; border-color: #45454b;
+}
+input::placeholder, textarea::placeholder { color: #a1a1aa; opacity: 1; }
+input:disabled, select:disabled, textarea:disabled {
+  background: #202023; color: #a1a1aa; border-color: #35353a;
+}
+input[type="file"] { color: #e4e4e7; }
+input[type="file"]::file-selector-button {
+  background: #27272a; color: #fff; border: 1px solid #52525b;
+  border-radius: 6px; padding: 8px 12px; margin-right: 12px; cursor: pointer;
+}
+button:disabled { opacity: .57; }
+.button, .button:visited {
+  background: #f4f4f5; border-color: #f4f4f5; color: #101011;
+}
+.button.secondary, .button.secondary:visited, .icon-button {
+  background: #19191b; border-color: #52525b; color: #f4f4f5;
+}
+.button:hover:not(:disabled), .icon-button:hover:not(:disabled) {
+  filter: none; background: #d4d4d8; color: #101011;
+}
+.button.secondary:hover:not(:disabled), .icon-button:hover:not(:disabled) {
+  background: #303034; color: #fff;
+}
+.brand-symbol { background: #f4f4f5; color: #000; }
+.reference-panel { background: #161618; border-color: var(--nota-border); }
+.reference-art {
+  background: radial-gradient(ellipse, #29292d 0%, #161618 62%, #101011 100%);
+  border-color: #45454b;
+}
+.oil-ring { border-color: #e4e4e7; box-shadow: inset 7px 5px 0 #a1a1aa, 4px 8px 0 #3f3f46; }
+.oil-ring:before { border-color: #71717b; }
+.oil-line { background: #71717b; }
+.oil-tag { background: #f4f4f5; color: #101011; border-color: #d4d4d8; box-shadow: 3px 4px #52525b; }
+.reference-bottom .icon-button { border-color: #52525b; }
+.tag, .tag.success, .tag.light, .sale-status {
+  color: #e4e4e7; background: #27272a; border-color: #52525b;
+}
+.tag.success { color: #f4f4f5; border-color: #71717b; }
+.notice, .notice.success, .simulation-pass {
+  color: #e4e4e7; background: #202023; border-color: #52525b;
+}
+.notice.error { color: #ffb4b4; background: #321c20; border-color: #9d424d; }
+.error, .notice.error small { color: #ffb4b4; }
+.spinner { border-color: #52525b; border-top-color: #f4f4f5; }
+.tabs button { color: #b4b4bc; }
+.tabs button.active { color: #fff; border-color: #f4f4f5; }
+.tabs button:hover { color: #fff; }
+.artwork, .artwork-placeholder { background: #242427; color: #b4b4bc; }
+.mint-preview { background: #202023; }
+.segmented button { color: #b4b4bc; }
+.segmented button.active { background: #3f3f46; color: #fff; }
+.review-modal { box-shadow: 0 24px 100px #000b; }
+.modal-backdrop { background: #000b; }
+.checkbox input { accent-color: #d4d4d8; }
+pre { background: #0c0c0d; color: #e4e4e7; border: 1px solid #35353a; }
+th { color: #c1c1c8; }
+.collection-metadata dl > div, .token-card dl > div {
+  background: #252528; border: 1px solid #35353a; color: #f4f4f5;
+}
+/* Preserve network distinctions without introducing saturated brand colors. */
+.chain-dot, .chain-dot.c1, .chain-dot.c2, .chain-dot.c3 { background: #a1a1aa; }
+.chain-dot.c1 { background: #f4f4f5; }
+.chain-dot.c2 { background: #71717b; }
+.chain-dot.c3 { background: #52525b; }
+@media (prefers-contrast: more) {
+  :root { --nota-muted: #d4d4d8; --nota-border: #71717b; --line: #71717b; }
+  .button.secondary, input, select, textarea { border-color: #a1a1aa; }
+}

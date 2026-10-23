@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
     const token=process.env.PINATA_JWT;
     if (!token) throw new AppError('UPLOAD_NOT_CONFIGURED','IPFS upload service is not configured',503);
     const payload = new FormData();
-    payload.set('file',new File([bytes],kind+'-'+Date.now()+({ 'image/png':'.png','image/jpeg':'.jpg','image/webp':'.webp'}[mime]),{type:mime}));
+    payload.set('file',new File([new Uint8Array(bytes)],kind+'-'+Date.now()+({ 'image/png':'.png','image/jpeg':'.jpg','image/webp':'.webp'}[mime]),{type:mime}));
     payload.set('network','public');
     payload.set('name','tcm-'+kind+'-'+Date.now());
     const uploadSignal=AbortSignal.any([req.signal,AbortSignal.timeout(30000)]);

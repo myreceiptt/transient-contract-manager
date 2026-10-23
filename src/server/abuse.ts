@@ -40,6 +40,7 @@ export function operationBudget(op: string): Budget {
   if (['inspect', 'currency', 'balance', 'public'].includes(op)) return 'public';
   if (
     [
+      'preview_admin',
       'prepare_admin',
       'prepare_publication',
       'prepare_mint',

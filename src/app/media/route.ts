@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchMedia, rasterType } from '@/server/media';
+import { fetchMediaWithFallback, rasterType } from '@/server/media';
 import { AppError } from '@/lib/domain';
 import { acquireSlot, rateLimit } from '@/server/abuse';
 import { checkHost, errorHeaders } from '@/server/security';
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
       throw new AppError('MEDIA_URL', 'Missing or oversized media URI');
     release = acquireSlot(req, 'media');
     await rateLimit(req, 'media');
-    const data = await fetchMedia(uri, 3 * 1024 * 1024, req.signal);
+    const data = await fetchMediaWithFallback(uri, 3 * 1024 * 1024, req.signal);
     const mime = rasterType(data);
     return new Response(new Uint8Array(data), {
       headers: {

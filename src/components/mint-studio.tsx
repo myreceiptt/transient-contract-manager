@@ -45,6 +45,7 @@ export function MintStudio({
   const [draft, setDraft] = useState<Draft>();
   const [saved, setSaved] = useState('');
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState<'artwork' | 'banner' | ''>('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [snapshot, setSnapshot] = useState<any>();
@@ -134,6 +135,40 @@ export function MintStudio({
   function sale(k: keyof Draft['sale'], v: string) {
     setDraft((d) => (d ? { ...d, sale: { ...d.sale, [k]: v } } : d));
     setContentReview(undefined);
+  }
+  async function upload(kind: 'artwork' | 'banner', file?: File) {
+    if (!file || !draft) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 3 * 1024 * 1024) {
+      setError('Choose a JPG, PNG or WebP file under 3 MB.');
+      return;
+    }
+    setError('');
+    setNotice('');
+    setUploading(kind);
+    try {
+      await ensureSession(info.chainId);
+      const csrf = document.cookie.split('; ').find(v => v.startsWith('__Host-tcm_csrf='))?.split('=')[1];
+      if (!csrf) throw new Error('Sign in with your wallet before uploading.');
+      const form = new FormData();
+      form.set('chainId', String(info.chainId));
+      form.set('contract', info.address);
+      form.set('kind', kind);
+      form.set('file', file);
+      const response = await fetch('/api/media-upload', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'X-CSRF-Token': csrf },
+        body: form,
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.message || body.error || 'Upload failed');
+      content(kind, body.uri);
+      setNotice('IPFS upload complete: ' + body.cid + '. Save revision to persist this media.');
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setUploading('');
+    }
   }
   async function save() {
     if (!draft) return;
@@ -290,6 +325,11 @@ export function MintStudio({
                     onChange={(e) => content('artwork', e.target.value)}
                     placeholder="ipfs://…"
                   />
+                  <small>JPG, PNG, WebP · recommended ≤ 2 MB · maximum 3 MB</small>
+                  <input type="file" accept="image/jpeg,image/png,image/webp"
+                    aria-label="Upload artwork to IPFS" disabled={!!uploading || busy}
+                    onChange={(e) => { void upload('artwork', e.target.files?.[0]); e.target.value = ''; }} />
+                  {uploading === 'artwork' && <small role="status">Uploading artwork to IPFS…</small>}
                 </label>
                 <label>
                   Banner URL
@@ -298,6 +338,11 @@ export function MintStudio({
                     onChange={(e) => content('banner', e.target.value)}
                     placeholder="ipfs://…"
                   />
+                  <small>JPG, PNG, WebP · recommended ≤ 2 MB · maximum 3 MB</small>
+                  <input type="file" accept="image/jpeg,image/png,image/webp"
+                    aria-label="Upload banner to IPFS" disabled={!!uploading || busy}
+                    onChange={(e) => { void upload('banner', e.target.files?.[0]); e.target.value = ''; }} />
+                  {uploading === 'banner' && <small role="status">Uploading banner to IPFS…</small>}
                 </label>
               </div>
               <label>

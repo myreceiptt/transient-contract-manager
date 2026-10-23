@@ -24,6 +24,8 @@ export function mediaTarget(uri: string) {
   const hosts = [
     'ipfs.io',
     'gateway.pinata.cloud',
+    'dweb.link',
+    'w3s.link',
     'cloudflare-ipfs.com',
     ...(process.env.MEDIA_ALLOWED_HOSTS || '')
       .split(',')
@@ -41,13 +43,13 @@ export function mediaTarget(uri: string) {
       'This media host is not approved. Use an IPFS URI or ask the operator to approve its HTTPS hostname.',
     );
   if (
-    ['ipfs.io', 'gateway.pinata.cloud', 'cloudflare-ipfs.com'].includes(url.hostname) &&
+    ['ipfs.io', 'gateway.pinata.cloud', 'cloudflare-ipfs.com', 'dweb.link', 'w3s.link'].includes(url.hostname) &&
     !url.pathname.startsWith('/ipfs/')
   )
     throw new AppError('MEDIA_PATH', 'Use the gateway IPFS path');
   return url;
 }
-export async function fetchMedia(uri: string, max: number, callerSignal?: AbortSignal) {
+async function fetchMediaFromGateway(uri: string, max: number, callerSignal?: AbortSignal) {
   const url = mediaTarget(uri);
   const signal = AbortSignal.any([
     AbortSignal.timeout(10000),
@@ -151,6 +153,28 @@ export async function fetchMedia(uri: string, max: number, callerSignal?: AbortS
     if (signal.aborted) throw new AppError('MEDIA_TIMEOUT', 'Media request timed out', 504);
     throw new AppError('MEDIA_UNAVAILABLE', 'Media gateway is unavailable', 502);
   }
+}
+// IPFS gateways may redirect or fail independently. Preserve strict SSRF validation,
+// destination pinning, HTTPS certificate checks and no-redirect policy per attempt.
+export async function fetchMedia(uri: string, max: number, signal?: AbortSignal) {
+  if (!uri.startsWith('ipfs://')) return fetchMediaFromGateway(uri, max, signal);
+  const cidPath = uri.slice('ipfs://'.length);
+  const gateways = [
+    'https://dweb.link/ipfs/',
+    'https://w3s.link/ipfs/',
+    'https://gateway.pinata.cloud/ipfs/',
+    'https://ipfs.io/ipfs/',
+  ];
+  let lastError: unknown;
+  for (const gateway of gateways) {
+    try {
+      return await fetchMediaFromGateway(gateway + cidPath, max, signal);
+    } catch (error) {
+      lastError = error;
+      if (signal?.aborted) break;
+    }
+  }
+  throw lastError ?? new AppError('MEDIA_UNAVAILABLE', 'IPFS gateways are unavailable', 502);
 }
 const resolveAddresses = (hostname: string) => lookup(hostname, { all: true, verbatim: true });
 export async function readMetadata(uri: string, signal?: AbortSignal) {

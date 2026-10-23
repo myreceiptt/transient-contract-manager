@@ -23,11 +23,13 @@ export function AdminActions({
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [simulation, setSimulation] = useState<any>();
   const { ensureSession } = useSession();
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError('');
+    setSimulation(undefined);
     try {
       await ensureSession(info.chainId);
       let args: any = { action };
@@ -49,9 +51,11 @@ export function AdminActions({
       if (action === 'batchCreateToken') args.tokens = JSON.parse(batch);
       if (action.includes('Royalty'))
         args.royalty = { recipient: royaltyRecipient, bps: Number(bps) };
-      onIntent(
-        await api('prepare_admin', { chainId: info.chainId, contract: info.address, action: args }),
-      );
+      const result = await api(info.canWrite ? 'prepare_admin' : 'preview_admin', {
+        chainId: info.chainId, contract: info.address, action: args,
+      });
+      if (info.canWrite) onIntent(result);
+      else setSimulation(result);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -70,14 +74,14 @@ export function AdminActions({
       </p>
       {!info.canWrite && (
         <Notice>
-          Mainnet writes are locked in this development release. These controls operate on the
-          configured local test chain.
+          Mainnet writes remain locked. Authorized owners/admins may run read-only contract
+          simulations here. No wallet transaction signing or blockchain write is requested.
         </Notice>
       )}
       <form onSubmit={submit}>
         <label>
           Action
-          <select value={action} onChange={(e) => setAction(e.target.value)}>
+          <select value={action} onChange={(e) => { setAction(e.target.value); setSimulation(undefined); }}>
             <option value="mintToken">Mint existing token / airdrop</option>
             <option value="createToken">Create token ID</option>
             <option value="batchCreateToken">Create multiple token IDs</option>
@@ -169,9 +173,21 @@ export function AdminActions({
           </Notice>
         )}
         {error && <Notice type="error">{error}</Notice>}
-        <button className="button" disabled={busy || !info.authorized || !info.canWrite}>
-          {busy ? 'Simulating…' : 'Simulate & review'}
+        <button className="button" disabled={busy || !info.authorized}>
+          {busy ? 'Simulating…' : info.canWrite ? 'Simulate & review' : 'Simulate (read-only)'}
         </button>
+        {simulation && (
+          <div className="notice" role="status" aria-live="polite">
+            <strong>Read-only simulation: {simulation.tx.functionName}</strong>
+            <p>Result: {simulation.tx.simulation}. Tested against block {simulation.observedBlock} on chain {simulation.chainId}.</p>
+            <p>Estimated gas: {simulation.tx.estimatedGas}; estimated network fee: {simulation.tx.estimatedNetworkFee} wei (not charged).</p>
+            <small>{simulation.warning}</small>
+            <details>
+              <summary>Review simulated contract arguments (no transaction sent)</summary>
+              <pre>{JSON.stringify(simulation.tx.arguments, null, 2)}</pre>
+            </details>
+          </div>
+        )
       </form>
     </section>
   );

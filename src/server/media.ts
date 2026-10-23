@@ -24,6 +24,8 @@ export function mediaTarget(uri: string) {
   const hosts = [
     'ipfs.io',
     'gateway.pinata.cloud',
+    'dweb.link',
+    'w3s.link',
     'cloudflare-ipfs.com',
     ...(process.env.MEDIA_ALLOWED_HOSTS || '')
       .split(',')
@@ -41,7 +43,7 @@ export function mediaTarget(uri: string) {
       'This media host is not approved. Use an IPFS URI or ask the operator to approve its HTTPS hostname.',
     );
   if (
-    ['ipfs.io', 'gateway.pinata.cloud', 'cloudflare-ipfs.com'].includes(url.hostname) &&
+    ['ipfs.io', 'gateway.pinata.cloud', 'cloudflare-ipfs.com', 'dweb.link', 'w3s.link'].includes(url.hostname) &&
     !url.pathname.startsWith('/ipfs/')
   )
     throw new AppError('MEDIA_PATH', 'Use the gateway IPFS path');
@@ -152,9 +154,45 @@ export async function fetchMedia(uri: string, max: number, callerSignal?: AbortS
     throw new AppError('MEDIA_UNAVAILABLE', 'Media gateway is unavailable', 502);
   }
 }
+// Fallback belongs to the higher-level media resolver, not the low-level
+// pinned HTTPS transport. Its single-request contract is security-tested.
+// Never follow redirects; each approved gateway is independently DNS-validated,
+// pinned by IP, TLS-authenticated, and subjected to the same content limits.
+export async function fetchMediaWithFallback(uri: string, max: number, callerSignal?: AbortSignal) {
+  if (!uri.startsWith('ipfs://')) return fetchMedia(uri, max, callerSignal);
+  if (!isSafeUrl(uri))
+    throw new AppError('MEDIA_URL', 'Use a valid IPFS URI');
+  const cidPath = uri.slice('ipfs://'.length);
+  const gateways = [
+    'https://dweb.link/ipfs/',
+    'https://gateway.pinata.cloud/ipfs/',
+    'https://ipfs.io/ipfs/',
+  ];
+  const signal = AbortSignal.any([
+    AbortSignal.timeout(12000),
+    ...(callerSignal ? [callerSignal] : []),
+  ]);
+  let lastError: unknown;
+  for (const gateway of gateways) {
+    if (signal.aborted) break;
+    try {
+      return await fetchMedia(gateway + cidPath, max, signal);
+    } catch (error) {
+      lastError = error;
+      // Never hide malformed inputs, forbidden DNS destinations, invalid
+      // response encodings, or oversize assets behind a different gateway.
+      if (!(error instanceof AppError) ||
+          !['MEDIA_UNAVAILABLE', 'MEDIA_EMPTY', 'MEDIA_TIMEOUT'].includes(error.code))
+        throw error;
+    }
+  }
+  if (signal.aborted)
+    throw new AppError('MEDIA_TIMEOUT', 'IPFS gateway requests timed out', 504);
+  throw lastError ?? new AppError('MEDIA_UNAVAILABLE', 'IPFS gateways are unavailable', 502);
+}
 const resolveAddresses = (hostname: string) => lookup(hostname, { all: true, verbatim: true });
 export async function readMetadata(uri: string, signal?: AbortSignal) {
-  const bytes = await fetchMedia(uri, 256 * 1024, signal);
+  const bytes = await fetchMediaWithFallback(uri, 256 * 1024, signal);
   let raw;
   try {
     raw = JSON.parse(bytes.toString('utf8'));

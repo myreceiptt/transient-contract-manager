@@ -21,6 +21,7 @@ import { command, listRecords } from '@/server/db';
 import { createPage, savePage, rebasePage, pageForAdmin, baseline } from '@/server/workspace';
 import {
   prepareAdmin,
+  previewAdmin,
   preparePublication,
   publishContent,
   publicPage,
@@ -94,6 +95,10 @@ export async function POST(req: NextRequest) {
       release = acquireSlot(req, budget);
       await rateLimit(req, budget, s.wallet);
       if (op === 'session') result = s;
+      else if (op === 'preview_admin') {
+        const a = identity.parse(p);
+        result = await previewAdmin(a.chainId, a.contract, p.action, s);
+      }
       else if (op === 'pages') {
         const a = identity.parse(p);
         requireSessionChain(s, a.chainId);

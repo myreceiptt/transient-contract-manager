@@ -17,20 +17,39 @@ Status: Planning only — no code, theme changes, or pinning service credentials
 - No schema mutation, publishing or mainnet write in the first upload implementation.
 
 ## Prof. NOTA palette reference
+
 Canonical website: https://nota.endhonesa.com/
-Site identity observed in publicly fetchable HTML: `Prof. NOTA`, `0101 Universe`, top navigation `{ prof. } { 0101 } { cont. }`, section navigation `{ prog. } { proj. } { logs }`.
+Reference: three user-provided screenshots, captured 2026-10-23 (landing page, 0101 Collection, and Track Us). The HTML headings/navigation include `Prof. NOTA`, `0101 Universe`, `{ prof. } { 0101 } { cont. }`, and `{ prog. } { proj. } { logs }`.
 
-**Color palette measurement is pending:** The current web extraction returned content but did not expose computed CSS, stylesheet variables, or screenshot pixel samples. Do NOT invent exact HEX codes based on memory or generic aesthetics. Capture site CSS/computed style or a screenshot directly from the operator's browser before setting canonical CSS variables. The theme of Transient Contract Manager should not be changed until the features are complete and palette data is verified.
+### Sampled screenshot colors (measured from PNG pixels)
 
-Required future tokens (exact values TBD after source capture):
-- `--nota-background`
-- `--nota-surface`
-- `--nota-text`
-- `--nota-muted`
-- `--nota-accent`
-- `--nota-border`
-- `--nota-action`
-- `--nota-action-text`
+| Design role | Screenshot HEX | Meaning |
+| --- | --- | --- |
+| Void | `#000000` | Deepest landing-page background |
+| Background | `#101011` | Section/page dark ground |
+| Surface | `#161618` | Subtle raised panels |
+| Border | `#27272A` | Thin cards/dividers |
+| Muted | `#71717B` | Tertiary text |
+| Secondary text | `#9F9FA9` | Captions/labels |
+| Primary text | `#F4F4F5` | Light on dark |
+| High contrast | `#FFFFFF` | Hero/maximum contrast |
+
+These are **reference samples**, not independently verified computed CSS variables. Exact CSS sources may differ because of compression, antialiasing and background gradients. The website uses a predominantly monochrome palette with intentionally quiet contrast, generous spacing, thin borders and understated navigation.
+
+Proposed CSS token map for a later phase:
+```css
+:root[data-theme='prof-nota'] {
+  --nota-void: #000000;
+  --nota-background: #101011;
+  --nota-surface: #161618;
+  --nota-border: #27272A;
+  --nota-muted: #71717B;
+  --nota-secondary: #9F9FA9;
+  --nota-text: #F4F4F5;
+  --nota-high-contrast: #FFFFFF;
+}
+```
+**Do not apply this theme yet.** Preserve current Transient Contract Manager visual UI until media uploads and collection-management features have stabilized; then create a separate design PR with accessibility/contrast checks.
 
 ## Current environment
 `MEDIA_ALLOWED_HOSTS` was cleared in Vercel Production/Preview on 2026-10-23 to remove the explicit `nota.endhonesa.com` exception as requested. A new deployment must occur for this value to take effect.

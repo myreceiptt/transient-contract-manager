@@ -1613,3 +1613,13 @@ th {
     scroll-behavior: auto !important;
   }
 }
+
+/* Metadata-rich collection overview */
+.collection-metadata { display:grid; grid-template-columns:minmax(180px,320px) minmax(0,1fr); gap:28px; align-items:start; }
+.collection-metadata .artwork { max-width:320px; border-radius:12px; }
+.collection-metadata dl,.token-card dl { display:flex; flex-wrap:wrap; gap:8px 18px; }
+.collection-metadata dl > div,.token-card dl > div { padding:8px 12px; background:#f1f4e8; border-radius:8px; }
+.collection-metadata dt,.token-card dt { font-size:11px; color:var(--muted); }
+.collection-metadata dd,.token-card dd { margin:0; overflow-wrap:anywhere; font-weight:600; }
+.collection-metadata p { white-space:pre-wrap; }
+@media (max-width:700px) { .collection-metadata { grid-template-columns:1fr; } }

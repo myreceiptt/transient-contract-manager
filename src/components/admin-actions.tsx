@@ -187,7 +187,7 @@ export function AdminActions({
               <pre>{JSON.stringify(simulation.tx.arguments, null, 2)}</pre>
             </details>
           </div>
-        )
+        )}
       </form>
     </section>
   );

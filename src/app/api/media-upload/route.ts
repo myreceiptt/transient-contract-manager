@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { validUploadCid } from '@/server/upload-cid';
 import { checkOrigin, errorHeaders } from '@/server/security';
 import { session, requireSessionChain } from '@/server/auth';
 import { authorize } from '@/server/chain';
@@ -16,7 +17,6 @@ const sniff = (b: Buffer): string | undefined => {
   if (b.length >= 3 && b[0]===255 && b[1]===216 && b[2]===255) return 'image/jpeg';
   if (b.length >= 12 && b.toString('ascii',0,4)==='RIFF' && b.toString('ascii',8,12)==='WEBP') return 'image/webp';
 };
-const cidPattern = /^(?:bafy[a-z2-7]{20,}|Qm[1-9A-HJ-NP-Za-km-z]{44})$/;
 export async function POST(req: NextRequest) {
   let release: (() => void) | undefined;
   try {
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
     let result: unknown;
     try {result=await upstream.json();}catch {throw new AppError('UPLOAD_UPSTREAM','Invalid IPFS provider response',502);}
     const cid=(result as any)?.data?.cid;
-    if(typeof cid!=='string'||!cidPattern.test(cid)) throw new AppError('UPLOAD_CID','IPFS provider returned an invalid CID',502);
+    if (!validUploadCid(cid)) throw new AppError('UPLOAD_CID','IPFS provider returned an invalid CID',502);
     return NextResponse.json({uri:'ipfs://'+cid,cid,kind},{headers:{'Cache-Control':'no-store'}});
   } catch(e) {
     const err=e instanceof AppError?e:undefined;

@@ -227,6 +227,7 @@ export async function previewAdmin(id: number, address: Address, raw: unknown, s
 }
 
 export async function prepareAdmin(id: number, address: Address, raw: unknown, s: Session) {
+  requireSessionChain(s, id);
   requireWrites(id);
   const { action, token, info, call } = await validateAdminAction(id, address, raw, s);
   const tx = await simulate(id, s.wallet, call);

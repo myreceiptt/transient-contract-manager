@@ -69,8 +69,8 @@ export function AdminActions({
         <span className="tag">OWNER / ADMIN</span>
       </div>
       <p>
-        Every operation is checked against the pinned contract, simulated, then reviewed before your
-        wallet opens.
+        Contract actions are validated against the pinned implementation and your on-chain admin
+        permission. On mainnet these controls provide simulation only, without sending a transaction.
       </p>
       {!info.canWrite && (
         <Notice>

@@ -26,6 +26,8 @@ export function Manager() {
   const [intent, setIntent] = useState<any>();
   const [revisionKey, setRevisionKey] = useState(0);
   const [history, setHistory] = useState<any[]>([]);
+  const [featured, setFeatured] = useState<any>();
+  const [featuredError, setFeaturedError] = useState('');
   async function refresh() {
     setBusy(true);
     setError('');
@@ -39,8 +41,18 @@ export function Manager() {
   }
   useEffect(() => {
     setInfo(undefined);
+    setFeatured(undefined);
+    setFeaturedError('');
     refresh();
   }, [id, contract, address]);
+  useEffect(() => {
+    if (!info?.token?.uri) return;
+    let active = true;
+    api('metadata', { uri: info.token.uri }).then((data) => {
+      if (active) setFeatured(data);
+    }).catch((e) => { if (active) setFeaturedError((e as Error).message); });
+    return () => { active = false; };
+  }, [info?.token?.uri]);
   async function loadHistory() {
     setError('');
     try {
@@ -124,6 +136,19 @@ export function Manager() {
           </div>
           {tab === 'Overview' && (
             <>
+              <section className="panel">
+                <div className="section-top"><h2>Collection artwork & metadata</h2><span className="tag">FEATURED TOKEN</span></div>
+                <div className="collection-metadata">
+                  <Artwork uri={featured?.image} alt={featured?.name || info.name} />
+                  <div><h3>{featured?.name || info.name}</h3>
+                    {featured?.description && <p>{featured.description}</p>}
+                    <small>Featured artwork from token #{String(info.tokenId)}; not verified contract-level metadata.</small>
+                    {featuredError && <Notice type="error">Metadata unavailable: {featuredError}</Notice>}
+                    {featured?.attributes?.length > 0 && <dl>{featured.attributes.map((a: any, i: number) => <div key={i}><dt>{a.trait_type}</dt><dd>{a.value}</dd></div>)}</dl>}
+                    {info.token?.uri && <details><summary>Token metadata URI</summary><code>{info.token.uri}</code></details>}
+                  </div>
+                </div>
+              </section>
               <div className="stat-row">
                 <div>
                   <span>Token types</span>
@@ -236,6 +261,8 @@ export function Manager() {
 function Tokens({ info }: { info: any }) {
   const [tokens, setTokens] = useState<any[]>([]);
   const [metadata, setMetadata] = useState<Record<string, any>>({});
+  const [metadataErrors, setMetadataErrors] = useState<Record<string, string>>({});
+  const [retry, setRetry] = useState(0);
   const [start, setStart] = useState(1);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -250,7 +277,9 @@ function Tokens({ info }: { info: any }) {
         if (!live) return;
         setTokens(r.tokens);
         const results: PromiseSettledResult<any>[] = [];
+        const tokenIds: string[] = [];
         for (let i = 0; i < r.tokens.length && live; i += 4) {
+          tokenIds.push(...r.tokens.slice(i, i + 4).map((t: any) => String(t.id)));
           results.push(
             ...(await Promise.allSettled(
               r.tokens
@@ -259,7 +288,8 @@ function Tokens({ info }: { info: any }) {
             )),
           );
         }
-        if (live)
+        if (live) {
+          setMetadataErrors(Object.fromEntries(results.flatMap((result, i) => result.status === 'rejected' ? [[tokenIds[i], result.reason instanceof Error ? result.reason.message : 'Metadata request failed']] : [])));
           setMetadata(
             Object.fromEntries(
               results
@@ -267,6 +297,7 @@ function Tokens({ info }: { info: any }) {
                 .map((r) => (r as PromiseFulfilledResult<any>).value),
             ),
           );
+        }
       })
       .catch((e) => {
         if (live) setError(e.message);
@@ -277,7 +308,7 @@ function Tokens({ info }: { info: any }) {
     return () => {
       live = false;
     };
-  }, [info.address, info.blockNumber, start]);
+  }, [info.address, info.blockNumber, start, retry]);
   return (
     <section className="panel">
       <div className="section-top">
@@ -295,7 +326,9 @@ function Tokens({ info }: { info: any }) {
                 TOKEN {t.id} · {t.locked ? 'MINT LOCKED' : 'MINTABLE'}
               </span>
               <h3>{metadata[t.id]?.name || 'Edition #' + t.id}</h3>
-              <p>{metadata[t.id]?.description?.slice(0, 180)}</p>
+              <p>{metadata[t.id]?.description?.slice(0, 600)}</p>
+              {metadataErrors[String(t.id)] && <div role="alert"><small>Metadata failed: {metadataErrors[String(t.id)]}</small><button className="button secondary compact" onClick={() => setRetry((v) => v + 1)}>Retry metadata</button></div>}
+              {metadata[t.id]?.attributes?.length > 0 && <dl>{metadata[t.id].attributes.map((a: any, i: number) => <div key={i}><dt>{a.trait_type}</dt><dd>{a.value}</dd></div>)}</dl>}
               <details>
                 <summary>Metadata URI</summary>
                 <code>{t.uri}</code>

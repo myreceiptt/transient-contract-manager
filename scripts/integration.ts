@@ -290,6 +290,33 @@ try {
     assert.equal(r.rows.length, 4);
     assert.ok(r.rows.every((x) => x.relrowsecurity));
   });
+  await test('Read-only NFT simulations validate admin roles without creating intents or changing token supply', async () => {
+    const initialSupply = await read('totalSupply');
+    const initialHistory = await owner.call('history', identity);
+    const action = {
+      action: 'createToken',
+      uri: 'ipfs://bafyReadonlyPreview',
+      recipients: [{ address: f.owner, amount: '0' }],
+    };
+    const ownerPreview = await owner.call('preview_admin', { ...identity, action });
+    assert.equal(ownerPreview.mode, 'READ_ONLY_SIMULATION');
+    assert.equal(ownerPreview.broadcast, false);
+    assert.equal(ownerPreview.signerRequired, false);
+    assert.equal(ownerPreview.tx.simulation, 'passed');
+    assert.equal(ownerPreview.tx.functionName, 'createToken');
+    assert.equal(ownerPreview.tx.account.toLowerCase(), f.owner.toLowerCase());
+    const adminPreview = await admin.call('preview_admin', { ...identity, action });
+    assert.equal(adminPreview.mode, 'READ_ONLY_SIMULATION');
+    assert.equal(adminPreview.tx.simulation, 'passed');
+    await outsider.denied('preview_admin', { ...identity, action }, 'ACCESS_DENIED');
+    await anon.denied('preview_admin', { ...identity, action }, 'SIGN_IN_REQUIRED');
+    await owner.denied('preview_admin', {
+      ...identity,
+      action: { action: 'setDefaultRoyalty', royalty: { recipient: f.owner, bps: 1001 } },
+    }, 'VALIDATION_ERROR');
+    assert.equal(await read('totalSupply'), initialSupply);
+    assert.deepEqual(await owner.call('history', identity), initialHistory);
+  });
   await test('Create token overloads and batch creation execute exact ABI', async () => {
     await adminAction(
       {

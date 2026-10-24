@@ -190,9 +190,10 @@ function mutationSnapshot(info: Awaited<ReturnType<typeof inspect>>) {
     tokenTypes: info.tokenTypes,
   });
 }
-export async function prepareAdmin(id: number, address: Address, raw: unknown, s: Session) {
+// Both read-only previews and write-enabled local reviews use the same
+// validation path; previews never create intents or initiate wallet transactions.
+async function validateAdminAction(id: number, address: Address, raw: unknown, s: Session) {
   requireSessionChain(s, id);
-  requireWrites(id);
   const action = actionSchema.parse(raw);
   const token = 'tokenId' in action ? BigInt(action.tokenId) : 1n;
   const info = await authorize(id, address, s.wallet, token);
@@ -200,8 +201,35 @@ export async function prepareAdmin(id: number, address: Address, raw: unknown, s
     throw new AppError('TOKEN_MISSING', 'Token does not exist');
   if (action.action === 'mintToken' && info.locked)
     throw new AppError('TOKEN_LOCKED', 'This token is permanently locked against further minting');
-  const call = adminCall(address, stacksAddress(id), action);
   if (action.action === 'approveStacks') await verifyStacks(client(id), id, info.blockNumber);
+  const call = adminCall(info.address, stacksAddress(id), action);
+  return { action, token, info, call };
+}
+
+export async function previewAdmin(id: number, address: Address, raw: unknown, s: Session) {
+  const { action, token, info, call } = await validateAdminAction(id, address, raw, s);
+  // viem simulateContract/estimateContractGas use eth_call/eth_estimateGas only.
+  // No DB intent, no transaction signing and no blockchain state mutation.
+  const tx = await simulate(id, s.wallet, call);
+  return {
+    mode: 'READ_ONLY_SIMULATION' as const,
+    broadcast: false,
+    signerRequired: false,
+    chainId: id,
+    contract: info.address,
+    account: s.wallet,
+    observedBlock: info.blockNumber.toString(),
+    action: action.action,
+    tokenId: token.toString(),
+    tx,
+    warning: 'Simulation only. No transaction was submitted and live contract state may change.',
+  };
+}
+
+export async function prepareAdmin(id: number, address: Address, raw: unknown, s: Session) {
+  requireSessionChain(s, id);
+  requireWrites(id);
+  const { action, token, info, call } = await validateAdminAction(id, address, raw, s);
   const tx = await simulate(id, s.wallet, call);
   return command('intent_create', {
     chainId: id,

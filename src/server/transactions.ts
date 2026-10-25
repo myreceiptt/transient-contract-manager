@@ -40,6 +40,7 @@ import {
 } from './chain';
 import { command, listRecords } from './db';
 import { baseline, pageForAdmin } from './workspace';
+import { publicationPolicyIssue } from '../lib/canonical-mint-pages';
 import { requireSessionChain, type Session } from './auth';
 const recipients = z
   .array(z.object({ address: nonzeroAddress, amount: positive }).strict())
@@ -307,6 +308,7 @@ export async function previewPublication(id: string, expectedVersion: number, s:
     chainId: page.chain_id, contract: page.contract, limit: 25, offset: 0,
   })) as { id: string; token_id: string; slug: string; state: string; draft: Draft }[];
   const intended = configFingerprint(dropFromDraft(page.draft));
+  const policyIssue = publicationPolicyIssue(page);
   const relatedPages = pages
     .filter(p => p.id !== page.id && p.token_id === page.token_id)
     .map(p => ({
@@ -334,6 +336,9 @@ export async function previewPublication(id: string, expectedVersion: number, s:
     tx,
     note: 'Read-only preflight. This does not publish the page, modify a contract or authorize a future transaction.',
   });
+  if (policyIssue) note('BLOCKED', policyIssue);
+  else if (page.chain_id === 1 && page.contract.toLowerCase() === '0x5807e66182a38788a3854853225a2b6d8e0480f2' && page.token_id === '1')
+    note('PASS', 'Official GO1 Mint Page and payout receiver match the operator-approved identity');
   if (relatedPages.length) {
     note('WARNING',
       'This NFT contract and token ID also appear in ' + relatedPages.length +
@@ -432,6 +437,8 @@ export async function previewCollectorQuote(
 
 export async function preparePublication(id: string, expectedVersion: number, s: Session) {
   const { page, info } = await pageForAdmin(id, s);
+  const policyIssue = publicationPolicyIssue(page);
+  if (policyIssue) throw new AppError('PUBLICATION_POLICY', policyIssue, 409);
   if (page.version !== expectedVersion)
     throw new AppError('VERSION_CONFLICT', 'Reload the latest revision', 409);
   const current = baseline(info);
@@ -506,6 +513,8 @@ export async function publishContent(
   s: Session,
 ) {
   const { page, info } = await pageForAdmin(id, s);
+  const policyIssue = publicationPolicyIssue(page);
+  if (policyIssue) throw new AppError('PUBLICATION_POLICY', policyIssue, 409);
   requireWrites(page.chain_id);
   if (page.version !== expectedVersion)
     throw new AppError('VERSION_CONFLICT', 'Reload the latest revision', 409);

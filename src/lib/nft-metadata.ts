@@ -2,7 +2,11 @@ import { z } from 'zod';
 import { isSafeUrl } from './domain';
 
 const ipfsResource = z.string().max(2048).refine(
-  (value) => value.startsWith('ipfs://') && isSafeUrl(value),
+  (value) => value.startsWith('ipfs://') && isSafeUrl(value) &&
+    value.split('/').slice(3).every(segment => {
+      try { return !['.', '..'].includes(decodeURIComponent(segment)); }
+      catch { return false; }
+    }),
   'Use a pinned ipfs:// URI (upload images first)',
 );
 const attribute = z.object({

@@ -439,6 +439,24 @@ try {
       'VALIDATION_ERROR',
     );
   });
+  await test('Authenticated read-only sale preflight simulates Stacks without creating a publication intent', async () => {
+    const before = await owner.call('history', identity);
+    const result = await admin.call('preview_publication', {
+      id: page.id, expectedVersion: page.version,
+    });
+    assert.equal(result.mode, 'READ_ONLY_SALE_PREFLIGHT');
+    assert.equal(result.status, 'READY_FOR_REVIEW');
+    assert.equal(result.nextAction, 'configureDrop');
+    assert.equal(result.tx.simulation, 'passed');
+    assert.equal(result.tx.functionName, 'configureDrop');
+    assert.ok(result.checks.some((c: any) => c.status === 'PASS'));
+    await outsider.denied('preview_publication',
+      { id: page.id, expectedVersion: page.version }, 'ACCESS_DENIED');
+    await anon.denied('preview_publication',
+      { id: page.id, expectedVersion: page.version }, 'SIGN_IN_REQUIRED');
+    assert.deepEqual(await owner.call('history', identity), before);
+    assert.equal((await owner.call('page', { id: page.id })).page.published_revision, null);
+  });
   await test('Autonomous non-owner admin prepares, signs and publishes native sale', async () => {
     const i = await admin.call('prepare_publication', {
       id: page.id,

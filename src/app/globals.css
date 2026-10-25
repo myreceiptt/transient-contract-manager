@@ -1772,3 +1772,20 @@ th { color: #c1c1c8; }
   .nft-metadata-studio .metadata-attribute-row { grid-template-columns:1fr; }
   .nft-metadata-studio .metadata-inline-actions { align-items:start; }
 }
+
+/* Read-only sale readiness, without using color as the sole information signal. */
+.sale-readiness { display:grid; gap:12px; background:#161618; border:1px solid #52525b;
+  border-radius:12px; margin:16px 0; padding:18px; }
+.sale-readiness .readiness-item { display:flex; align-items:flex-start; gap:14px;
+  padding:11px; border:1px solid #35353a; border-radius:8px; overflow-wrap:anywhere; }
+.sale-readiness .readiness-item strong { flex:0 0 85px; }
+.sale-readiness .readiness-blocked { border-color:#a74a54; }
+.sale-readiness .readiness-blocked strong { color:#ffb4b4; }
+.sale-readiness .readiness-warning { border-color:#817b6b; }
+.sale-readiness .readiness-warning strong { color:#e4d9b0; }
+.sale-readiness .readiness-pass strong { color:#f4f4f5; }
+.sale-readiness pre { overflow:auto; max-height:340px; }
+@media(max-width:700px) {
+  .sale-readiness .readiness-item { flex-direction:column; gap:4px; }
+  .sale-readiness .readiness-item strong { flex:auto; }
+}

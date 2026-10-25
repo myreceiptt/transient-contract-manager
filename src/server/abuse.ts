@@ -42,6 +42,7 @@ export function operationBudget(op: string): Budget {
     [
       'preview_admin',
       'prepare_admin',
+      'preview_publication',
       'prepare_publication',
       'prepare_mint',
       'preflight',

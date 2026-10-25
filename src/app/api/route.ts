@@ -24,6 +24,7 @@ import {
   prepareAdmin,
   previewAdmin,
   preparePublication,
+  previewPublication,
   publishContent,
   publicPage,
   prepareMint,
@@ -144,7 +145,13 @@ export async function POST(req: NextRequest) {
       } else if (op === 'prepare_admin') {
         const a = identity.parse(p);
         result = await prepareAdmin(a.chainId, a.contract, p.action, s);
-      } else if (op === 'prepare_publication')
+      } else if (op === 'preview_publication')
+        result = await previewPublication(
+          idSchema.parse(p.id),
+          z.number().int().positive().parse(p.expectedVersion),
+          s,
+        );
+      else if (op === 'prepare_publication')
         result = await preparePublication(
           idSchema.parse(p.id),
           z.number().int().positive().parse(p.expectedVersion),

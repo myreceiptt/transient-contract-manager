@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowUpRight, ArrowRight, Box, ShieldCheck, Globe2, Check } from 'lucide-react';
-import { useConnection } from 'wagmi';
+import { useConnection } from './providers';
 import { targetChains, localChain, GO1 } from '@/lib/chains';
 import { api, short } from '@/lib/api-client';
 import { Notice, Loading } from './shell';

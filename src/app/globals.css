@@ -1908,3 +1908,15 @@ th { color: #c1c1c8; }
   .nota-builder-signature img { width: 90px; }
   .footer-identity { gap: 5px; }
 }
+
+/* Read-only sale readiness: sibling pages share a token-scoped Stacks drop. */
+.related-mint-pages {
+  border: 1px solid #52525b;
+  border-radius: 10px;
+  background: #101011;
+  padding: 12px 15px;
+}
+.related-mint-pages summary { cursor: pointer; color: #f4f4f5; font-weight: 600; }
+.related-mint-pages p { margin: 12px 0; font-size: 12px; }
+.related-mint-pages ul { margin: 12px 0 0; padding-left: 21px; overflow-wrap: anywhere; }
+.related-mint-pages li { color: #d4d4d8; padding: 5px 0; }

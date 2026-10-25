@@ -40,7 +40,7 @@ import {
 } from './chain';
 import { command, listRecords } from './db';
 import { baseline, pageForAdmin } from './workspace';
-import { publicationPolicyIssue } from '../lib/canonical-mint-pages';
+import { publicationPolicyIssue, canonicalMintPages } from '../lib/canonical-mint-pages';
 import { requireSessionChain, type Session } from './auth';
 const recipients = z
   .array(z.object({ address: nonzeroAddress, amount: positive }).strict())
@@ -337,7 +337,7 @@ export async function previewPublication(id: string, expectedVersion: number, s:
     note: 'Read-only preflight. This does not publish the page, modify a contract or authorize a future transaction.',
   });
   if (policyIssue) note('BLOCKED', policyIssue);
-  else if (page.chain_id === 1 && page.contract.toLowerCase() === '0x5807e66182a38788a3854853225a2b6d8e0480f2' && page.token_id === '1')
+  else if (canonicalMintPages.some(p => p.chainId === page.chain_id && p.contract === page.contract.toLowerCase() && p.tokenId === page.token_id))
     note('PASS', 'Official GO1 Mint Page and payout receiver match the operator-approved identity');
   if (relatedPages.length) {
     note('WARNING',

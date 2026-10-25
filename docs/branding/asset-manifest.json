@@ -1,6 +1,7 @@
 {
   "assetSet": "Prof NOTA / ENDHONESA original branding images",
-  "status": "PENDING_BINARY_UPLOAD",
+  "status": "VERIFIED_IN_MAIN",
+  "verification": "Five original PNG byte sizes and Git blob hashes matched the user-supplied files on 2026-10-25.",
   "licenseNote": "User-supplied original images intended for public repository and app branding. Confirm brand ownership before reuse outside this project.",
   "assets": [
     {

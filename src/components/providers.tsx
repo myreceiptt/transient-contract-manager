@@ -79,6 +79,7 @@ export function Providers({ children }: { children: ReactNode }) {
   const [provider, setProvider] = useState<EthereumProvider>();
   const [connecting, setConnecting] = useState(false);
   const active = useRef<EthereumProvider | undefined>(undefined);
+  const restored = useRef(new Set<string>());
   const update = useCallback((candidates: Discovered[]) => {
     setOptions(previous => {
       const next = [...previous];
@@ -109,6 +110,29 @@ export function Providers({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('eip6963:announceProvider', announced);
   }, [update]);
 
+  // Restore an already-authorized extension after a browser refresh.
+  // eth_accounts never prompts the wallet; an explicit click remains required
+  // for a new connection or a locked/unapproved provider.
+  useEffect(() => {
+    if (active.current || address || !options.length) return;
+    const saved = window.localStorage.getItem('tcm-injected-wallet');
+    if (!saved || restored.current.has(saved)) return;
+    const item = options.find(option => option.id === saved);
+    if (!item) return; // EIP-6963 provider may still announce itself later.
+    restored.current.add(saved);
+    void Promise.all([
+      item.provider.request({ method: 'eth_accounts' }),
+      item.provider.request({ method: 'eth_chainId' }),
+    ]).then(([accounts, chain]) => {
+      if (active.current || !Array.isArray(accounts) || !isAddress(accounts[0])) return;
+      const id = requireChainId(chain);
+      active.current = item.provider;
+      setProvider(item.provider);
+      setAddress(accounts[0]);
+      setChainId(id);
+    }).catch(() => { /* An unavailable extension should not interrupt the page. */ });
+  }, [options, address]);
+
   useEffect(() => {
     if (!provider) return;
     const accountsChanged = (accounts: unknown) =>
@@ -131,6 +155,7 @@ export function Providers({ children }: { children: ReactNode }) {
       if (!Array.isArray(accounts) || !isAddress(accounts[0])) throw new Error('No wallet address returned');
       const chain = requireChainId(await item.provider.request({ method: 'eth_chainId' }));
       active.current = item.provider;
+      window.localStorage.setItem('tcm-injected-wallet', item.id);
       setAddress(accounts[0]);
       setChainId(chain);
       setProvider(item.provider);
@@ -139,6 +164,8 @@ export function Providers({ children }: { children: ReactNode }) {
   const disconnect = useCallback(() => {
     // EIP-1193 extensions have no standard programmatic revocation API.
     active.current = undefined;
+    window.localStorage.removeItem('tcm-injected-wallet');
+    restored.current.clear();
     setAddress(undefined);
     setChainId(undefined);
     setProvider(undefined);
@@ -206,7 +233,7 @@ export function useConnection() {
 export function useWalletClient() {
   const { address, provider, chainId } = useWalletSession();
   const data = useMemo(() => !address || !provider ? undefined : {
-    chain: chainId ? getChain(chainId) : undefined,
+    chain: chainId ? allowedChain(chainId) : undefined,
     sendTransaction: async (tx: { account?: Address; chain?: unknown; to: Address; data?: Hex; value?: bigint }) => {
       const hash = await provider.request({ method: 'eth_sendTransaction', params: [{
         from: address, to: tx.to, data: tx.data, value: toHex(tx.value ?? 0n),

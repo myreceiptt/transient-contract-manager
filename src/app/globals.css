@@ -1789,3 +1789,13 @@ th { color: #c1c1c8; }
   .sale-readiness .readiness-item { flex-direction:column; gap:4px; }
   .sale-readiness .readiness-item strong { flex:auto; }
 }
+
+/* Collector-facing cost rehearsal, still strictly draft-only. */
+.collector-quote-panel { display:grid; gap:12px; margin:16px 0; padding:18px; border:1px solid #52525b;
+  background:#161618; border-radius:12px; }
+.collector-quote-panel .button-row { align-items:end; }
+.collector-quote-panel .button-row label { min-width:130px; max-width:180px; }
+.collector-quote-result { background:#101011; border:1px solid #52525b; padding:16px; border-radius:10px; }
+.collector-quote-result p { margin:0 0 10px; }
+.collector-quote-result strong { color:#fff; }
+@media(max-width:700px) { .collector-quote-panel .button-row label { width:100%; max-width:none; } }

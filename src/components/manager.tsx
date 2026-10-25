@@ -7,6 +7,7 @@ import { getChain, explorer } from '@/lib/chains';
 import { Notice, Loading } from './shell';
 import { ContractFacts } from './checker';
 import { AdminActions } from './admin-actions';
+import { NftMetadataStudio } from './nft-metadata-studio';
 import { MintStudio } from './mint-studio';
 import { TransactionReview } from './transaction-review';
 import { useSession } from './providers';
@@ -24,6 +25,7 @@ export function Manager() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [intent, setIntent] = useState<any>();
+  const [preparedMetadataAction, setPreparedMetadataAction] = useState<any>();
   const [revisionKey, setRevisionKey] = useState(0);
   const [history, setHistory] = useState<any[]>([]);
   const [featured, setFeatured] = useState<any>();
@@ -174,7 +176,10 @@ export function Manager() {
           {tab === 'Tokens & Editions' && (
             <>
               <Tokens info={info} />
-              {info.authorized && <AdminActions info={info} onIntent={setIntent} />}
+              {info.authorized && <>
+                 <NftMetadataStudio info={info} onPrepared={setPreparedMetadataAction} />
+                 <AdminActions info={info} onIntent={setIntent} prepared={preparedMetadataAction} />
+               </>}
             </>
           )}
           {tab === 'Mint Pages' &&

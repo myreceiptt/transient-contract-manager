@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import type { Hex } from 'viem';
 import { readMetadata } from '@/server/media';
+import { pinTokenMetadata } from '@/server/nft-metadata-pin';
 import { creatorAbi } from '@/lib/abi';
 import { client, networkWritePermissions } from '@/server/chain';
 import { acquireSlot, operationBudget, rateLimit } from '@/server/abuse';
@@ -95,6 +96,12 @@ export async function POST(req: NextRequest) {
       release = acquireSlot(req, budget);
       await rateLimit(req, budget, s.wallet);
       if (op === 'session') result = s;
+      else if (op === 'metadata_pin') {
+        const args = identity.parse(p);
+        requireSessionChain(s, args.chainId);
+        await authorize(args.chainId, args.contract, s.wallet);
+        result = await pinTokenMetadata(p.metadata, req.signal);
+      }
       else if (op === 'preview_admin') {
         const a = identity.parse(p);
         result = await previewAdmin(a.chainId, a.contract, p.action, s);

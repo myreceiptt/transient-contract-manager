@@ -366,6 +366,38 @@ export async function previewPublication(id: string, expectedVersion: number, s:
   }
 }
 
+// Price preview for a potential collector, against the saved draft (not an active sale).
+// This is deliberately NOT prepareMint and never generates a transaction intent.
+export async function previewCollectorQuote(
+  id: string, expectedVersion: number, quantity: bigint, s: Session,
+) {
+  const { page, info } = await pageForAdmin(id, s);
+  if (page.version !== expectedVersion)
+    throw new AppError('VERSION_CONFLICT', 'Reload the latest mint page draft', 409);
+  if (!info.sale) throw new AppError('STACKS_UNAVAILABLE', info.saleError || 'Verified Stacks unavailable');
+  const wanted = dropFromDraft(page.draft);
+  if (quantity < 1n || quantity > 20n)
+    throw new AppError('QUANTITY', 'Preview quantity must be between 1 and 20');
+  if (quantity > wanted.allowance || quantity > wanted.initialSupply)
+    throw new AppError('QUANTITY', 'Quantity exceeds the draft per-wallet allowance or initial supply');
+  const currency = await currencyInfo(page.chain_id, getAddress(wanted.currencyAddress), info.blockNumber);
+  const cost = quote(wanted, quantity, BigInt(info.sale.fee), 3);
+  return {
+    mode: 'DRAFT_COLLECTOR_QUOTE' as const,
+    quantity: quantity.toString(),
+    currency: { symbol: currency.symbol, decimals: currency.decimals, address: currency.address },
+    publicUnitPrice: wanted.publicCost.toString(),
+    paymentAmount: cost.price.toString(),
+    protocolFeeWei: cost.protocolFee.toString(),
+    totalNativeWei: cost.value.toString(),
+    perWalletMax: wanted.allowance.toString(),
+    observedBlock: info.blockNumber.toString(),
+    activeOnChain: info.sale.phase === 3 && info.sale.drop.dropType !== 0,
+    draftOnly: true,
+    warning: 'This quote uses the saved draft, not an active public sale. Gas is not included. Real collector terms may differ until the sale is configured and published.',
+  };
+}
+
 export async function preparePublication(id: string, expectedVersion: number, s: Session) {
   const { page, info } = await pageForAdmin(id, s);
   if (page.version !== expectedVersion)

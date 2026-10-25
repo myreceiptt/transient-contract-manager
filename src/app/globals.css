@@ -1741,3 +1741,34 @@ th { color: #c1c1c8; }
   :root { --nota-muted: #d4d4d8; --nota-border: #71717b; --line: #71717b; }
   .button.secondary, input, select, textarea { border-color: #a1a1aa; }
 }
+
+/* M5A NFT Metadata & Edition Studio — Prof. NOTA monochrome */
+.nft-metadata-studio { display:grid; gap:20px; }
+.nft-metadata-studio .form-grid { align-items:start; }
+.nft-metadata-studio .metadata-inline-actions { display:flex; gap:10px; align-items:end; flex-wrap:wrap; }
+.nft-metadata-studio .metadata-form { display:grid; gap:13px; }
+.nft-metadata-studio label { min-width:0; }
+.nft-metadata-studio .metadata-preview {
+  min-width:0; background:#18181a; border:1px solid #45454b;
+  border-radius:12px; padding:14px; overflow-wrap:anywhere;
+}
+.nft-metadata-studio .metadata-preview .artwork { width:100%; max-height:420px; object-fit:contain; background:#242427; }
+.nft-metadata-studio .metadata-preview h3 { margin:12px 0 6px; color:#f4f4f5; }
+.nft-metadata-studio .metadata-preview p { color:#b4b4bc; white-space:pre-wrap; }
+.nft-metadata-studio .metadata-attributes { border-top:1px solid #35353a; padding-top:18px; }
+.nft-metadata-studio .metadata-attribute-row {
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;
+  gap:12px; align-items:end; margin:12px 0;
+}
+.nft-metadata-studio .metadata-pinned,
+.nft-metadata-studio .metadata-queue-item {
+  background:#1e1e21; border:1px solid #52525b; border-radius:10px;
+  display:grid; gap:12px; padding:16px; min-width:0;
+}
+.nft-metadata-studio code { overflow-wrap:anywhere; white-space:normal; color:#f4f4f5; }
+.nft-metadata-studio details { border-top:1px solid #35353a; padding-top:16px; }
+.nft-metadata-studio details summary { cursor:pointer; }
+@media(max-width:700px) {
+  .nft-metadata-studio .metadata-attribute-row { grid-template-columns:1fr; }
+  .nft-metadata-studio .metadata-inline-actions { align-items:start; }
+}

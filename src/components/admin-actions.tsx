@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from './providers';
 import { api } from '@/lib/api-client';
 import { Notice } from './shell';
@@ -7,10 +7,12 @@ export function AdminActions({
   info,
   onIntent,
   initialAction = 'mintToken',
+  prepared,
 }: {
   info: any;
   onIntent: (i: any) => void;
   initialAction?: string;
+  prepared?: { action: string; uri?: string; tokenId?: string; batch?: string };
 }) {
   const [action, setAction] = useState(initialAction);
   const [tokenId, setTokenId] = useState('1');
@@ -25,6 +27,15 @@ export function AdminActions({
   const [error, setError] = useState('');
   const [simulation, setSimulation] = useState<any>();
   const { ensureSession } = useSession();
+  useEffect(() => {
+    if (!prepared) return;
+    setAction(prepared.action);
+    if (prepared.uri) setUri(prepared.uri);
+    if (prepared.tokenId) setTokenId(prepared.tokenId);
+    if (prepared.batch) setBatch(prepared.batch);
+    setSimulation(undefined);
+    setError('');
+  }, [prepared]);
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -63,7 +74,7 @@ export function AdminActions({
     }
   }
   return (
-    <section className="panel">
+    <section className="panel" id="collection-action-form">
       <div className="section-top">
         <h2>Prepare a collection action</h2>
         <span className="tag">OWNER / ADMIN</span>

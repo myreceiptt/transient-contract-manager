@@ -1,0 +1,42 @@
+{
+  "assetSet": "Prof NOTA / ENDHONESA original branding images",
+  "status": "PENDING_BINARY_UPLOAD",
+  "licenseNote": "User-supplied original images intended for public repository and app branding. Confirm brand ownership before reuse outside this project.",
+  "assets": [
+    {
+      "source": "1.47.png",
+      "path": "public/brand/prof-nota/1.47.png",
+      "sha256": "8f9220867b9e9a4f3364e4c61a3169c1073ad62d1666e0caec2f4b9e2488f184",
+      "bytes": 101533,
+      "role": "Circular Prof. NOTA portrait/logo (light background)"
+    },
+    {
+      "source": "beware-of-scams.png",
+      "path": "public/brand/prof-nota/beware-of-scams.png",
+      "sha256": "9e94ad8a4bb2875437a41c6ff464fe0d003a1405bd2ae6c9a0651e99c53bcd54",
+      "bytes": 198989,
+      "role": "Circular Prof. NOTA artwork on black background"
+    },
+    {
+      "source": "Prof Nota Typhography 1.png",
+      "path": "public/brand/prof-nota/prof-nota-typhography-1.png",
+      "sha256": "c29faa1bc66ee7010da469c04833b3c7b3402d2e76122d69324f827f50ac1889",
+      "bytes": 70374,
+      "role": "Stacked Prof. NOTA Inc. wordmark"
+    },
+    {
+      "source": "Prof Nota Typhography 2.png",
+      "path": "public/brand/prof-nota/prof-nota-typhography-2.png",
+      "sha256": "11745701e8ef34a5631ff6e0b127b357d10d74c51d3c22aa43d6a0c860749322",
+      "bytes": 31658,
+      "role": "Horizontal Prof. NOTA Inc. wordmark"
+    },
+    {
+      "source": "1.48.png",
+      "path": "public/brand/prof-nota/1.48.png",
+      "sha256": "f29689dad3116ad622b08ca465a51bb0d42d8f4f561e108ba545e97bc2fc1596",
+      "bytes": 25398,
+      "role": "ENDHONESA monogram typography"
+    }
+  ]
+}

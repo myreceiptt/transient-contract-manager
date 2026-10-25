@@ -673,6 +673,22 @@ export function MintStudio({
                       <span>{item.detail}</span>
                     </div>
                   ))}
+                  {readiness.relatedPages?.length > 0 && (
+                    <details className="related-mint-pages">
+                      <summary>Other Mint Pages targeting Token ID {page?.token_id}</summary>
+                      <p>All these pages refer to the same Stacks token-level sale configuration.
+                        They are separate page drafts, not separate token supplies or sale rounds.</p>
+                      <ul>
+                        {readiness.relatedPages.map((other: any) => (
+                          <li key={other.slug}>
+                            <strong>{other.slug}</strong> · {other.state}
+                            {!other.sameSaleConfig && ' · different sale settings'}
+                            {!other.samePayoutReceiver && ' · different payout receiver'}
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
                   {readiness.nextAction && <p>
                     Next contract operation: <strong>{readiness.nextAction}</strong>
                   </p>}

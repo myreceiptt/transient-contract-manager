@@ -1,4 +1,3 @@
-import { File } from 'node:buffer';
 import { validUploadCid } from './upload-cid';
 import { AppError } from '../lib/domain';
 import { validatedMetadata } from '../lib/nft-metadata';

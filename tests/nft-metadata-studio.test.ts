@@ -28,9 +28,11 @@ describe('NFT metadata Studio contract', () => {
     expect(nftMetadataSchema.safeParse({ ...base, external_url: 'file:///etc/passwd' }).success).toBe(false);
     expect(nftMetadataSchema.safeParse({ ...base, image_url_html: '<svg>' }).success).toBe(false);
   });
-  it('rejects metadata payloads larger than the server-defined 24 KiB maximum', () => {
+  it('accepts maximum validated metadata without relaxing byte-size protections', () => {
     const payload = { name: 'A', description: 'x'.repeat(6000), image: GO1_URI,
       attributes: Array(40).fill({trait_type:'trait'.repeat(20),value:'x'.repeat(250)}) };
-    expect(() => validatedMetadata(payload)).toThrow(/24 KiB/);
+    const result = validatedMetadata(payload);
+    expect(result.bytes.byteLength).toBeLessThanOrEqual(24 * 1024);
+    expect(result.metadata.attributes).toHaveLength(40);
   });
 });

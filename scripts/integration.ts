@@ -457,6 +457,27 @@ try {
     assert.deepEqual(await owner.call('history', identity), before);
     assert.equal((await owner.call('page', { id: page.id })).page.published_revision, null);
   });
+  await test('Draft collector quote includes protocol fee without creating a mint or publication intent', async () => {
+    const prior = await owner.call('history', identity);
+    const quote = await owner.call('preview_collector_quote', {
+      id: page.id, expectedVersion: page.version, quantity: '2',
+    });
+    assert.equal(quote.mode, 'DRAFT_COLLECTOR_QUOTE');
+    assert.equal(quote.draftOnly, true);
+    assert.equal(quote.paymentAmount, parseEther('0.02').toString());
+    assert.equal(quote.totalNativeWei, parseEther('0.0218').toString());
+    assert.equal(quote.protocolFeeWei, parseEther('0.0018').toString());
+    await anon.denied('preview_collector_quote', {
+      id: page.id, expectedVersion: page.version, quantity: '1',
+    }, 'SIGN_IN_REQUIRED');
+    await outsider.denied('preview_collector_quote', {
+      id: page.id, expectedVersion: page.version, quantity: '1',
+    }, 'ACCESS_DENIED');
+    await owner.denied('preview_collector_quote', {
+      id: page.id, expectedVersion: page.version, quantity: '21',
+    }, 'QUANTITY');
+    assert.deepEqual(await owner.call('history', identity), prior);
+  });
   await test('Autonomous non-owner admin prepares, signs and publishes native sale', async () => {
     const i = await admin.call('prepare_publication', {
       id: page.id,

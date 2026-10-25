@@ -78,7 +78,7 @@ export function Providers({ children }: { children: ReactNode }) {
   const [chainId, setChainId] = useState<number>();
   const [provider, setProvider] = useState<EthereumProvider>();
   const [connecting, setConnecting] = useState(false);
-  const active = useRef<EthereumProvider>();
+  const active = useRef<EthereumProvider | undefined>(undefined);
   const update = useCallback((candidates: Discovered[]) => {
     setOptions(previous => {
       const next = [...previous];
@@ -204,9 +204,10 @@ export function useConnection() {
   return { address, chainId };
 }
 export function useWalletClient() {
-  const { address, provider } = useWalletSession();
+  const { address, provider, chainId } = useWalletSession();
   const data = useMemo(() => !address || !provider ? undefined : {
-    sendTransaction: async (tx: { to: Address; data?: Hex; value?: bigint }) => {
+    chain: chainId ? getChain(chainId) : undefined,
+    sendTransaction: async (tx: { account?: Address; chain?: unknown; to: Address; data?: Hex; value?: bigint }) => {
       const hash = await provider.request({ method: 'eth_sendTransaction', params: [{
         from: address, to: tx.to, data: tx.data, value: toHex(tx.value ?? 0n),
       }] });
@@ -215,7 +216,7 @@ export function useWalletClient() {
       }
       return hash as Hex;
     },
-  }, [address, provider]);
+  }, [address, provider, chainId]);
   return { data };
 }
 export function usePublicClient({ chainId }: { chainId: number }) {

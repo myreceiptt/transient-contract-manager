@@ -7,7 +7,7 @@ Independent Next.js application for existing ERC1155TL v4.1.2 collections and TL
 ## What works
 
 - Exact-runtime contract adapter, read-only checker, inventory, holder balance and owner/admin recognition.
-- Injected EVM wallets; optional WalletConnect project configuration. SIWE sessions bound to wallet, chain, domain and one-time nonce.
+- EIP-1193/EIP-6963 injected EVM wallets (including Phantom, OKX and MetaMask where their browser extensions support those standards). SIWE sessions remain bound to wallet, chain, domain and one-time nonce. WalletConnect QR is intentionally unavailable in this release while vulnerable upstream dependencies are excluded.
 - Token creation (both overloads), batch creation (both overloads), mint/airdrop, URI updates, default/token royalties and a narrowly scoped Stacks minter grant.
 - Shared PostgreSQL drafts, optimistic versions, immutable page identities, revisions, audit history, desktop/mobile content preview.
 - Fixed-price sale configuration and sequential updates, simulation, transaction review, persisted hashes, replacement recovery, finality and on-chain readback.

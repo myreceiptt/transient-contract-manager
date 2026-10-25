@@ -25,6 +25,7 @@ import {
   previewAdmin,
   preparePublication,
   previewPublication,
+  previewCollectorQuote,
   publishContent,
   publicPage,
   prepareMint,
@@ -145,7 +146,14 @@ export async function POST(req: NextRequest) {
       } else if (op === 'prepare_admin') {
         const a = identity.parse(p);
         result = await prepareAdmin(a.chainId, a.contract, p.action, s);
-      } else if (op === 'preview_publication')
+      } else if (op === 'preview_collector_quote')
+        result = await previewCollectorQuote(
+          idSchema.parse(p.id),
+          z.number().int().positive().parse(p.expectedVersion),
+          BigInt(positive.parse(p.quantity)),
+          s,
+        );
+      else if (op === 'preview_publication')
         result = await previewPublication(
           idSchema.parse(p.id),
           z.number().int().positive().parse(p.expectedVersion),

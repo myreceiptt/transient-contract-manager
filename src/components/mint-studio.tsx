@@ -58,6 +58,8 @@ export function MintStudio({
   const [presalePrice, setPresalePrice] = useState('0');
   const [contentReview, setContentReview] = useState<any>();
   const [readiness, setReadiness] = useState<any>();
+  const [quoteQty, setQuoteQty] = useState('1');
+  const [collectorQuote, setCollectorQuote] = useState<any>();
   const priceValid = [price, presalePrice].every(
     (p) => /^([0-9]+)(\.[0-9]*)?$/.test(p) && (p.split('.')[1] || '').length <= currency.decimals,
   );
@@ -90,6 +92,7 @@ export function MintStudio({
     setSaved(p ? JSON.stringify(d) : '');
     setSnapshot(undefined);
     setReadiness(undefined);
+    setCollectorQuote(undefined);
     setRevisions([]);
     setAudit([]);
     setContentReview(undefined);
@@ -206,6 +209,15 @@ export function MintStudio({
       if (dirty) throw new Error('Save the current revision before checking sale readiness.');
       const data = await api('preview_publication', { id: page.id, expectedVersion: page.version });
       setReadiness(data);
+    });
+  }
+  async function checkQuote() {
+    if (!page) return;
+    await run(async () => {
+      if (dirty) throw new Error('Save the current revision before checking collector pricing.');
+      setCollectorQuote(await api('preview_collector_quote', {
+        id: page.id, expectedVersion: page.version, quantity: quoteQty,
+      }));
     });
   }
   async function prepare() {
@@ -622,6 +634,31 @@ export function MintStudio({
                   </button>
                 )}
               </div>
+              {page && (
+                <div className="collector-quote-panel">
+                  <h3>Collector payment preview (saved draft)</h3>
+                  <p>Estimate the NFT price and Stacks protocol fee before any public sale exists.
+                    This never initiates minting or requests a collector signature.</p>
+                  <div className="button-row">
+                    <label>Test quantity
+                      <input type="number" min="1" max="20" step="1"
+                        value={quoteQty} onChange={e => setQuoteQty(e.target.value)} />
+                    </label>
+                    <button className="button secondary" disabled={busy || dirty || !priceValid}
+                      onClick={checkQuote}>Calculate draft collector quote</button>
+                  </div>
+                  {collectorQuote && (
+                    <div className="collector-quote-result" role="status">
+                      <p>For <strong>{collectorQuote.quantity}</strong> NFT unit(s):</p>
+                      <p>NFT price: <strong>{formatUnits(BigInt(collectorQuote.paymentAmount),
+                        collectorQuote.currency.decimals)} {collectorQuote.currency.symbol}</strong></p>
+                      <p>Protocol fee: <strong>{formatEther(BigInt(collectorQuote.protocolFeeWei))} ETH</strong></p>
+                      <p>ETH payable with transaction: <strong>{formatEther(BigInt(collectorQuote.totalNativeWei))} ETH</strong></p>
+                      <small>{collectorQuote.warning}</small>
+                    </div>
+                  )}
+                </div>
+              )}
               {readiness && (
                 <div className="sale-readiness" role="status">
                   <div className="section-top">

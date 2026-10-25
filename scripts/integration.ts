@@ -290,6 +290,13 @@ try {
     assert.equal(r.rows.length, 4);
     assert.ok(r.rows.every((x) => x.relrowsecurity));
   });
+  await test('NFT metadata pinning requires SIWE and admin role; invalid metadata is never uploaded', async () => {
+    const data = { name: 'Example', description: 'Untrusted trial', image: 'https://bad.invalid/a.png', attributes: [] };
+    await anon.denied('metadata_pin', { ...identity, metadata: data }, 'SIGN_IN_REQUIRED');
+    await outsider.denied('metadata_pin', { ...identity, metadata: data }, 'ACCESS_DENIED');
+    await owner.denied('metadata_pin', { ...identity, metadata: data }, 'VALIDATION_ERROR');
+    await admin.denied('metadata_pin', { ...identity, metadata: data }, 'VALIDATION_ERROR');
+  });
   await test('Read-only NFT simulations validate admin roles without creating intents or changing token supply', async () => {
     const initialSupply = await read('totalSupply');
     const initialHistory = await owner.call('history', identity);

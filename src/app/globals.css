@@ -1799,3 +1799,112 @@ th { color: #c1c1c8; }
 .collector-quote-result p { margin:0 0 10px; }
 .collector-quote-result strong { color:#fff; }
 @media(max-width:700px) { .collector-quote-panel .button-row label { width:100%; max-width:none; } }
+
+/* Prof. NOTA brand assets: exact original PNGs, presentation only.
+   All images are local static resources, never fetched from a remote third party. */
+.nota-brand-symbol {
+  width: 43px;
+  height: 43px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid #45454b;
+  padding: 0;
+}
+.nota-brand-symbol img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+.sidebar-footer .nota-operator-mark {
+  display: block;
+  width: min(100%, 164px);
+  padding: 5px 0;
+  border: 0;
+}
+.nota-operator-mark img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: invert(1);
+}
+.footer-identity {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  align-items: center;
+}
+.footer-identity a { display: inline-flex; align-items: center; }
+.footer-identity img {
+  width: 118px;
+  height: auto;
+  display: block;
+  filter: invert(1);
+  opacity: .94;
+}
+.nota-hero-identity {
+  flex-shrink: 0;
+  width: 132px;
+  margin: 3px 0 0 14px;
+  text-align: center;
+  display: grid;
+  gap: 9px;
+  justify-items: center;
+}
+.nota-hero-identity img {
+  display: block;
+  width: 108px;
+  height: 108px;
+  object-fit: contain;
+}
+.nota-hero-identity > span {
+  display: block;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .5px;
+  color: #f4f4f5;
+}
+.nota-hero-identity small {
+  display: block;
+  font-weight: 400;
+  letter-spacing: 1.1px;
+  font-size: 8px;
+}
+.nota-builder-signature {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 22px 24px;
+  margin-top: 24px;
+  border-radius: 12px;
+  border: 1px solid #35353a;
+  background: #141416;
+}
+.nota-builder-signature .eyebrow { margin-bottom: 8px; }
+.nota-builder-signature p { margin: 0; font-size: 12px; max-width: 500px; }
+.nota-builder-signature a { display: inline-flex; flex-shrink: 0; }
+.nota-builder-signature img {
+  display: block;
+  width: 107px;
+  height: auto;
+  max-height: 75px;
+  object-fit: contain;
+  filter: invert(1);
+}
+@media (max-width: 760px) {
+  .nota-brand-symbol { width: 34px; height: 34px; }
+  .nota-hero-identity { width: 82px; margin: 0 0 0 8px; gap: 6px; }
+  .nota-hero-identity img { width: 76px; height: 76px; }
+  .nota-hero-identity > span { font-size: 10px; }
+  .nota-hero-identity small { font-size: 6px; letter-spacing: .2px; }
+  .nota-builder-signature { padding: 18px; }
+  .nota-builder-signature img { width: 72px; max-height: 64px; }
+}
+@media (max-width: 410px) {
+  .nota-builder-signature { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .nota-builder-signature img { width: 90px; }
+  .footer-identity { gap: 5px; }
+}

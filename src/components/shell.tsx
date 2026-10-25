@@ -1,12 +1,12 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   ScanLine,
   BookOpen,
   ArrowUpRight,
-  Layers3,
   ShieldCheck,
 } from 'lucide-react';
 import { WalletButton } from './providers';
@@ -16,8 +16,9 @@ export function Shell({ children }: { children: React.ReactNode }) {
     <div className="app-shell">
       <aside className="sidebar">
         <Link href="/" className="brand">
-          <span className="brand-symbol">
-            t<span>↗</span>
+          <span className="brand-symbol nota-brand-symbol">
+            <Image src="/brand/prof-nota/1.47.png" width={513} height={513}
+              alt="" aria-hidden="true" unoptimized />
           </span>
           <span>
             transient<span className="brand-sub">CONTRACT MANAGER</span>
@@ -48,9 +49,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </p>
         </div>
         <div className="sidebar-footer">
-          <span className="endhonesa">
-            ENDHONESA<span>®</span>
-          </span>
+          <a className="nota-operator-mark" href="https://nota.endhonesa.com"
+            target="_blank" rel="noopener noreferrer" aria-label="Prof. NOTA on ENDHONESA">
+            <Image src="/brand/prof-nota/1.48.png" width={1167} height={154}
+              alt="ENDHONESA" unoptimized />
+          </a>
           <p>Independent tools for sovereign creators.</p>
           <a href="https://github.com/Transient-Labs" target="_blank" rel="noreferrer">
             Protocol source <ArrowUpRight size={13} />
@@ -75,7 +78,15 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </header>
         <main>{children}</main>
         <footer className="page-footer">
-          <span>TRANSIENT CONTRACT MANAGER · BY ENDHONESA</span>
+          <span className="footer-identity">
+            TRANSIENT CONTRACT MANAGER · BY
+            <a href="https://nota.endhonesa.com" target="_blank"
+              rel="noopener noreferrer" aria-label="Prof. NOTA Inc. — project operator">
+              <Image src="/brand/prof-nota/prof-nota-typhography-2.png"
+                width={1920} height={354} alt="Prof. NOTA Inc."
+                unoptimized />
+            </a>
+          </span>
           <span>Independent application. Not operated by Transient Labs.</span>
         </footer>
       </div>

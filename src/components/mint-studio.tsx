@@ -57,6 +57,7 @@ export function MintStudio({
   const [price, setPrice] = useState('0');
   const [presalePrice, setPresalePrice] = useState('0');
   const [contentReview, setContentReview] = useState<any>();
+  const [readiness, setReadiness] = useState<any>();
   const priceValid = [price, presalePrice].every(
     (p) => /^([0-9]+)(\.[0-9]*)?$/.test(p) && (p.split('.')[1] || '').length <= currency.decimals,
   );
@@ -88,6 +89,7 @@ export function MintStudio({
     setDraft(d);
     setSaved(p ? JSON.stringify(d) : '');
     setSnapshot(undefined);
+    setReadiness(undefined);
     setRevisions([]);
     setAudit([]);
     setContentReview(undefined);
@@ -196,6 +198,14 @@ export function MintStudio({
         'Revision ' + p.version + ' saved. Authorized collection admins can continue editing.',
       );
       await list();
+    });
+  }
+  async function checkReadiness() {
+    if (!page) return;
+    await run(async () => {
+      if (dirty) throw new Error('Save the current revision before checking sale readiness.');
+      const data = await api('preview_publication', { id: page.id, expectedVersion: page.version });
+      setReadiness(data);
     });
   }
   async function prepare() {
@@ -588,10 +598,14 @@ export function MintStudio({
                 </button>
                 <button
                   className="button"
-                  disabled={busy || !page || dirty || !priceValid}
+                  disabled={busy || !page || dirty || !priceValid || !info.canWrite}
                   onClick={prepare}
                 >
-                  Prepare publication ↗
+                  {info.canWrite ? 'Prepare publication ↗' : 'Mainnet publication locked'}
+                </button>
+                <button className="button secondary" disabled={busy || !page || dirty || !priceValid}
+                  onClick={checkReadiness}>
+                  Check sale readiness (read-only)
                 </button>
                 {page && (
                   <button
@@ -608,6 +622,33 @@ export function MintStudio({
                   </button>
                 )}
               </div>
+              {readiness && (
+                <div className="sale-readiness" role="status">
+                  <div className="section-top">
+                    <h3>On-chain sale readiness · {readiness.status.replaceAll('_', ' ')}</h3>
+                    <span className="tag">READ-ONLY</span>
+                  </div>
+                  <p>Block {readiness.observedBlock} · draft revision {readiness.revision}.
+                    No wallet transaction will be submitted.</p>
+                  {readiness.checks?.map((item: any, index: number) => (
+                    <div key={index} className={'readiness-item readiness-' + item.status.toLowerCase()}>
+                      <strong>{item.status}</strong>
+                      <span>{item.detail}</span>
+                    </div>
+                  ))}
+                  {readiness.nextAction && <p>
+                    Next contract operation: <strong>{readiness.nextAction}</strong>
+                  </p>}
+                  {readiness.tx?.simulation === 'passed' && (
+                    <details>
+                      <summary>View simulated Stacks call, arguments and gas estimate</summary>
+                      <p>Estimated gas: {readiness.tx.estimatedGas}; no gas charged.</p>
+                      <pre>{JSON.stringify(readiness.tx.arguments, null, 2)}</pre>
+                    </details>
+                  )}
+                  <small>{readiness.note}</small>
+                </div>
+              )}
               {snapshot && (
                 <details open>
                   <summary>

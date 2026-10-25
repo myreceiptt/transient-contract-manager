@@ -201,14 +201,20 @@ describe('CSP and transaction gates', () => {
     expect(contentSecurityPolicy('nonce')).toContain('wss://relay.walletconnect.com');
     expect(contentSecurityPolicy('nonce')).not.toContain('*.');
   });
-  it('denies every supported network even if the master flag is accidentally enabled', () => {
-    vi.stubEnv('MAINNET_WRITES_ENABLED', 'true');
-    vi.stubEnv('LOCAL_CHAIN_ENABLED', 'true');
+  it('restricts live write capability to known networks and the operator master switch', () => {
+    vi.stubEnv('MAINNET_WRITES_ENABLED', 'false');
     for (const id of [1, 4663, 8453, 360, 31337, 999]) {
       expect(writesAllowed(id)).toBe(false);
       expect(() => requireWrites(id)).toThrow();
     }
+    vi.stubEnv('MAINNET_WRITES_ENABLED', 'true');
+    vi.stubEnv('LOCAL_CHAIN_ENABLED', 'true');
+    for (const id of [1, 4663, 8453, 360]) {
+      expect(writesAllowed(id)).toBe(true);
+      expect(() => requireWrites(id)).not.toThrow();
+    }
+    expect(writesAllowed(999)).toBe(false);
     vi.stubEnv('NODE_ENV', 'development');
-    expect(writesAllowed(31337)).toBe(false);
+    expect(writesAllowed(31337)).toBe(false); // Vercel local chain is permanently disabled
   });
 });

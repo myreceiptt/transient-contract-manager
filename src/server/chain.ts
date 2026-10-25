@@ -61,13 +61,16 @@ export async function exactChain(c: ReturnType<typeof client>, id: number) {
   if ((await c.getChainId()) !== id)
     throw new AppError('CHAIN_MISMATCH', 'RPC returned a different chain ID', 503);
 }
-// This reviewed preview release has no supported-network transaction capability.
-// Enabling a network requires a separate reviewed code/release policy change.
+// Mainnet execution is available only for the exact verified ERC1155TL and
+// Stacks runtime adapter. The server checks bytecode/version, chain ID and the
+// current on-chain owner/admin role before preparing or submitting a review.
+// The operator can disable all new writes immediately via the Vercel kill switch.
+// Wallets must still explicitly approve every independent on-chain transaction.
 export const networkWritePermissions: Readonly<Record<number, boolean>> = Object.freeze({
-  1: false,
-  4663: false,
-  8453: false,
-  360: false,
+  1: true,
+  4663: true,
+  8453: true,
+  360: true,
 });
 export function writesAllowed(id: number) {
   return id === 31337
@@ -80,7 +83,7 @@ export function requireWrites(id: number) {
   if (!writesAllowed(id))
     throw new AppError(
       'WRITE_LOCK',
-      'Mainnet transactions are locked in this development release. Draft editing and contract checks remain available.',
+      'Live writes are disabled by the operator. Contract checks and draft editing remain available.',
       403,
     );
 }

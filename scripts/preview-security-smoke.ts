@@ -112,12 +112,13 @@ try {
   const health = await (await get('/api')).json();
   assert.equal(health.mainnetWrites, false);
   assert.deepEqual(health.networkWritePermissions, {
-    1: false,
-    360: false,
-    4663: false,
-    8453: false,
+    1: true,
+    360: true,
+    4663: true,
+    8453: true,
   });
-  results.push({ check: 'Host/Origin rejection and four disabled network gates', status: 'PASS' });
+  assert.deepEqual(health.enabledNetworks, []);
+  results.push({ check: 'Host/Origin rejection and preview operator kill switch disabled', status: 'PASS' });
   console.log(JSON.stringify(results, null, 2));
 } catch (e) {
   console.error(e);

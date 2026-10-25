@@ -85,8 +85,8 @@ export function AdminActions({
       </p>
       {!info.canWrite && (
         <Notice>
-          Mainnet writes remain locked. Authorized owners/admins may run read-only contract
-          simulations here. No wallet transaction signing or blockchain write is requested.
+          Every action is validated and simulated before any wallet review. Read-only
+          previews remain available when live writes are disabled by the operator.
         </Notice>
       )}
       <form onSubmit={submit}>

@@ -837,7 +837,7 @@ try {
     await owner.call('logout');
     await owner.denied('pages', identity, 'SIGN_IN_REQUIRED');
     const { requireWrites } = await import('../src/server/chain');
-    assert.throws(() => requireWrites(1), /locked/);
+    assert.throws(() => requireWrites(1), /disabled|locked/i);
   });
 } catch (e) {
   exitCode = 1;

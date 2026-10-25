@@ -217,7 +217,7 @@ export function PublicMint({ slug }: { slug: string }) {
                     </button>
                     {!page.onchain.canWrite && (
                       <small className="fineprint">
-                        Mainnet transactions are not enabled in this development release.
+                        Live minting is currently unavailable for this chain or contract. Check with the collection admin.
                       </small>
                     )}
                     <small className="fineprint">

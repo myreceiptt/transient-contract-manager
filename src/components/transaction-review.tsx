@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { useConnection, useWalletClient, usePublicClient } from 'wagmi';
+import { useConnection, useWalletClient, usePublicClient } from './providers';
 import { formatEther, type Hex } from 'viem';
 import { X, ShieldCheck, ArrowUpRight } from 'lucide-react';
 import { api } from '@/lib/api-client';

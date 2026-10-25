@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useConnection } from 'wagmi';
+import { useConnection } from './providers';
 import { api, short } from '@/lib/api-client';
 import { getChain, explorer } from '@/lib/chains';
 import { Notice, Loading } from './shell';

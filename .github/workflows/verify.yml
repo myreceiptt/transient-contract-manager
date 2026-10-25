@@ -43,7 +43,14 @@ jobs:
       - name: Integration tests
         run: npm run test:integration 2>&1 | tee artifacts/ci/integration.txt
       - name: Dependency security audit
-        run: npm audit --audit-level=moderate --json > artifacts/ci/dependency-audit.json
+        run: |
+          audit_status=0
+          npm audit --audit-level=moderate --json > artifacts/ci/dependency-audit.json || audit_status=$?
+          node scripts/report-dependency-audit.mjs artifacts/ci/dependency-audit.json
+          if [ "$audit_status" -ne 0 ]; then
+            echo "::error::npm audit returned exit code $audit_status; inspect the summary above and preserved JSON artifact"
+            exit "$audit_status"
+          fi
       - name: Production build
         run: npm run build 2>&1 | tee artifacts/ci/build.txt
       - name: Production CSP and HTTP security regression

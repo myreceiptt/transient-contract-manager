@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ArrowUpRight, ArrowRight, Box, ShieldCheck, Globe2, Check } from 'lucide-react';
 import { useConnection } from './providers';
@@ -42,11 +43,11 @@ export function ContractEntry() {
             <br className="desktop-only" /> a home of its own.
           </p>
         </div>
-        <span className="header-stamp">
-          OiOi.
-          <br />
-          <small>BUILD WITH INTENTION.</small>
-        </span>
+        <div className="nota-hero-identity" aria-label="Prof. NOTA. OiOi. Build with intention.">
+          <Image src="/brand/prof-nota/beware-of-scams.png"
+            width={1063} height={1063} alt="" aria-hidden="true" unoptimized />
+          <span>OiOi. <small>BUILD WITH INTENTION.</small></span>
+        </div>
       </div>
       <div className="intro-grid">
         <section className="panel connect-panel">
@@ -166,6 +167,17 @@ export function ContractEntry() {
           ))}
         </div>
         <p>Bytecode matched · public mint execution is subject to the release gate.</p>
+      </section>
+      <section className="nota-builder-signature" aria-label="Built by Prof. NOTA">
+        <div>
+          <span className="eyebrow">AN INDEPENDENT ENDHONESA APPLICATION</span>
+          <p>Built by Prof. NOTA Inc. Protocol contracts remain independently verified.</p>
+        </div>
+        <a href="https://nota.endhonesa.com" target="_blank" rel="noopener noreferrer"
+          aria-label="Visit Prof. NOTA">
+          <Image src="/brand/prof-nota/prof-nota-typhography-1.png"
+            width={1920} height={1181} alt="Prof. NOTA Inc." unoptimized />
+        </a>
       </section>
     </>
   );

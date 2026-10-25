@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { useConnection } from 'wagmi';
+import { useConnection } from './providers';
 import { targetChains, GO1, explorer, localChain } from '@/lib/chains';
 import { api } from '@/lib/api-client';
 import { Notice, Loading } from './shell';

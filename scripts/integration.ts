@@ -263,6 +263,24 @@ try {
     assert.equal((await owner.call('revisions', { id: page.id })).length, 2);
     assert.ok((await owner.call('audit', { id: page.id })).length >= 2);
   });
+  await test('Sale readiness warns of sibling pages sharing the same NFT token and different payout', async () => {
+    const sibling = await owner.call('page_create', {
+      draft: {
+        ...draft,
+        slug: 'second-page-same-token',
+        sale: { ...draft.sale, payoutReceiver: f.admin },
+      },
+    });
+    const review = await owner.call('preview_publication', { id: page.id, expectedVersion: page.version });
+    assert.equal(review.mode, 'READ_ONLY_SALE_PREFLIGHT');
+    const conflict = review.relatedPages.find((r: any) => r.slug === sibling.slug);
+    assert.ok(conflict);
+    assert.equal(conflict.sameSaleConfig, false);
+    assert.equal(conflict.samePayoutReceiver, false);
+    assert.ok(review.checks.some((c: any) => c.status === 'WARNING' && /payout receiver/i.test(c.detail)));
+    assert.ok(review.checks.some((c: any) => c.status === 'WARNING' && /one drop configuration/i.test(c.detail)));
+    assert.equal((await owner.call('page', { id: page.id })).page.version, page.version);
+  });
   await test('Revoked admin loses access without waiting for session expiration', async () => {
     await write('setRole', [ADMIN_ROLE, [f.admin], false]);
     await admin.denied('page', { id: page.id }, 'ACCESS_DENIED');

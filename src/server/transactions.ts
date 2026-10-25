@@ -38,7 +38,7 @@ import {
   verifyStacks,
   exactChain,
 } from './chain';
-import { command } from './db';
+import { command, listRecords } from './db';
 import { baseline, pageForAdmin } from './workspace';
 import { requireSessionChain, type Session } from './auth';
 const recipients = z
@@ -300,6 +300,21 @@ export async function previewPublication(id: string, expectedVersion: number, s:
   const { page, info } = await pageForAdmin(id, s);
   if (page.version !== expectedVersion)
     throw new AppError('VERSION_CONFLICT', 'Reload the latest mint page revision', 409);
+  // A Stacks drop is keyed by NFT contract and token ID, not by mint-page slug.
+  // Only an authenticated on-chain owner/admin reaches this point. Keep sibling
+  // drafts private; surface conflicts exclusively inside their workspace.
+  const pages = (await listRecords('pages', {
+    chainId: page.chain_id, contract: page.contract, limit: 25, offset: 0,
+  })) as { id: string; token_id: string; slug: string; state: string; draft: Draft }[];
+  const intended = configFingerprint(dropFromDraft(page.draft));
+  const relatedPages = pages
+    .filter(p => p.id !== page.id && p.token_id === page.token_id)
+    .map(p => ({
+      slug: p.slug,
+      state: p.state,
+      sameSaleConfig: configFingerprint(dropFromDraft(p.draft)) === intended,
+      samePayoutReceiver: p.draft.sale.payoutReceiver.toLowerCase() === page.draft.sale.payoutReceiver.toLowerCase(),
+    }));
   const checks: { status: 'PASS' | 'WARNING' | 'BLOCKED'; detail: string }[] = [];
   const note = (status: 'PASS' | 'WARNING' | 'BLOCKED', detail: string) =>
     checks.push({ status, detail });
@@ -314,10 +329,27 @@ export async function previewPublication(id: string, expectedVersion: number, s:
     status: checks.some(c => c.status === 'BLOCKED')
       ? 'BLOCKED' as const : 'READY_FOR_REVIEW' as const,
     checks,
+    relatedPages,
     nextAction,
     tx,
     note: 'Read-only preflight. This does not publish the page, modify a contract or authorize a future transaction.',
   });
+  if (relatedPages.length) {
+    note('WARNING',
+      'This NFT contract and token ID also appear in ' + relatedPages.length +
+      ' other Mint Page(s). Stacks uses one drop configuration per token, not per page.');
+    if (relatedPages.some(p => !p.sameSaleConfig))
+      note('WARNING',
+        'Other Mint Pages specify different sale parameters. Confirm a single intended page before any on-chain publication.');
+    if (relatedPages.some(p => !p.samePayoutReceiver))
+      note('WARNING',
+        'Other Mint Pages specify a different payout receiver. Review the collector payment destination before publication.');
+    if (relatedPages.some(p => p.state === 'PUBLISHED' || p.state === 'PUBLISHING'))
+      note('WARNING',
+        'Another page for this token has already been published or is publishing. Review shared on-chain state before modifying it.');
+  }
+  if (pages.length === 25)
+    note('WARNING', 'Only the 25 most recently updated Mint Pages were checked for duplicate token references.');
   if (!info.sale) {
     note('BLOCKED', info.saleError || 'Verified Stacks contract is unavailable');
     return result();

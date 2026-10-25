@@ -296,6 +296,76 @@ export function nextDropCall(
   }
   return fn ? { to: stacks, abi: stacksAbi, functionName: fn, args, value: 0n } : null;
 }
+export async function previewPublication(id: string, expectedVersion: number, s: Session) {
+  const { page, info } = await pageForAdmin(id, s);
+  if (page.version !== expectedVersion)
+    throw new AppError('VERSION_CONFLICT', 'Reload the latest mint page revision', 409);
+  const checks: { status: 'PASS' | 'WARNING' | 'BLOCKED'; detail: string }[] = [];
+  const note = (status: 'PASS' | 'WARNING' | 'BLOCKED', detail: string) =>
+    checks.push({ status, detail });
+  const result = (nextAction: string | null = null, tx?: Awaited<ReturnType<typeof simulate>>) => ({
+    mode: 'READ_ONLY_SALE_PREFLIGHT' as const,
+    chainId: page.chain_id,
+    contract: page.contract,
+    tokenId: page.token_id,
+    revision: page.version,
+    observedBlock: info.blockNumber.toString(),
+    observedTimestamp: info.timestamp.toString(),
+    status: checks.some(c => c.status === 'BLOCKED')
+      ? 'BLOCKED' as const : 'READY_FOR_REVIEW' as const,
+    checks,
+    nextAction,
+    tx,
+    note: 'Read-only preflight. This does not publish the page, modify a contract or authorize a future transaction.',
+  });
+  if (!info.sale) {
+    note('BLOCKED', info.saleError || 'Verified Stacks contract is unavailable');
+    return result();
+  }
+  if (!info.token.created) note('BLOCKED', 'Referenced NFT token ID does not exist');
+  else note('PASS', 'Referenced NFT token ID exists');
+  if (info.locked) note('BLOCKED', 'Token is permanently locked for new minting');
+  else note('PASS', 'Token minting is not locked');
+  if (!info.sale.approved) note('BLOCKED', 'Verified Stacks is not an approved NFT minter');
+  else note('PASS', 'Verified Stacks has the NFT minter permission');
+  if (info.sale.paused) note('BLOCKED', 'Verified Stacks is currently paused');
+  else note('PASS', 'Verified Stacks is not paused');
+  const current = baseline(info);
+  if (page.baseline !== current)
+    note('BLOCKED', 'On-chain state diverged from the accepted draft baseline. Inspect and rebase before proceeding');
+  else note('PASS', 'Shared draft baseline matches the current on-chain snapshot');
+  const wanted = dropFromDraft(page.draft);
+  const now = BigInt(info.timestamp);
+  const start = wanted.startTime;
+  const end = start + wanted.presaleDuration + wanted.publicDuration;
+  if (end <= now) note('BLOCKED', 'The configured mint window has ended. Update the start and duration, then save a new revision');
+  else if (start <= now) note('WARNING', 'Sale start time has already passed; publishing on-chain could make the sale immediately active');
+  else note('PASS', 'The draft sale starts in the future');
+  if (wanted.publicCost === 0n) note('WARNING', 'Public mint is free excluding any Stacks protocol fee');
+  else note('PASS', 'Public mint price is nonzero');
+  note('WARNING', 'Review payout receiver ' + wanted.payoutReceiver + ' and immutable metadata before authorizing any live write');
+  let call: Call | null = null;
+  try {
+    call = nextDropCall(
+      info.address, BigInt(page.token_id), info.sale.address,
+      info.sale.drop, wanted, info.sale.phase,
+    );
+  } catch (error) {
+    note('BLOCKED', error instanceof Error ? error.message : 'Unsupported current drop configuration');
+  }
+  if (!call) return result();
+  if (checks.some(c => c.status === 'BLOCKED')) return result(call.functionName);
+  try {
+    await currencyInfo(page.chain_id, getAddress(wanted.currencyAddress), info.blockNumber);
+    const tx = await simulate(page.chain_id, s.wallet, call);
+    note('PASS', 'Contract call ' + call.functionName + ' simulated with the connected admin wallet');
+    return result(call.functionName, tx);
+  } catch (error) {
+    note('BLOCKED', error instanceof Error ? error.message : 'The on-chain sale simulation reverted');
+    return result(call.functionName);
+  }
+}
+
 export async function preparePublication(id: string, expectedVersion: number, s: Session) {
   const { page, info } = await pageForAdmin(id, s);
   if (page.version !== expectedVersion)
@@ -372,6 +442,7 @@ export async function publishContent(
   s: Session,
 ) {
   const { page, info } = await pageForAdmin(id, s);
+  requireWrites(page.chain_id);
   if (page.version !== expectedVersion)
     throw new AppError('VERSION_CONFLICT', 'Reload the latest revision', 409);
   if (

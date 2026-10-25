@@ -4,7 +4,7 @@ import type { Hex } from 'viem';
 import { readMetadata } from '@/server/media';
 import { pinTokenMetadata } from '@/server/nft-metadata-pin';
 import { creatorAbi } from '@/lib/abi';
-import { client, networkWritePermissions } from '@/server/chain';
+import { client, networkWritePermissions, writesAllowed } from '@/server/chain';
 import { acquireSlot, operationBudget, rateLimit } from '@/server/abuse';
 import { errorHeaders } from '@/server/security';
 import { AppError, serializable, addressSchema, chainSchema, positive, uint } from '@/lib/domain';
@@ -251,8 +251,9 @@ export async function GET() {
     {
       name: 'Transient Contract Manager',
       version: '0.1.0',
-      mainnetWrites: false,
+      mainnetWrites: [1, 4663, 8453, 360].some(writesAllowed),
       networkWritePermissions,
+      enabledNetworks: [1, 4663, 8453, 360].filter(writesAllowed),
       databaseConfigured:
         !!(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) ||
         process.env.NODE_ENV !== 'production',

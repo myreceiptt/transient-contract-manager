@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useConnection } from 'wagmi';
+import { useConnection } from './providers';
 import { formatEther, formatUnits, zeroAddress } from 'viem';
 import { api } from '@/lib/api-client';
 import { getChain, explorer } from '@/lib/chains';

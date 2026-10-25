@@ -16,7 +16,7 @@ export async function pinTokenMetadata(raw: unknown, signal?: AbortSignal) {
 
   // No caller-provided URL: fixed Pinata host, no redirects, bounded payload.
   const form = new FormData();
-  form.set('file', new File([data.bytes], 'nft-metadata.json', { type: 'application/json' }));
+  form.set('file', new File([new Uint8Array(data.bytes)], 'nft-metadata.json', { type: 'application/json' }));
   form.set('network', 'public');
   form.set('name', 'tcm-nft-metadata');
   let response: Response;

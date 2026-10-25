@@ -56,6 +56,7 @@ export function operationBudget(op: string): Budget {
       'session',
       'pages',
       'page',
+      'metadata_pin',
       'page_create',
       'page_save',
       'page_rebase',

@@ -7,6 +7,7 @@ import { Artwork } from './safe-media';
 import { Notice } from './shell';
 import { nftMetadataSchema, type NftMetadata } from '@/lib/nft-metadata';
 import { isAddress } from 'viem';
+import { uploadOriginalArtwork, formatArtworkSize } from '@/lib/direct-ipfs-upload';
 
 type Pending = { uri: string; name: string };
 type Prepared = {
@@ -34,6 +35,8 @@ export function NftMetadataStudio({
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [chosenFile, setChosenFile] = useState<File>();
+  const [uploadProgress, setUploadProgress] = useState<number>();
   const update = (value: Partial<NftMetadata>) => {
     setMeta(m => ({ ...m, ...value }));
     setPinned(undefined);
@@ -47,27 +50,17 @@ export function NftMetadataStudio({
   }
   async function upload(file?: File) {
     if (!file) return;
+    setChosenFile(file);
+    setUploadProgress(undefined);
     await perform('image', async () => {
-      if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) ||
-          file.size === 0 || file.size > 3 * 1024 * 1024)
-        throw new Error('Use JPG, PNG or WebP artwork up to 3 MiB.');
       await ensureSession(info.chainId);
-      const csrf = document.cookie.split('; ').find(v =>
-        v.startsWith('__Host-tcm_csrf=') || v.startsWith('tcm_csrf='))?.split('=')[1];
-      if (!csrf) throw new Error('SIWE session required for artwork uploads.');
-      const form = new FormData();
-      form.set('chainId', String(info.chainId));
-      form.set('contract', info.address);
-      form.set('kind', 'artwork');
-      form.set('file', file);
-      const response = await fetch('/api/media-upload', {
-        method: 'POST', credentials: 'same-origin',
-        headers: { 'X-CSRF-Token': csrf }, body: form,
+      const result = await uploadOriginalArtwork({
+        file, kind: 'artwork', chainId: info.chainId, contract: info.address,
+        onProgress: setUploadProgress,
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Image upload failed');
-      update({ image: data.uri });
-      setNotice('Artwork pinned to IPFS. Complete the NFT metadata and pin JSON next.');
+      update({ image: result.uri });
+      setNotice('Original artwork pinned to IPFS: ' + result.cid +
+        '. Complete the NFT metadata and pin JSON next.');
     });
   }
   async function importPinned() {
@@ -160,11 +153,23 @@ export function NftMetadataStudio({
           <label>Or upload artwork
             <input type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
               disabled={!!busy} onChange={e => {
-                const file = e.target.files?.[0];
-                e.currentTarget.value = '';
-                void upload(file);
+                void upload(e.target.files?.[0]);
               }} />
-            <small>JPG, PNG or WebP · up to 3 MiB · pinned as public IPFS content.</small>
+            {chosenFile && (
+              <span className="artwork-upload-status" role="status" aria-live="polite">
+                <strong>{chosenFile.name}</strong>
+                <small>{formatArtworkSize(chosenFile.size)}</small>
+                {busy === 'image' ? (
+                  <span className="artwork-upload-indicator">
+                    Uploading original file to IPFS<span className="upload-dots" aria-hidden="true" />
+                    {uploadProgress !== undefined && <span> {uploadProgress}%</span>}
+                  </span>
+                ) : meta.image && notice.startsWith('Original artwork pinned') ? (
+                  <span>Upload complete · pinned to IPFS</span>
+                ) : error ? <span>Upload failed · select a file to retry</span> : null}
+              </span>
+            )}
+            <small>JPG, PNG or WebP · up to 100 MiB · original file pinned unchanged on public IPFS.</small>
           </label>
           <label>External URL (optional)
             <input type="url" value={meta.external_url || ''}

@@ -84,7 +84,11 @@ export function Providers({ children }: { children: ReactNode }) {
     setOptions(previous => {
       const next = [...previous];
       for (const candidate of candidates) {
+        // A wallet can announce itself through window.ethereum AND EIP-6963.
+        // Brand-identifiable wallets should appear only once, even if each
+        // discovery mechanism presents a different provider wrapper.
         if (!next.some(value => value.provider === candidate.provider ||
+          (candidate.id === value.id && ['phantom', 'okx', 'metamask'].includes(candidate.id)) ||
           (value.id === candidate.id && value.name === candidate.name))) {
           next.push(candidate);
         }
@@ -101,8 +105,16 @@ export function Providers({ children }: { children: ReactNode }) {
         provider?: EthereumProvider;
       }>).detail;
       if (detail?.provider?.request) {
-        update([{ id: detail.info?.uuid || detail.info?.name || 'eip6963',
-          name: detail.info?.name || 'Injected wallet', provider: detail.provider }]);
+        const declaredName = detail.info?.name || 'Injected wallet';
+        const lowerName = declaredName.toLowerCase();
+        const brand = detail.provider.isOkxWallet || /okx/.test(lowerName)
+          ? 'okx' : detail.provider.isPhantom || /phantom/.test(lowerName)
+            ? 'phantom' : detail.provider.isMetaMask || /metamask/.test(lowerName)
+              ? 'metamask' : (detail.info?.uuid || 'eip6963');
+        const label = brand === 'okx' ? 'OKX Wallet'
+          : brand === 'phantom' ? 'Phantom'
+            : brand === 'metamask' ? 'MetaMask' : declaredName;
+        update([{ id: brand, name: label, provider: detail.provider }]);
       }
     };
     window.addEventListener('eip6963:announceProvider', announced);
@@ -258,6 +270,22 @@ export function WalletButton() {
   const { address, chainId, options, connecting, connect, disconnect } = useWalletSession();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState('');
+  const menuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const outside = (event: PointerEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('pointerdown', outside);
+    document.addEventListener('keydown', onEscape);
+    return () => {
+      document.removeEventListener('pointerdown', outside);
+      document.removeEventListener('keydown', onEscape);
+    };
+  }, [open]);
   if (address) {
     return (
       <div className="wallet-group">
@@ -274,11 +302,13 @@ export function WalletButton() {
     );
   }
   return (
-    <div className="wallet-menu">
-      <button className="button compact" onClick={() => setOpen(!open)}>
+    <div className="wallet-menu" ref={menuRef}>
+      <button type="button" className="button compact"
+        aria-expanded={open} aria-haspopup="dialog" aria-controls="wallet-choices"
+        onClick={() => setOpen(value => !value)}>
         Connect wallet <span>↗</span>
       </button>
-      {open && <div className="wallet-popover">
+      {open && <div className="wallet-popover" id="wallet-choices" role="dialog" aria-label="Choose a wallet">
         <strong>Choose a wallet</strong>
         {options.map(item => <button className="button secondary" key={item.id}
           disabled={connecting} onClick={async () => {

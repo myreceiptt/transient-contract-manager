@@ -1932,17 +1932,22 @@ th { color: #c1c1c8; }
 .artwork-upload-status strong { max-width: 100%; word-break: break-word; }
 .artwork-upload-status small { font-weight: 400; white-space: nowrap; }
 .artwork-upload-indicator { width: 100%; color: #f4f4f5; font-weight: 500; }
-.upload-dots { display: inline-block; min-width: 3ch; }
+.upload-dots { display: inline-block; width: 3ch; vertical-align: bottom; }
 .upload-dots::after {
-  content: "."; animation: upload-dot-cycle 1.2s steps(1,end) infinite;
+  content: "...";
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 1ch;
+  vertical-align: bottom;
+  animation: upload-dot-cycle 1.2s steps(3,end) infinite;
 }
 @keyframes upload-dot-cycle {
-  0%, 32% { content: "."; }
-  33%, 65% { content: ".."; }
-  66%, 100% { content: "..."; }
+  from { width: 0ch; }
+  to { width: 3ch; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .upload-dots::after { animation: none; content: "..."; }
+  .upload-dots::after { animation: none; width: 3ch; }
 }
 /* Independent operator story replaces the former hardcoded GO1 tile. */
 .nota-profile-feature {

@@ -1920,3 +1920,60 @@ th { color: #c1c1c8; }
 .related-mint-pages p { margin: 12px 0; font-size: 12px; }
 .related-mint-pages ul { margin: 12px 0 0; padding-left: 21px; overflow-wrap: anywhere; }
 .related-mint-pages li { color: #d4d4d8; padding: 5px 0; }
+
+
+/* Signed direct IPFS upload: clear selected filename and changing status. */
+.artwork-upload-status {
+  min-width: 0; display: flex; flex-wrap: wrap; gap: 5px 9px;
+  align-items: center; color: #e4e4e7; font-size: 12px;
+  background: #222225; border: 1px solid #52525b; border-radius: 8px;
+  padding: 9px 12px; overflow-wrap: anywhere;
+}
+.artwork-upload-status strong { max-width: 100%; word-break: break-word; }
+.artwork-upload-status small { font-weight: 400; white-space: nowrap; }
+.artwork-upload-indicator { width: 100%; color: #f4f4f5; font-weight: 500; }
+.upload-dots { display: inline-block; min-width: 3ch; }
+.upload-dots::after {
+  content: "."; animation: upload-dot-cycle 1.2s steps(1,end) infinite;
+}
+@keyframes upload-dot-cycle {
+  0%, 32% { content: "."; }
+  33%, 65% { content: ".."; }
+  66%, 100% { content: "..."; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .upload-dots::after { animation: none; content: "..."; }
+}
+/* Independent operator story replaces the former hardcoded GO1 tile. */
+.nota-profile-feature {
+  display: flex; flex-direction: column; gap: 18px;
+  min-width: 0;
+}
+.nota-profile-feature .section-top { margin-bottom: 0; }
+.nota-feature-art {
+  display: flex; align-items: center; justify-content: center;
+  gap: 18px; min-height: 180px; padding: 23px;
+  border: 1px solid #3f3f46; border-radius: 12px;
+  background: radial-gradient(circle at 30% 50%, #303034, #0d0d0f 70%);
+}
+.nota-feature-art > img {
+  width: clamp(95px, 35%, 150px); height: auto;
+  max-width: 42%; border-radius: 50%;
+}
+.nota-feature-wordmark { display: grid; gap: 14px; min-width: 0; }
+.nota-feature-wordmark img {
+  display: block; width: 100%; max-width: 270px; height: auto;
+  filter: invert(1);
+}
+.nota-feature-wordmark span {
+  color: #b4b4bc; font-size: 9px; line-height: 1.6;
+  letter-spacing: 1.15px;
+}
+.nota-feature-content h2 { font-size: 25px; margin-bottom: 9px; }
+.nota-feature-content p { color: #b4b4bc; font-size: 13px; line-height: 1.65; }
+.nota-profile-link { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; }
+.nota-profile-link:hover { text-decoration: none; }
+@media(max-width:650px) {
+  .nota-feature-art { min-height: 150px; padding: 15px; gap: 12px; }
+  .nota-feature-wordmark span { font-size: 8px; letter-spacing: .5px; }
+}

@@ -4,8 +4,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ArrowUpRight, ArrowRight, Box, ShieldCheck, Globe2, Check } from 'lucide-react';
 import { useConnection } from './providers';
-import { targetChains, localChain, GO1 } from '@/lib/chains';
-import { api, short } from '@/lib/api-client';
+import { targetChains, localChain } from '@/lib/chains';
+import { api } from '@/lib/api-client';
 import { Notice, Loading } from './shell';
 export function ContractEntry() {
   const [chainId, setChainId] = useState(1);
@@ -96,38 +96,30 @@ export function ContractEntry() {
             Existing contracts stay exactly where they are. Nothing is redeployed.
           </small>
         </section>
-        <section className="reference-panel">
+        <section className="reference-panel nota-profile-feature" aria-labelledby="nota-feature-heading">
           <div className="section-top">
-            <span className="section-number">REFERENCE COLLECTION</span>
-            <span className="tag light">ETHEREUM</span>
+            <span className="section-number">MEET THE PEOPLE BEHIND THE WORKSPACE</span>
+            <span className="tag light">PROF. NOTA INC.</span>
           </div>
-          <div className="reference-art">
-            <div className="line-art">
-              <span className="oil-ring" />
-              <span className="oil-line" />
-              <span className="oil-tag">
-                GO<span>1</span>
-              </span>
+          <div className="nota-feature-art">
+            <Image src="/brand/prof-nota/beware-of-scams.png" alt="Prof. NOTA portrait"
+              width={1063} height={1063} unoptimized />
+            <div className="nota-feature-wordmark">
+              <Image src="/brand/prof-nota/prof-nota-typhography-2.png"
+                width={1920} height={354} alt="Prof. NOTA Inc." unoptimized />
+              <span>AN INDEPENDENT CREATIVE TECHNOLOGY STUDIO</span>
             </div>
-            <span className="art-caption">GANTI OLI #1 / CONTRACT WORKSPACE</span>
           </div>
-          <div className="reference-bottom">
-            <div>
-              <h2>Ganti Oli #1</h2>
-              <p>ERC-1155 · {short(GO1)}</p>
-            </div>
-            <button
-              className="icon-button"
-              aria-label="Open Ganti Oli #1"
-              onClick={() => open(GO1, 1)}
-              disabled={busy}
-            >
-              <ArrowUpRight />
-            </button>
+          <div className="nota-feature-content">
+            <h2 id="nota-feature-heading">Meet Prof. NOTA.</h2>
+            <p>Curious about the people, ideas and independent work behind this application?
+              Explore Prof. NOTA and Prof. NOTA Inc. through their story.</p>
+            <a className="button wide nota-profile-link"
+              href="https://nota.endhonesa.com/profile"
+              target="_blank" rel="noopener noreferrer">
+              Discover our story <ArrowUpRight size={18} />
+            </a>
           </div>
-          <p className="reference-disclaimer">
-            Contract identity illustration · NFT artwork is loaded from its metadata.
-          </p>
         </section>
       </div>
       <section className="feature-row">

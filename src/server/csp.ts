@@ -27,7 +27,7 @@ export function contentSecurityPolicy(nonce: string) {
     // Existing React styles and the optional wallet modal use style attributes.
     // This exception does not permit inline JavaScript.
     "style-src 'self' 'unsafe-inline'",
-    `connect-src 'self' ${[...rpcOrigins, ...walletOrigins, ...(dev ? ['http://127.0.0.1:8545', 'ws://localhost:3000'] : [])].join(' ')}`,
+    `connect-src 'self' ${['https://uploads.pinata.cloud', ...rpcOrigins, ...walletOrigins, ...(dev ? ['http://127.0.0.1:8545', 'ws://localhost:3000'] : [])].join(' ')}`,
     "img-src 'self' data: blob:",
     "font-src 'self'",
     "object-src 'none'",

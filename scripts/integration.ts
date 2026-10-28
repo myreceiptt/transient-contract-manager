@@ -416,6 +416,21 @@ try {
     assert.equal(((await read('royaltyInfo', [6n, 10000n])) as any)[1], 450n);
     assert.equal(((await read('royaltyInfo', [7n, 10000n])) as any)[1], 650n);
   });
+  await test('Draft page can select another verified existing token without touching on-chain state', async () => {
+    const old = await owner.call('page_create', {
+      draft: { ...draft, slug: 'token-reassignment-first' },
+    });
+    const next = await admin.call('page_save', {
+      id: old.id, expectedVersion: old.version,
+      draft: { ...old.draft, tokenId: '2', slug: 'token-reassignment-second' },
+    });
+    assert.equal(next.id, old.id);
+    assert.equal(next.token_id, '2');
+    assert.equal(next.slug, 'token-reassignment-second');
+    assert.equal(next.draft.tokenId, '2');
+    assert.equal((await owner.call('revisions', { id: next.id })).length, 2);
+    assert.equal(await read('totalSupply'), 7n);
+  });
   await test('Airdrop, token URI, default royalty, token royalty and Stacks grant', async () => {
     await adminAction(
       {

@@ -67,6 +67,9 @@ export function MintStudio({
     (p) => /^([0-9]+)(\.[0-9]*)?$/.test(p) && (p.split('.')[1] || '').length <= currency.decimals,
   );
   const dirty = !!draft && (JSON.stringify(draft) !== saved || !page);
+  const identityEditable = !page || (page.state === 'DRAFT' && page.published_revision === null);
+  const identityChanged = !!page && !!draft &&
+    (draft.tokenId !== page.token_id || draft.slug !== page.slug);
   async function run(task: () => Promise<void>) {
     setBusy(true);
     setError('');
@@ -172,6 +175,11 @@ export function MintStudio({
       setError('Enter a valid price with no more than ' + currency.decimals + ' decimal places.');
       return;
     }
+    if (identityChanged && !window.confirm(
+      'Change the NFT Token ID or Mint Page URL for this unpublished draft? ' +
+      'This changes which NFT the page targets or its link. ' +
+      'It does not modify the blockchain. Any approved publication policy may still restrict publishing.'
+    )) return;
     await run(async () => {
       const next = {
         ...draft,
@@ -297,22 +305,38 @@ export function MintStudio({
                   Token ID
                   <input
                     value={draft.tokenId}
-                    disabled={!!page}
+                    disabled={!identityEditable}
                     onChange={(e) => setDraft({ ...draft, tokenId: e.target.value })}
                     inputMode="numeric"
                   />
+                  <small>Selects an existing NFT edition in this contract.
+                    Changing it requires admin rights for the new token.</small>
                 </label>
                 <label>
                   Page slug
                   <input
                     value={draft.slug}
-                    disabled={!!page}
+                    disabled={!identityEditable}
                     onChange={(e) => setDraft({ ...draft, slug: e.target.value })}
                     placeholder="your-edition"
                   />
-                  <small>/mint/{draft.slug || 'your-edition'}</small>
+                  <small>/mint/{draft.slug || 'your-edition'} · Changing the slug changes the public URL.</small>
                 </label>
               </div>
+              {identityChanged && (
+                <Notice>
+                  Changing the Token ID selects a different NFT; changing the slug
+                  changes the page URL. The change will be saved only after confirmation
+                  and a new on-chain permission check. It does not alter token metadata.
+                </Notice>
+              )}
+              {page && !identityEditable && (
+                <Notice>
+                  Token ID and URL are locked for pages with publication activity.
+                  Create a new Mint Page to target another token or URL without
+                  breaking existing links or transaction history.
+                </Notice>
+              )}
               <label>
                 Title
                 <input
@@ -601,10 +625,13 @@ export function MintStudio({
               </div>
             </section>
             <section className="panel publish-panel">
-              <h3>04 · Save, synchronize, publish</h3>
+              <h3>04 · Save and publish</h3>
               <p>
-                Publishing sale changes may require several wallet transactions. Review each step.
-                The public revision changes only after final confirmation and readback.
+                <strong>Save revision</strong> stores edits privately in the shared workspace.
+                <strong> Check sale readiness</strong> compares your saved settings to the live
+                Stacks contract without charging gas. <strong>Prepare publication</strong>
+                reviews the necessary blockchain update and requests a wallet signature only
+                after your explicit approval. The public page updates after confirmation.
               </p>
               <div className="button-row">
                 <button

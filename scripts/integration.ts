@@ -263,6 +263,34 @@ try {
     assert.equal((await owner.call('revisions', { id: page.id })).length, 2);
     assert.ok((await owner.call('audit', { id: page.id })).length >= 2);
   });
+  await test('Unpublished Mint Page can change slug while preserving identity, revision and audit log', async () => {
+    const alternate = await owner.call('page_create', {
+      draft: { ...draft, slug: 'draft-slug-before' },
+    });
+    const changed = await admin.call('page_save', {
+      id: alternate.id, expectedVersion: alternate.version,
+      draft: { ...alternate.draft, slug: 'draft-slug-after' },
+    });
+    assert.equal(changed.id, alternate.id);
+    assert.equal(changed.slug, 'draft-slug-after');
+    assert.equal(changed.token_id, alternate.token_id);
+    assert.equal(changed.version, alternate.version + 1);
+    assert.equal((await owner.call('page', { id: alternate.id })).page.slug, 'draft-slug-after');
+    assert.ok((await owner.call('audit', { id: alternate.id })).some((entry: any) =>
+      entry.action === 'DRAFT_IDENTITY_CHANGED'));
+    await owner.denied('page_save', {
+      id: alternate.id, expectedVersion: alternate.version,
+      draft: { ...alternate.draft, slug: 'stale-draft' },
+    }, 'VERSION_CONFLICT');
+    await owner.denied('page_save', {
+      id: changed.id, expectedVersion: changed.version,
+      draft: { ...changed.draft, tokenId: '99999' },
+    }, 'TOKEN_MISSING');
+    await outsider.denied('page_save', {
+      id: changed.id, expectedVersion: changed.version,
+      draft: { ...changed.draft, slug: 'unauthorized-draft' },
+    }, 'ACCESS_DENIED');
+  });
   await test('Sale readiness warns of sibling pages sharing the same NFT token and different payout', async () => {
     const sibling = await owner.call('page_create', {
       draft: {

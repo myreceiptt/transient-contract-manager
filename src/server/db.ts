@@ -107,6 +107,7 @@ export async function localDb() {
         "do $$ begin if not exists(select from pg_roles where rolname='anon') then create role anon;end if;if not exists(select from pg_roles where rolname='authenticated') then create role authenticated;end if;if not exists(select from pg_roles where rolname='service_role') then create role service_role;end if;end $$;",
       );
       await db.exec(await readFile('supabase/migrations/20261021111911_core.sql', 'utf8'));
+      await db.exec(await readFile('supabase/migrations/20261028100000_page_identity_drafts.sql', 'utf8'));
       return db;
     })();
   return localPromise;
@@ -116,14 +117,18 @@ export async function command(op: string, p: Record<string, unknown> = {}): Prom
     const dbRemote = await remoteDb();
     if (dbRemote) {
       const db = dbRemote;
-      const { data, error } = await db.rpc('tcm_command', { op, p });
+      const { data, error } = op === 'page_reidentify'
+        ? await db.rpc('tcm_page_reidentify', { p })
+        : await db.rpc('tcm_command', { op, p });
       if (error) throw error;
       return data;
     }
     const db = await localDb();
     const r = await db.query<{ result: unknown }>(
-      'select public.tcm_command($1,$2::jsonb) as result',
-      [op, JSON.stringify(p)],
+      op === 'page_reidentify'
+        ? 'select public.tcm_page_reidentify($1::jsonb) as result'
+        : 'select public.tcm_command($1,$2::jsonb) as result',
+      op === 'page_reidentify' ? [JSON.stringify(p)] : [op, JSON.stringify(p)],
     );
     return r.rows[0]?.result;
   } catch (e) {
@@ -137,6 +142,9 @@ export async function command(op: string, p: Record<string, unknown> = {}): Prom
       );
     if (msg.includes('duplicate key'))
       throw new AppError('CONFLICT', 'That slug or transaction is already registered.', 409);
+    if (msg.includes('IDENTITY_LOCKED'))
+      throw new AppError('IDENTITY_LOCKED',
+        'This page has publication history or is not an unpublished draft. Create a new page to target another token or URL.', 409);
     if (msg.includes('IMMUTABLE_IDENTITY'))
       throw new AppError(
         'IMMUTABLE_IDENTITY',

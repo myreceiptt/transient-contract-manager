@@ -6,6 +6,7 @@ import { PGlite } from '@electric-sql/pglite';
 // Entirely in memory. Never connects to Supabase or reads database credentials.
 const migrationPath = process.argv[2] || 'supabase/migrations/20261021111911_core.sql';
 const sql = await readFile(migrationPath, 'utf8');
+const identitySql = await readFile('supabase/migrations/20261028100000_page_identity_drafts.sql', 'utf8');
 const expected = [
   'app_sessions',
   'audit_logs',
@@ -37,6 +38,7 @@ for (const defaults of ['supabase', 'broad', 'restricted']) {
     }
     await db.exec('begin');
     await db.exec(sql);
+    await db.exec(identitySql);
     await db.exec('rollback');
     assert.equal(
       (await db.query("select tablename from pg_tables where schemaname='public'")).rows.length,
@@ -50,6 +52,7 @@ for (const defaults of ['supabase', 'broad', 'restricted']) {
     );
     await db.exec('begin');
     await db.exec(sql);
+    await db.exec(identitySql);
     await db.exec('commit');
     const tables = await db.query<{ relname: string; relrowsecurity: boolean }>(
       "select c.relname,c.relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r' order by c.relname",
@@ -115,6 +118,11 @@ for (const defaults of ['supabase', 'broad', 'restricted']) {
         [role],
       );
       assert.equal(r.rows[0].allowed, role === 'service_role');
+      const identityPriv = await db.query<{ allowed: boolean }>(
+        "select has_function_privilege($1,'public.tcm_page_reidentify(jsonb)','EXECUTE') as allowed",
+        [role],
+      );
+      assert.equal(identityPriv.rows[0].allowed, role === 'service_role');
     }
     for (const role of ['anon', 'authenticated']) {
       await db.exec(`set role ${role}`);
@@ -122,6 +130,10 @@ for (const defaults of ['supabase', 'broad', 'restricted']) {
         await assert.rejects(db.query(`select * from public.${name}`), /permission denied/);
       await assert.rejects(
         db.query("select public.tcm_command('page_list','{}')"),
+        /permission denied/,
+      );
+      await assert.rejects(
+        db.query("select public.tcm_page_reidentify('{}'::jsonb)"),
         /permission denied/,
       );
       await assert.rejects(
@@ -163,6 +175,27 @@ for (const defaults of ['supabase', 'broad', 'restricted']) {
       (await command('audit', { id: page.id })).length,
       1,
       'Service RPC can use identity sequence',
+    );
+    const revised = (
+      await db.query<{ result: any }>(
+        'select public.tcm_page_reidentify($1::jsonb) as result',
+        [JSON.stringify({
+          id: page.id, expectedVersion: page.version, actor: contract,
+          baseline: 'different-nft-snapshot',
+          draft: { ...page.draft, tokenId: '2', slug: 'migration-test-renamed' },
+        })],
+      )
+    ).rows[0].result;
+    assert.equal(revised.token_id, '2');
+    assert.equal(revised.slug, 'migration-test-renamed');
+    assert.equal(revised.version, 2);
+    assert.equal((await command('revisions', { id: page.id })).length, 2);
+    await assert.rejects(
+      db.query('select public.tcm_page_reidentify($1::jsonb)', [JSON.stringify({
+        id: page.id, expectedVersion: 1, actor: contract,
+        draft: { ...page.draft, slug: 'stale-rename' },
+      })]),
+      /VERSION_CONFLICT/,
     );
     await db.exec('reset role');
     const version = (await db.query<{ version: string }>('show server_version')).rows[0];

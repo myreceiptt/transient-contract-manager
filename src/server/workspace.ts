@@ -41,18 +41,25 @@ export async function createPage(raw: unknown, s: Session) {
 export async function savePage(id: string, expectedVersion: number, raw: unknown, s: Session) {
   const draft = draftSchema.parse(raw);
   const { page } = await pageForAdmin(id, s);
-  if (
-    draft.chainId !== page.chain_id ||
-    draft.contract.toLowerCase() !== page.contract ||
-    draft.tokenId !== page.token_id ||
-    draft.slug !== page.slug
-  )
-    throw new AppError(
-      'IMMUTABLE_IDENTITY',
-      'Create a new page to change chain, collection, token or slug',
-      409,
-    );
-  return command('page_save', { id, expectedVersion, draft, actor: s.wallet.toLowerCase() });
+  if (draft.chainId !== page.chain_id || draft.contract.toLowerCase() !== page.contract)
+    throw new AppError('IMMUTABLE_IDENTITY',
+      'Changing the blockchain or NFT contract requires a new Mint Page', 409);
+  const identityChanged = draft.tokenId !== page.token_id || draft.slug !== page.slug;
+  if (!identityChanged)
+    return command('page_save', { id, expectedVersion, draft, actor: s.wallet.toLowerCase() });
+  if (page.state !== 'DRAFT' || page.published_revision !== null)
+    throw new AppError('IDENTITY_LOCKED',
+      'Only an unpublished draft without publication history can change its token or URL. Create a separate Mint Page for this target.', 409);
+  // Revalidate the NEW NFT, even if the old page was already authorized.
+  // The database makes the identity rewrite, version, revision and audit atomic.
+  const nextInfo = await authorize(draft.chainId, draft.contract, s.wallet, BigInt(draft.tokenId));
+  if (!nextInfo.token.created)
+    throw new AppError('TOKEN_MISSING',
+      'The new Token ID must exist on-chain before the Mint Page can target it', 409);
+  await currencyInfo(draft.chainId, draft.sale.currencyAddress, nextInfo.blockNumber);
+  return command('page_reidentify', {
+    id, expectedVersion, draft, actor: s.wallet.toLowerCase(), baseline: baseline(nextInfo),
+  });
 }
 export async function rebasePage(
   id: string,

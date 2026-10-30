@@ -69,6 +69,7 @@ export async function listRecords(
         kind === 'pages' || kind === 'history'
           ? q.eq('chain_id', p.chainId!).eq('contract', p.contract!.toLowerCase())
           : q.eq('page_id', p.id!);
+      if (kind === 'pages') q = q.is('archived_at', null);
       q = q.order(order, { ascending: false });
       if (tie !== order) q = q.order(tie, { ascending: false });
       const { data, error } = await q.range(p.offset, p.offset + p.limit - 1);
@@ -77,7 +78,7 @@ export async function listRecords(
     }
     const db = await localDb();
     const collection = kind === 'pages' || kind === 'history';
-    const where = collection ? 'chain_id=$1 and contract=$2' : 'page_id=$1';
+    const where = collection ? 'chain_id=$1 and contract=$2' + (kind === 'pages' ? ' and archived_at is null' : '') : 'page_id=$1';
     const args = collection ? [p.chainId!, p.contract!.toLowerCase()] : [p.id!];
     const result = await db.query(
       `select * from public.${table} where ${where} order by ${order} desc${tie !== order ? `, ${tie} desc` : ''} limit $${args.length + 1} offset $${args.length + 2}`,
@@ -88,6 +89,25 @@ export async function listRecords(
     if (e instanceof AppError) throw e;
     throw new AppError('DATABASE_ERROR', 'Database list request failed', 503);
   }
+}
+// Authorized server-only lookup. Never expose archived or draft records publicly.
+export async function identityPages(chainId: number, contract: string, tokenIds: string[]) {
+  if (!tokenIds.length) return [];
+  if (tokenIds.length > 20 || tokenIds.some(t => !/^[1-9][0-9]*$/.test(t)))
+    throw new AppError('INVALID_TOKEN_LIST','Invalid inventory selection');
+  const db = await remoteDb();
+  if (db) {
+    const {data,error} = await db.from('mint_pages').select('*')
+      .eq('chain_id',chainId).eq('contract',contract.toLowerCase())
+      .eq('identity_retained',true).in('token_id',tokenIds).limit(20);
+    if (error) throw new AppError('DATABASE_ERROR','Identity lookup failed',503);
+    return data || [];
+  }
+  const local = await localDb();
+  const q = await local.query(
+    'select * from public.mint_pages where chain_id=$1 and contract=$2 and identity_retained=true and token_id=any($3::text[])',
+    [chainId,contract.toLowerCase(),tokenIds]);
+  return q.rows;
 }
 export async function localDb() {
   if (process.env.NODE_ENV === 'production')
@@ -108,6 +128,7 @@ export async function localDb() {
       );
       await db.exec(await readFile('supabase/migrations/20261021111911_core.sql', 'utf8'));
       await db.exec(await readFile('supabase/migrations/20261028100000_page_identity_drafts.sql', 'utf8'));
+      await db.exec(await readFile('supabase/migrations/20261030132000_token_first_mint_pages.sql', 'utf8'));
       return db;
     })();
   return localPromise;
@@ -119,7 +140,9 @@ export async function command(op: string, p: Record<string, unknown> = {}): Prom
       const db = dbRemote;
       const { data, error } = op === 'page_reidentify'
         ? await db.rpc('tcm_page_reidentify', { p })
-        : await db.rpc('tcm_command', { op, p });
+        : op === 'page_lifecycle'
+          ? await db.rpc('tcm_page_lifecycle', { p })
+          : await db.rpc('tcm_command', { op, p });
       if (error) throw error;
       return data;
     }
@@ -127,8 +150,10 @@ export async function command(op: string, p: Record<string, unknown> = {}): Prom
     const r = await db.query<{ result: unknown }>(
       op === 'page_reidentify'
         ? 'select public.tcm_page_reidentify($1::jsonb) as result'
-        : 'select public.tcm_command($1,$2::jsonb) as result',
-      op === 'page_reidentify' ? [JSON.stringify(p)] : [op, JSON.stringify(p)],
+        : op === 'page_lifecycle'
+          ? 'select public.tcm_page_lifecycle($1::jsonb) as result'
+          : 'select public.tcm_command($1,$2::jsonb) as result',
+      ['page_reidentify','page_lifecycle'].includes(op) ? [JSON.stringify(p)] : [op, JSON.stringify(p)],
     );
     return r.rows[0]?.result;
   } catch (e) {
@@ -141,7 +166,9 @@ export async function command(op: string, p: Record<string, unknown> = {}): Prom
         409,
       );
     if (msg.includes('duplicate key'))
-      throw new AppError('CONFLICT', 'That slug or transaction is already registered.', 409);
+      throw new AppError('CONFLICT', 'This NFT already has a canonical Mint Page, or the slug is reserved. Open or restore its existing page.', 409);
+    if (['PENDING_TRANSACTION','DROP_MUST_BE_CLOSED','RELEASED_DRAFT_CANNOT_RESTORE','ALREADY_ARCHIVED'].some(k=>msg.includes(k)))
+      throw new AppError('LIFECYCLE_BLOCKED', 'Mint Page cannot be archived or restored in its current state.', 409);
     if (msg.includes('IDENTITY_LOCKED'))
       throw new AppError('IDENTITY_LOCKED',
         'This page has publication history or is not an unpublished draft. Create a new page to target another token or URL.', 409);

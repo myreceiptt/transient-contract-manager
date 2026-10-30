@@ -68,6 +68,7 @@ export function operationBudget(op: string): Budget {
       'publish_content',
       'intent',
       'history',
+      'page_history',
     ].includes(op)
   )
     return 'workspace';

@@ -524,9 +524,29 @@ try {
   await test('Published Mint Page slug can change without minting or publishing another revision', async () => {
     const prior=page;
     const target='local-first-edition-renamed';
+    // A fresh unsigned review must block identity changes; once its wallet
+    // review expires, the server can expire it atomically without gas.
+    const pending=await db.query<{id:string}>(
+      "insert into public.publication_records(page_id,revision,actor,chain_id,contract,payload,status) "+
+      "values ($1,$2,$3,31337,$4,jsonb_build_object('tx',jsonb_build_object('expiresAt',"+
+      "(now()+interval '10 minutes')::text)),'PREPARED') returning id",
+      [page.id,page.version,f.owner,f.nft]
+    );
+    await owner.denied('page_slug_edit',{
+      id:prior.id,expectedVersion:prior.version,expectedSlug:prior.slug,slug:target
+    },'SLUG_EDIT_BLOCKED');
+    await db.query(
+      "update public.publication_records set payload=jsonb_set(payload,'{tx,expiresAt}',"+
+      "to_jsonb((now()-interval '10 minutes')::text)) where id=$1",
+      [pending.rows[0].id]
+    );
     page=await admin.call('page_slug_edit',{
       id:prior.id,expectedVersion:prior.version,expectedSlug:prior.slug,slug:target
     });
+    const expired=(await db.query<{status:string}>(
+      "select status from public.publication_records where id=$1",[pending.rows[0].id]
+    )).rows[0].status;
+    assert.equal(expired,'EXPIRED');
     assert.equal(page.id,prior.id);
     assert.equal(page.token_id,prior.token_id);
     assert.equal(page.published_revision,prior.published_revision);

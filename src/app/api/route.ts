@@ -19,7 +19,7 @@ import {
 } from '@/server/auth';
 import { inspect, authorize, tokenInventory, currencyInfo } from '@/server/chain';
 import { command, listRecords } from '@/server/db';
-import { createPage, savePage, rebasePage, pageForAdmin, baseline, mintInventory, changePageArchive } from '@/server/workspace';
+import { createPage, savePage, rebasePage, pageForAdmin, baseline, mintInventory, changePageArchive, changePublishedPageSlug } from '@/server/workspace';
 import {
   prepareAdmin,
   previewAdmin,
@@ -130,6 +130,16 @@ export async function POST(req: NextRequest) {
           changed: page.baseline !== baseline(info),
         };
       } else if (op === 'page_create') result = await createPage(p.draft, s);
+      else if (op === 'page_slug_edit') {
+        result = await changePublishedPageSlug(
+          idSchema.parse(p.id),
+          z.number().int().positive().parse(p.expectedVersion),
+          z.string().min(3).max(80).parse(p.expectedSlug),
+          z.string().regex(/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/)
+            .min(3).max(80).parse(p.slug),
+          s,
+        );
+      }
       else if (op === 'page_save')
         result = await savePage(
           idSchema.parse(p.id),

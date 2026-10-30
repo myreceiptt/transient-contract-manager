@@ -212,6 +212,9 @@ export type PageRecord = {
   created_at: string;
   updated_at: string;
   baseline: string;
+  archived_at?: string | null;
+  archive_reason?: string | null;
+  identity_retained?: boolean;
 };
 export function mediaUrl(s: string) {
   return s.startsWith('ipfs://') ? 'https://ipfs.io/ipfs/' + s.slice(7) : s;

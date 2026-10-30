@@ -122,6 +122,25 @@ export async function savePage(id: string, expectedVersion: number, raw: unknown
     id, expectedVersion, draft, actor: s.wallet.toLowerCase(), baseline: baseline(nextInfo),
   });
 }
+/** Rename the URL of a published page without changing its token or on-chain sale. */
+export async function changePublishedPageSlug(
+  id: string, expectedVersion: number, expectedSlug: string, slug: string, s: Session,
+) {
+  const {page} = await pageForAdmin(id,s);
+  if(page.version!==expectedVersion || page.slug!==expectedSlug)
+    throw new AppError('VERSION_CONFLICT','Reload this Mint Page before editing its URL.',409);
+  if(page.archived_at || page.published_revision===null)
+    throw new AppError('SLUG_EDIT_BLOCKED','Only a restored published Mint Page can rename its URL.',409);
+  // Retain the explicit, operator-approved GO1 #1 official URL policy.
+  if(page.chain_id===1 &&
+     page.contract==='0x5807e66182a38788a3854853225a2b6d8e0480f2' &&
+     page.token_id==='1' && slug!=='pancasila-vs-pancakaki')
+    throw new AppError('OFFICIAL_SLUG_LOCKED',
+      'GO1 Token ID #1 uses its designated official Mint Page slug.',409);
+  return command('page_slug_edit',{
+    id,expectedVersion,expectedSlug,slug,actor:s.wallet.toLowerCase()
+  });
+}
 export async function rebasePage(
   id: string,
   expectedVersion: number,

@@ -49,6 +49,8 @@ export function MintStudio({
   const [moreRevisions, setMoreRevisions] = useState(false);
   const [page, setPage] = useState<PageRecord>();
   const [draft, setDraft] = useState<Draft>();
+  const [slugEditOpen, setSlugEditOpen] = useState(false);
+  const [slugCandidate, setSlugCandidate] = useState('');
   const [saved, setSaved] = useState('');
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState<'artwork' | 'banner' | ''>('');
@@ -154,6 +156,8 @@ export function MintStudio({
     });
   }
   function select(p: PageRecord | undefined, d: Draft) {
+    setSlugEditOpen(false);
+    setSlugCandidate(p?.slug || d.slug);
     setPage(p);
     setDraft(d);
     setSaved(p ? JSON.stringify(d) : '');
@@ -261,6 +265,37 @@ export function MintStudio({
       setNotice(
         'Revision ' + p.version + ' saved. Authorized collection admins can continue editing.',
       );
+      await Promise.all([list(),loadInventory()]);
+    });
+  }
+  async function renamePublishedSlug() {
+    if(!page || page.published_revision===null || !draft || dirty) return;
+    if(!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(slugCandidate) ||
+       slugCandidate.length<3 || slugCandidate.length>80){
+      setError('Use a 3–80 character lowercase slug (letters, numbers and hyphens).');
+      return;
+    }
+    if(slugCandidate===page.slug){
+      setSlugEditOpen(false); return;
+    }
+    if(!window.confirm('Change the public Mint Page URL from /mint/'+page.slug+
+       ' to /mint/'+slugCandidate+'? Old published URLs will permanently redirect. '+
+       'The NFT Token ID, on-chain drop and published content will not change.')) return;
+    await run(async()=>{
+      const oldSlug=page.slug;
+      const updated=await api('page_slug_edit',{
+        id:page.id,expectedVersion:page.version,
+        expectedSlug:oldSlug,slug:slugCandidate
+      }) as PageRecord;
+      setPage(updated);
+      setDraft(updated.draft);
+      setSaved(JSON.stringify(updated.draft));
+      setSlugEditOpen(false);
+      setSnapshot(undefined);
+      setContentReview(undefined);
+      setReadiness(undefined);
+      setNotice('URL updated: /mint/'+updated.slug+
+        '. Old /mint/'+oldSlug+' permanently redirects to the new URL.');
       await Promise.all([list(),loadInventory()]);
     });
   }
@@ -420,10 +455,48 @@ export function MintStudio({
               )}
               {page && !identityEditable && (
                 <Notice>
-                  Token ID and URL are locked for pages with publication activity.
-                  Create a new Mint Page to target another token or URL without
-                  breaking existing links or transaction history.
+                  The NFT Token ID and Mint Page ID are permanent. The public URL
+                  can be renamed below without changing the blockchain, minting round,
+                  or the currently published content.
                 </Notice>
+              )}
+              {page?.published_revision !== null && page?.published_revision !== undefined && (
+                <div className="panel" style={{marginTop:'0.75rem'}}>
+                  <div className="section-top">
+                    <div>
+                      <strong>Public Mint Page URL</strong>
+                      <p className="muted">Current: /mint/{page.slug}</p>
+                    </div>
+                    <button className="button secondary compact"
+                      disabled={busy || dirty || page.archived_at != null}
+                      onClick={()=>{setSlugCandidate(page.slug);setSlugEditOpen(!slugEditOpen);}}>
+                      {slugEditOpen?'Cancel':'Edit URL'}
+                    </button>
+                  </div>
+                  {slugEditOpen && (
+                    <>
+                      <label htmlFor="published-page-slug">New page slug</label>
+                      <input id="published-page-slug" maxLength={80}
+                        value={slugCandidate}
+                        onChange={e=>setSlugCandidate(e.target.value)}
+                        spellCheck={false}
+                        autoComplete="off"
+                        placeholder="your-edition-slug"/>
+                      <small>Preview: /mint/{slugCandidate || 'your-edition-slug'}</small>
+                      <p className="muted">
+                        The previous URL remains reserved and redirects permanently
+                        to this page. No on-chain transaction or gas is required.
+                        Do not change Token ID, contract address or Mint Page identity.
+                      </p>
+                      <button className="button" disabled={busy || dirty ||
+                        !/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(slugCandidate) ||
+                        slugCandidate.length<3 || slugCandidate.length>80 ||
+                        slugCandidate===page.slug}
+                        onClick={renamePublishedSlug}>Save new URL</button>
+                    </>
+                  )}
+                  {dirty && <small>Save your pending content edits before editing the URL.</small>}
+                </div>
               )}
               <label>
                 Title

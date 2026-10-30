@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
             .parse(p.accepted),
           s,
         );
-      else if (op === 'revisions' || op === 'audit') {
+      else if (op === 'revisions' || op === 'audit' || op === 'page_history') {
         const id = idSchema.parse(p.id);
         await pageForAdmin(id, s);
         result = await listRecords(op, { id, ...pagination.parse(p) });

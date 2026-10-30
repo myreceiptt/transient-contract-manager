@@ -24,13 +24,14 @@ it('refuses a different database or partial credentials before creating a client
 });
 it('uses bounded PostgREST ranges and collection/page filters with the service client', async () => {
   const q: any = { data: [], error: null };
-  for (const name of ['select', 'eq', 'order', 'range']) q[name] = vi.fn(() => q);
+  for (const name of ['select', 'eq', 'is', 'order', 'range']) q[name] = vi.fn(() => q);
   const from = vi.fn(() => q);
   vi.mocked(createClient).mockReturnValue({ from } as any);
   await listRecords('pages', { chainId: 8453, contract: '0xABC', limit: 25, offset: 25 });
   expect(from).toHaveBeenCalledWith('mint_pages');
   expect(q.eq).toHaveBeenCalledWith('chain_id', 8453);
   expect(q.eq).toHaveBeenCalledWith('contract', '0xabc');
+  expect(q.is).toHaveBeenCalledWith('archived_at', null);
   expect(q.range).toHaveBeenCalledWith(25, 49);
   await listRecords('revisions', { id: 'page-id', limit: 10, offset: 0 });
   expect(q.eq).toHaveBeenCalledWith('page_id', 'page-id');

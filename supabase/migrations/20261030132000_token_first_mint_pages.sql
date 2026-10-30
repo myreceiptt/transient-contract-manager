@@ -22,13 +22,32 @@ begin
       and m.slug='art-response-1' and i.status in ('PREPARED','SUBMITTED')
   ) then raise exception 'GO1_TRANSACTION_STILL_PENDING'; end if;
 
+  -- #10 has a prepared but unsigned transaction review. A review expires in
+  -- five minutes; do not release the token if it was signed or is still valid.
+  if exists (
+    select 1 from public.mint_pages m join public.publication_records i on i.page_id=m.id
+    where m.chain_id=1 and m.contract='0x5807e66182a38788a3854853225a2b6d8e0480f2'
+      and m.slug='myreceipt-1'
+      and (i.status <> 'PREPARED' or i.tx_hash is not null or
+        coalesce((i.payload->'tx'->>'expiresAt')::timestamptz,'infinity'::timestamptz)>=now())
+  ) then raise exception 'GO1_UNSIGNED_REVIEW_NOT_SAFE_TO_ARCHIVE'; end if;
+
+  update public.publication_records i set status='EXPIRED',updated_at=now()
+  from public.mint_pages m
+  where i.page_id=m.id and m.chain_id=1
+    and m.contract='0x5807e66182a38788a3854853225a2b6d8e0480f2'
+    and m.slug='myreceipt-1'
+    and i.status='PREPARED' and i.tx_hash is null
+    and (i.payload->'tx'->>'expiresAt')::timestamptz < now();
+
   update public.mint_pages m
   set archived_at=now(), archive_reason='Operator-authorized token-first workspace reset 2026-10-30',
       identity_retained=false,updated_at=now()
   where m.chain_id=1 and m.contract='0x5807e66182a38788a3854853225a2b6d8e0480f2'
     and m.slug in ('myreceipt-1','minting-pacasila-vs-pancakaki','endhonesa-hahaha')
-    and m.state='DRAFT' and m.published_revision is null
-    and not exists (select 1 from public.publication_records i where i.page_id=m.id);
+    and m.state in ('DRAFT','READY_FOR_REVIEW') and m.published_revision is null
+    and not exists (select 1 from public.publication_records i where i.page_id=m.id
+      and (i.tx_hash is not null or i.status not in ('EXPIRED')));
 
   update public.mint_pages m
   set archived_at=now(), archive_reason='Owner closed Stacks drop; retain permanent published identity',
@@ -72,7 +91,14 @@ begin
   if not found then raise exception 'NOT_FOUND'; end if;
   if r.version<>(p->>'expectedVersion')::integer then raise exception 'VERSION_CONFLICT'; end if;
   if exists(select 1 from public.publication_records i where i.page_id=r.id
-    and i.status in ('PREPARED','SUBMITTED')) then raise exception 'PENDING_TRANSACTION'; end if;
+    and (i.status='SUBMITTED' or
+      (i.status='PREPARED' and (i.tx_hash is not null or
+        coalesce((i.payload->'tx'->>'expiresAt')::timestamptz,
+          'infinity'::timestamptz)>=now()))))
+    then raise exception 'PENDING_TRANSACTION'; end if;
+  update public.publication_records set status='EXPIRED',updated_at=now()
+    where page_id=r.id and status='PREPARED' and tx_hash is null
+    and (payload->'tx'->>'expiresAt')::timestamptz < now();
   if p->>'action'='archive' then
     if r.archived_at is not null then raise exception 'ALREADY_ARCHIVED'; end if;
     -- A published page can be hidden only after a fresh on-chain observation
@@ -80,7 +106,9 @@ begin
     if r.published_revision is not null and p->>'closedDrop' <> 'true'
       then raise exception 'DROP_MUST_BE_CLOSED'; end if;
     select exists(select 1 from public.publication_records i
-      where i.page_id=r.id) into history_found;
+      where i.page_id=r.id and
+        (i.tx_hash is not null or i.status in ('SUBMITTED','CONFIRMED','REVERTED')))
+      into history_found;
     update public.mint_pages set archived_at=now(),
       archive_reason=left(coalesce(p->>'reason','Archived by authorized operator'),240),
       identity_retained=(r.published_revision is not null or history_found), updated_at=now()

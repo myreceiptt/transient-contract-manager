@@ -82,6 +82,7 @@ export const actionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('setDefaultRoyalty'), royalty }),
   z.object({ action: z.literal('setTokenRoyalty'), tokenId: positive, royalty }),
   z.object({ action: z.literal('approveStacks') }),
+  z.object({ action: z.literal('closeDrop'), tokenId: positive }),
 ]);
 type Call = {
   to: Address;
@@ -130,11 +131,13 @@ export function adminCall(address: Address, stacks: Address, raw: unknown): Call
   else if (a.action === 'setDefaultRoyalty') args = [a.royalty.recipient, BigInt(a.royalty.bps)];
   else if (a.action === 'setTokenRoyalty')
     args = [BigInt(a.tokenId), a.royalty.recipient, BigInt(a.royalty.bps)];
+  else if (a.action === 'closeDrop') args = [address, BigInt(a.tokenId)];
   else {
     fn = 'setApprovedMintContracts';
     args = [[stacks], true];
   }
-  return { to: address, abi: creatorAbi, functionName: fn, args, value: 0n };
+  return { to: a.action==='closeDrop' ? stacks : address,
+    abi: a.action==='closeDrop' ? stacksAbi : creatorAbi, functionName: fn, args, value: 0n };
 }
 export async function simulate(id: number, account: Address, call: Call) {
   const c = client(id);
@@ -180,6 +183,13 @@ export async function simulate(id: number, account: Address, call: Call) {
     );
   }
 }
+function adminSnapshot(info: Awaited<ReturnType<typeof inspect>>, action: string) {
+  const underlying = mutationSnapshot(info);
+  if (action !== 'closeDrop') return underlying;
+  if (!info.sale || info.sale.drop.dropType === 0)
+    throw new AppError('DROP_NOT_CONFIGURED','There is no configured Stacks drop to close.',409);
+  return fingerprint({underlying, drop: info.sale.configFingerprint, round: info.sale.round});
+}
 function mutationSnapshot(info: Awaited<ReturnType<typeof inspect>>) {
   return fingerprint({
     owner: info.owner,
@@ -203,6 +213,7 @@ async function validateAdminAction(id: number, address: Address, raw: unknown, s
   if (action.action === 'mintToken' && info.locked)
     throw new AppError('TOKEN_LOCKED', 'This token is permanently locked against further minting');
   if (action.action === 'approveStacks') await verifyStacks(client(id), id, info.blockNumber);
+  if (action.action === 'closeDrop') adminSnapshot(info, 'closeDrop');
   const call = adminCall(info.address, stacksAddress(id), action);
   return { action, token, info, call };
 }
@@ -240,7 +251,7 @@ export async function prepareAdmin(id: number, address: Address, raw: unknown, s
       kind: 'admin',
       action,
       tokenId: token.toString(),
-      snapshot: mutationSnapshot(info),
+      snapshot: adminSnapshot(info, action.action),
       tx,
     },
   });
@@ -299,6 +310,7 @@ export function nextDropCall(
 }
 export async function previewPublication(id: string, expectedVersion: number, s: Session) {
   const { page, info } = await pageForAdmin(id, s);
+  if(page.archived_at) throw new AppError('PAGE_ARCHIVED','Restore the Mint Page before publishing.',409);
   if (page.version !== expectedVersion)
     throw new AppError('VERSION_CONFLICT', 'Reload the latest mint page revision', 409);
   // A Stacks drop is keyed by NFT contract and token ID, not by mint-page slug.
@@ -359,6 +371,8 @@ export async function previewPublication(id: string, expectedVersion: number, s:
     note('BLOCKED', info.saleError || 'Verified Stacks contract is unavailable');
     return result();
   }
+  if (page.published_revision===null && info.sale.drop.dropType!==0)
+    note('BLOCKED','A pre-existing Stacks drop owns this token. Close it before the first publication here.');
   if (!info.token.created) note('BLOCKED', 'Referenced NFT token ID does not exist');
   else note('PASS', 'Referenced NFT token ID exists');
   if (info.locked) note('BLOCKED', 'Token is permanently locked for new minting');
@@ -437,6 +451,9 @@ export async function previewCollectorQuote(
 
 export async function preparePublication(id: string, expectedVersion: number, s: Session) {
   const { page, info } = await pageForAdmin(id, s);
+  if(page.archived_at) throw new AppError('PAGE_ARCHIVED','Restore the Mint Page before publishing.',409);
+  if(page.published_revision===null && (!info.sale || info.sale.drop.dropType!==0))
+    throw new AppError('EXTERNAL_DROP','Close the existing Stacks drop before the first publication here.',409);
   const policyIssue = publicationPolicyIssue(page);
   if (policyIssue) throw new AppError('PUBLICATION_POLICY', policyIssue, 409);
   if (page.version !== expectedVersion)
@@ -513,6 +530,7 @@ export async function publishContent(
   s: Session,
 ) {
   const { page, info } = await pageForAdmin(id, s);
+  if(page.archived_at) throw new AppError('PAGE_ARCHIVED','Restore the Mint Page before publishing.',409);
   const policyIssue = publicationPolicyIssue(page);
   if (policyIssue) throw new AppError('PUBLICATION_POLICY', policyIssue, 409);
   requireWrites(page.chain_id);
@@ -538,7 +556,8 @@ export async function publishContent(
 }
 export async function publicPage(slug: string) {
   const record = await command('public_get', { slug });
-  if (!record) throw new AppError('NOT_FOUND', 'This mint page has not been published', 404);
+  if (!record || record.page.archived_at)
+    throw new AppError('NOT_FOUND','This Mint Page has been archived or is not published.',404);
   const draft = record.revision.draft as Draft;
   const info = await inspect(draft.chainId, draft.contract, undefined, BigInt(draft.tokenId));
   const expected = configFingerprint(dropFromDraft(draft));
@@ -552,8 +571,10 @@ export async function publicPage(slug: string) {
     tokenId: draft.tokenId,
     onchain: info,
     consistent,
-    state: !consistent
-      ? 'OUT_OF_SYNC'
+    state: info.sale?.drop.dropType===0
+      ? 'CLOSED'
+      : !consistent
+        ? 'OUT_OF_SYNC'
       : info.sale.paused || !info.sale.approved || info.locked
         ? 'ACTION_REQUIRED'
         : 'PUBLISHED',
@@ -721,7 +742,8 @@ export async function preflight(id: string, s: Session) {
       );
   }
   const info = await inspect(Number(i.chain_id), i.contract, s.wallet, BigInt(i.payload.tokenId));
-  const snapshot = i.payload.kind === 'admin' ? mutationSnapshot(info) : baseline(info);
+  const snapshot = i.payload.kind === 'admin'
+    ? adminSnapshot(info, i.payload.action?.action) : baseline(info);
   if (snapshot !== i.payload.snapshot)
     throw new AppError(
       'STATE_CHANGED',

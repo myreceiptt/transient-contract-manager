@@ -76,8 +76,18 @@ begin
     then raise exception 'SLUG_EDIT_REQUIRES_PUBLISHED_PAGE'; end if;
   if exists (
     select 1 from public.publication_records i
-    where i.page_id=r.id and i.status in ('PREPARED','SUBMITTED')
+    where i.page_id=r.id and
+      (i.status='SUBMITTED' or
+       (i.status='PREPARED' and
+         (i.tx_hash is not null or
+          coalesce((i.payload->'tx'->>'expiresAt')::timestamptz,
+            'infinity'::timestamptz)>=now())))
   ) then raise exception 'PENDING_TRANSACTION'; end if;
+  -- An unsigned, expired review can no longer be sent via preflight.
+  update public.publication_records
+    set status='EXPIRED',updated_at=now()
+    where page_id=r.id and status='PREPARED' and tx_hash is null
+      and (payload->'tx'->>'expiresAt')::timestamptz < now();
   if next_slug is null or char_length(next_slug) not between 3 and 80
     or next_slug !~ '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'
     then raise exception 'INVALID_SLUG'; end if;

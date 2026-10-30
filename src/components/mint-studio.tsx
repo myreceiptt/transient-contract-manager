@@ -4,7 +4,9 @@ import { useSession } from './providers';
 import { api } from '@/lib/api-client';
 import { type Draft, type PageRecord, mediaUrl } from '@/lib/domain';
 import { zeroAddress, formatUnits, parseUnits, formatEther } from 'viem';
-import { Monitor, Smartphone, Plus, ExternalLink, Save, History, RefreshCw, Archive, RotateCcw, LockKeyhole } from 'lucide-react';
+import { Monitor, Smartphone, Plus, ExternalLink, Save, History, RefreshCw, Archive } from 'lucide-react';
+import { canonicalMintPages } from '@/lib/canonical-mint-pages';
+import { txExplorer } from '@/lib/chains';
 import { Notice, Loading } from './shell';
 import { Artwork } from './safe-media';
 import { uploadOriginalArtwork, formatArtworkSize } from '@/lib/direct-ipfs-upload';
@@ -57,6 +59,7 @@ export function MintStudio({
   const [snapshot, setSnapshot] = useState<any>();
   const [revisions, setRevisions] = useState<any[]>([]);
   const [audit, setAudit] = useState<any[]>([]);
+  const [roundHistory, setRoundHistory] = useState<any[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [mobile, setMobile] = useState(false);
   const [currency, setCurrency] = useState({ symbol: 'ETH', decimals: 18 });
@@ -114,7 +117,11 @@ export function MintStudio({
     }
     if(token.page){await open(token.page.id);return;}
     if(token.eligibility!=='AVAILABLE')return;
-    const d={...fresh(info),tokenId:String(token.id)};
+    const official=canonicalMintPages.find(p=>p.chainId===info.chainId &&
+      p.contract===info.address.toLowerCase() && p.tokenId===String(token.id));
+    const base=fresh(info);
+    const d={...base,tokenId:String(token.id),slug:official?.slug||'',
+      sale:{...base.sale,payoutReceiver:official?.payoutReceiver||base.sale.payoutReceiver}};
     select(undefined,d);
   }
   async function closeToken(token:any) {
@@ -155,6 +162,7 @@ export function MintStudio({
     setCollectorQuote(undefined);
     setRevisions([]);
     setAudit([]);
+    setRoundHistory([]);
     setContentReview(undefined);
     setPrice(
       formatUnits(
@@ -901,10 +909,12 @@ export function MintStudio({
                   className="text-link"
                   onClick={() =>
                     run(async () => {
-                      const [r, a] = await Promise.all([
+                      const [r, a, h] = await Promise.all([
                         api('revisions', { id: page.id }),
                         api('audit', { id: page.id }),
+                        api('page_history', { id: page.id }),
                       ]);
+                      setRoundHistory(h);
                       setRevisions(r);
                       setMoreRevisions(r.length === 25);
                       setAudit(a);
@@ -915,7 +925,7 @@ export function MintStudio({
                   <History size={17} />
                   Revision history & audit trail
                 </button>
-                {showHistory && (
+                {showHistory && (<>
                   <div className="history-grid">
                     <div>
                       <h4>Saved revisions</h4>
@@ -976,7 +986,21 @@ export function MintStudio({
                       ))}
                     </div>
                   </div>
-                )}
+                  <div className="panel">
+                    <h4>Sale rounds and transaction evidence</h4>
+                    <p className="muted">Publication intents and receipts are historical records.
+                      The current on-chain round remains authoritative.</p>
+                    {roundHistory.length===0 && <p className="muted">No publication transactions recorded.</p>}
+                    {roundHistory.map((entry:any)=><div className="history-row" key={entry.id}>
+                      <span>Round {entry.payload?.expectedRound ?? 'not yet known'} · {entry.status}
+                        <small>{new Date(entry.created_at).toLocaleString()}</small>
+                        {entry.tx_hash && <a className="text-link"
+                          href={txExplorer(info.chainId,entry.tx_hash)}
+                          target="_blank" rel="noreferrer">Inspect transaction</a>}
+                      </span>
+                    </div>)}
+                  </div>
+                </>)}
               </section>
             )}
           </>

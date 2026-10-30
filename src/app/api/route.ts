@@ -19,7 +19,7 @@ import {
 } from '@/server/auth';
 import { inspect, authorize, tokenInventory, currencyInfo } from '@/server/chain';
 import { command, listRecords } from '@/server/db';
-import { createPage, savePage, rebasePage, pageForAdmin, baseline } from '@/server/workspace';
+import { createPage, savePage, rebasePage, pageForAdmin, baseline, mintInventory, changePageArchive } from '@/server/workspace';
 import {
   prepareAdmin,
   previewAdmin,
@@ -108,6 +108,14 @@ export async function POST(req: NextRequest) {
         const a = identity.parse(p);
         result = await previewAdmin(a.chainId, a.contract, p.action, s);
       }
+      else if (op === 'mint_inventory') {
+        const a = identity.extend({start:z.number().int().min(1).max(1e7).default(1)}).parse(p);
+        result = await mintInventory(a.chainId,a.contract,a.start,s);
+      } else if (op === 'page_lifecycle') {
+        result = await changePageArchive(idSchema.parse(p.id),
+          z.number().int().positive().parse(p.expectedVersion),
+          z.enum(['archive','restore']).parse(p.action),s);
+      }
       else if (op === 'pages') {
         const a = identity.parse(p);
         requireSessionChain(s, a.chainId);
@@ -139,7 +147,7 @@ export async function POST(req: NextRequest) {
             .parse(p.accepted),
           s,
         );
-      else if (op === 'revisions' || op === 'audit') {
+      else if (op === 'revisions' || op === 'audit' || op === 'page_history') {
         const id = idSchema.parse(p.id);
         await pageForAdmin(id, s);
         result = await listRecords(op, { id, ...pagination.parse(p) });

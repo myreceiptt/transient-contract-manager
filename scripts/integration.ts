@@ -263,51 +263,12 @@ try {
     assert.equal((await owner.call('revisions', { id: page.id })).length, 2);
     assert.ok((await owner.call('audit', { id: page.id })).length >= 2);
   });
-  await test('Unpublished Mint Page can change slug while preserving identity, revision and audit log', async () => {
-    const alternate = await owner.call('page_create', {
-      draft: { ...draft, slug: 'draft-slug-before' },
-    });
-    const changed = await admin.call('page_save', {
-      id: alternate.id, expectedVersion: alternate.version,
-      draft: { ...alternate.draft, slug: 'draft-slug-after' },
-    });
-    assert.equal(changed.id, alternate.id);
-    assert.equal(changed.slug, 'draft-slug-after');
-    assert.equal(changed.token_id, alternate.token_id);
-    assert.equal(changed.version, alternate.version + 1);
-    assert.equal((await owner.call('page', { id: alternate.id })).page.slug, 'draft-slug-after');
-    assert.ok((await owner.call('audit', { id: alternate.id })).some((entry: any) =>
-      entry.action === 'DRAFT_IDENTITY_CHANGED'));
-    await owner.denied('page_save', {
-      id: alternate.id, expectedVersion: alternate.version,
-      draft: { ...alternate.draft, slug: 'stale-draft' },
-    }, 'VERSION_CONFLICT');
-    await owner.denied('page_save', {
-      id: changed.id, expectedVersion: changed.version,
-      draft: { ...changed.draft, tokenId: '99999' },
-    }, 'TOKEN_MISSING');
-    await outsider.denied('page_save', {
-      id: changed.id, expectedVersion: changed.version,
-      draft: { ...changed.draft, slug: 'unauthorized-draft' },
-    }, 'ACCESS_DENIED');
-  });
-  await test('Sale readiness warns of sibling pages sharing the same NFT token and different payout', async () => {
-    const sibling = await owner.call('page_create', {
-      draft: {
-        ...draft,
-        slug: 'second-page-same-token',
-        sale: { ...draft.sale, payoutReceiver: f.admin },
-      },
-    });
-    const review = await owner.call('preview_publication', { id: page.id, expectedVersion: page.version });
-    assert.equal(review.mode, 'READ_ONLY_SALE_PREFLIGHT');
-    const conflict = review.relatedPages.find((r: any) => r.slug === sibling.slug);
-    assert.ok(conflict);
-    assert.equal(conflict.sameSaleConfig, false);
-    assert.equal(conflict.samePayoutReceiver, false);
-    assert.ok(review.checks.some((c: any) => c.status === 'WARNING' && /payout receiver/i.test(c.detail)));
-    assert.ok(review.checks.some((c: any) => c.status === 'WARNING' && /one drop configuration/i.test(c.detail)));
-    assert.equal((await owner.call('page', { id: page.id })).page.version, page.version);
+  await test('A second Mint Page for one NFT is rejected atomically', async () => {
+    await owner.denied('page_create',{
+      draft:{...draft,slug:'second-page-same-token'}
+    },'CONFLICT');
+    const review=await owner.call('preview_publication',{id:page.id,expectedVersion:page.version});
+    assert.equal(review.relatedPages.length,0);
   });
   await test('Revoked admin loses access without waiting for session expiration', async () => {
     await write('setRole', [ADMIN_ROLE, [f.admin], false]);
@@ -416,20 +377,29 @@ try {
     assert.equal(((await read('royaltyInfo', [6n, 10000n])) as any)[1], 450n);
     assert.equal(((await read('royaltyInfo', [7n, 10000n])) as any)[1], 650n);
   });
-  await test('Draft page can select another verified existing token without touching on-chain state', async () => {
-    const old = await owner.call('page_create', {
-      draft: { ...draft, slug: 'token-reassignment-first' },
+  await test('Draft identity can change to an available token and release its claim on archive', async () => {
+    const old=await owner.call('page_create',{
+      draft:{...draft,tokenId:'4',slug:'token-reassignment-first'}
     });
-    const next = await admin.call('page_save', {
-      id: old.id, expectedVersion: old.version,
-      draft: { ...old.draft, tokenId: '2', slug: 'token-reassignment-second' },
+    const next=await admin.call('page_save',{
+      id:old.id,expectedVersion:old.version,
+      draft:{...old.draft,tokenId:'5',slug:'token-reassignment-second'}
     });
-    assert.equal(next.id, old.id);
-    assert.equal(next.token_id, '2');
-    assert.equal(next.slug, 'token-reassignment-second');
-    assert.equal(next.draft.tokenId, '2');
-    assert.equal((await owner.call('revisions', { id: next.id })).length, 2);
-    assert.equal(await read('totalSupply'), 7n);
+    assert.equal(next.id,old.id);
+    assert.equal(next.token_id,'5');
+    await owner.denied('page_create',{
+      draft:{...draft,tokenId:'5',slug:'another-page-token-five'}
+    },'CONFLICT');
+    const archived=await owner.call('page_lifecycle',{
+      id:next.id,expectedVersion:next.version,action:'archive'
+    });
+    assert.ok(archived.archived_at);
+    assert.equal(archived.identity_retained,false);
+    const newPage=await owner.call('page_create',{
+      draft:{...draft,tokenId:'5',slug:'reassigned-token-five'}
+    });
+    assert.equal(newPage.token_id,'5');
+    assert.equal(await read('totalSupply'),7n);
   });
   await test('Airdrop, token URI, default royalty, token royalty and Stacks grant', async () => {
     await adminAction(

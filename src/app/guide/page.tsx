@@ -66,6 +66,20 @@ export default function Guide() {
       </section>
       <section className="panel">
         <h2>Before publishing</h2>
+        <p>Mint Pages now begins with NFT Token IDs. A NOT_CONFIGURED drop (dropType 0)
+          can create a new Mint Page only when no canonical identity exists. Scheduled,
+          presale, public sale, and ended drops remain configured and cannot create
+          a second page. Use The Lab to close a drop first when migrating into this app.</p>
+        <p>To transfer management in the opposite direction, use the on-chain Close Drop
+          review here, inspect the gas and parameters, then explicitly approve it in
+          your wallet. Closing a drop does not delete NFTs, and does not guarantee
+          The Lab automatically unpublishes or permits recreating its own off-chain page.</p>
+        <p>Published Mint Page identity survives archiving and future rounds: Restore
+          the same page and keep its historical slug. A timed sale ending is not
+          the same as closeDrop. Unknown RPC status never means available.</p>
+        <p>Public pages may appear before minting begins. A submitted publication
+          must be reconciled with its finalized transaction receipt using
+          Check confirmation; do not submit the same configureDrop twice.</p>
         <p>
           A draft is shared by the collection’s current owners and admins. It is separate from The
           Lab’s drafts. Saving content does not change a contract. Publishing a sale can require

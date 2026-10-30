@@ -35,7 +35,7 @@ export function requestIdentity(req: Request) {
 
 export function operationBudget(op: string): Budget {
   if (['challenge', 'login', 'logout'].includes(op)) return 'auth';
-  if (op === 'inventory') return 'inventory';
+  if (op === 'inventory' || op === 'mint_inventory') return 'inventory';
   if (op === 'metadata') return 'metadata';
   if (['inspect', 'currency', 'balance', 'public'].includes(op)) return 'public';
   if (
@@ -62,11 +62,13 @@ export function operationBudget(op: string): Budget {
       'page_create',
       'page_save',
       'page_rebase',
+      'page_lifecycle',
       'revisions',
       'audit',
       'publish_content',
       'intent',
       'history',
+      'page_history',
     ].includes(op)
   )
     return 'workspace';

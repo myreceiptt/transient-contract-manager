@@ -4,7 +4,9 @@ import { useSession } from './providers';
 import { api } from '@/lib/api-client';
 import { type Draft, type PageRecord, mediaUrl } from '@/lib/domain';
 import { zeroAddress, formatUnits, parseUnits, formatEther } from 'viem';
-import { Monitor, Smartphone, Plus, ExternalLink, Save, History } from 'lucide-react';
+import { Monitor, Smartphone, Plus, ExternalLink, Save, History, RefreshCw, Archive } from 'lucide-react';
+import { canonicalMintPages } from '@/lib/canonical-mint-pages';
+import { txExplorer } from '@/lib/chains';
 import { Notice, Loading } from './shell';
 import { Artwork } from './safe-media';
 import { uploadOriginalArtwork, formatArtworkSize } from '@/lib/direct-ipfs-upload';
@@ -40,6 +42,9 @@ export function MintStudio({
 }) {
   const { ensureSession } = useSession();
   const [pages, setPages] = useState<PageRecord[]>([]);
+  const [inventory, setInventory] = useState<any>();
+  const [inventoryStart, setInventoryStart] = useState(1);
+  const [closePreview, setClosePreview] = useState<any>();
   const [morePages, setMorePages] = useState(false);
   const [moreRevisions, setMoreRevisions] = useState(false);
   const [page, setPage] = useState<PageRecord>();
@@ -54,6 +59,7 @@ export function MintStudio({
   const [snapshot, setSnapshot] = useState<any>();
   const [revisions, setRevisions] = useState<any[]>([]);
   const [audit, setAudit] = useState<any[]>([]);
+  const [roundHistory, setRoundHistory] = useState<any[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [mobile, setMobile] = useState(false);
   const [currency, setCurrency] = useState({ symbol: 'ETH', decimals: 18 });
@@ -92,6 +98,61 @@ export function MintStudio({
     setPages((previous) => (append ? [...previous, ...batch] : batch));
     setMorePages(batch.length === 25);
   }
+  async function loadInventory(start = inventoryStart) {
+    const data=await api('mint_inventory',{chainId:info.chainId,contract:info.address,start});
+    setInventory(data);
+    setInventoryStart(start);
+  }
+  async function chooseToken(token:any) {
+    setClosePreview(undefined);
+    if(token.page?.archived){
+      if(!window.confirm('Restore the existing canonical Mint Page for Token #'+token.id+
+        '? Its original URL and history will be preserved.'))return;
+      await run(async()=>{
+        const p=await api('page',{id:token.page.id});
+        await api('page_lifecycle',{id:token.page.id,expectedVersion:p.page.version,action:'restore'});
+        await list(); await loadInventory(); await open(token.page.id);
+      });
+      return;
+    }
+    if(token.page){await open(token.page.id);return;}
+    if(token.eligibility!=='AVAILABLE')return;
+    const official=canonicalMintPages.find(p=>p.chainId===info.chainId &&
+      p.contract===info.address.toLowerCase() && p.tokenId===String(token.id));
+    const base=fresh(info);
+    const d={...base,tokenId:String(token.id),slug:official?.slug||'',
+      sale:{...base.sale,payoutReceiver:official?.payoutReceiver||base.sale.payoutReceiver}};
+    select(undefined,d);
+  }
+  async function closeToken(token:any) {
+    if(token.dropType===0 || token.dropType===null)return;
+    await run(async()=>{
+      const r=await api('preview_admin',{chainId:info.chainId,contract:info.address,
+        action:{action:'closeDrop',tokenId:String(token.id)}});
+      setClosePreview({tokenId:String(token.id),review:r});
+      setDraft(undefined);setPage(undefined);
+    });
+  }
+  async function prepareClose() {
+    if(!closePreview || !window.confirm('Close the configured Stacks drop for Token #'+closePreview.tokenId+
+      '? This submits an irreversible mainnet transaction after your wallet approval. Existing NFT balances remain.'))return;
+    await run(async()=>{
+      const result=await api('prepare_admin',{chainId:info.chainId,contract:info.address,
+        action:{action:'closeDrop',tokenId:closePreview.tokenId}});
+      setClosePreview(undefined);
+      onIntent(result);
+    });
+  }
+  async function archiveSelected() {
+    if(!page || !window.confirm('Archive /mint/'+page.slug+
+      '? This hides the public page. Published identity and transaction history remain reserved.'))return;
+    await run(async()=>{
+      await api('page_lifecycle',{id:page.id,expectedVersion:page.version,action:'archive'});
+      setPage(undefined);setDraft(undefined);
+      await list();await loadInventory();
+      setNotice('Mint Page archived. Its history is preserved.');
+    });
+  }
   function select(p: PageRecord | undefined, d: Draft) {
     setPage(p);
     setDraft(d);
@@ -101,6 +162,7 @@ export function MintStudio({
     setCollectorQuote(undefined);
     setRevisions([]);
     setAudit([]);
+    setRoundHistory([]);
     setContentReview(undefined);
     setPrice(
       formatUnits(
@@ -135,7 +197,7 @@ export function MintStudio({
   }
   useEffect(() => {
     run(async () => {
-      await list();
+      await Promise.all([list(),loadInventory(1)]);
       if (page) await open(page.id);
     });
   }, [revisionKey, info.address, info.chainId]);
@@ -199,7 +261,7 @@ export function MintStudio({
       setNotice(
         'Revision ' + p.version + ' saved. Authorized collection admins can continue editing.',
       );
-      await list();
+      await Promise.all([list(),loadInventory()]);
     });
   }
   async function checkReadiness() {
@@ -231,49 +293,72 @@ export function MintStudio({
     <div className="studio-layout">
       <aside className="page-list panel">
         <div className="section-top">
-          <h3>Mint pages</h3>
-          <button
-            className="icon-button"
-            title="New mint page"
-            onClick={() => select(undefined, fresh(info))}
-          >
-            <Plus size={18} />
+          <h3>NFT Editions</h3>
+          <button className="icon-button" title="Refresh on-chain inventory"
+            disabled={busy} onClick={()=>run(()=>loadInventory())}>
+            <RefreshCw size={17}/>
           </button>
         </div>
-        <button
-          className="button secondary compact wide"
-          disabled={busy}
-          onClick={() => run(() => list())}
-        >
-          Refresh shared drafts
-        </button>
-        {pages.length === 0 && <p className="muted">Create the first home for your drop.</p>}
-        {pages.map((p) => (
-          <button
-            key={p.id}
-            className={'page-list-item ' + (page?.id === p.id ? 'selected' : '')}
-            onClick={() => open(p.id)}
-          >
-            <strong>{p.draft.content.title}</strong>
-            <span>/mint/{p.slug}</span>
+        <p className="muted">Select a verified token to create, manage, or restore its one canonical Mint Page.</p>
+        <small className="muted">Drop status is read from TLStacks1155; not from The Lab private database.</small>
+        {inventory?.tokens?.map((token:any)=>(
+          <div key={token.id} className="page-list-item" style={{textAlign:'left'}}>
+            <strong>Token #{token.id}</strong>
+            {token.page && <span>/mint/{token.page.slug}</span>}
             <small>
-              {p.state.replaceAll('_', ' ')} · v{p.version}
+              {token.dropType===null?'Chain status: unknown':
+               token.dropType===0?'Drop: not configured':
+               'Drop: configured · phase '+(
+                 {1:'Scheduled',2:'Presale',3:'Public sale',4:'Ended'} as Record<number,string>
+               )[token.phase]}
+              {token.round!==null?' · round '+token.round:''}
             </small>
-          </button>
+            <small>{token.eligibility==='AVAILABLE'?'Available for new Mint Page':
+              token.eligibility==='RESTORE_CANONICAL'?'Archived · canonical identity retained':
+              token.eligibility==='MANAGE_PAGE'?'Existing Mint Page · '+token.page?.state:
+              token.eligibility==='EXTERNAL_DROP'?'Existing on-chain drop · close first':
+              token.eligibility==='TOKEN_LOCKED'?'NFT minting permanently locked':
+              token.eligibility==='NOT_CREATED'?'NFT not created':
+              'Verification required'}</small>
+            <div className="button-row">
+              {['AVAILABLE','RESTORE_CANONICAL','MANAGE_PAGE'].includes(token.eligibility) &&
+                <button className="button secondary compact" disabled={busy}
+                  onClick={()=>void chooseToken(token)}>
+                  {token.eligibility==='AVAILABLE'?'Create':
+                   token.eligibility==='RESTORE_CANONICAL'?'Restore':'Manage'}
+                </button>}
+              {token.dropType!==null && token.dropType!==0 &&
+                <button className="button secondary compact" disabled={busy}
+                  onClick={()=>void closeToken(token)}>Review close</button>}
+            </div>
+          </div>
         ))}
-        {morePages && (
-          <button
-            className="button secondary compact wide"
-            disabled={busy}
-            onClick={() => run(() => list(true))}
-          >
-            Load more drafts
-          </button>
-        )}
+        {!inventory && <p className="muted">Reading NFT editions and Stacks status…</p>}
+        {inventory?.tokens?.length===0 && <p className="muted">No minted NFT token IDs in this range.</p>}
+        {inventory && <div className="button-row">
+          <button className="button secondary compact" disabled={busy||inventoryStart<=1}
+            onClick={()=>run(()=>loadInventory(Math.max(1,inventoryStart-20)))}>Previous</button>
+          <button className="button secondary compact"
+            disabled={busy||BigInt(inventoryStart+19)>=BigInt(inventory.total||'0')}
+            onClick={()=>run(()=>loadInventory(inventoryStart+20))}>Next</button>
+        </div>}
+        {inventory?.observedBlock && <small className="muted">Verified at block {inventory.observedBlock}. Refresh before signing any transaction.</small>}
       </aside>
       <div className="studio-main">
         {error && <Notice type="error">{error}</Notice>}
         {notice && <Notice type="success">{notice}</Notice>}
+        {closePreview && <section className="panel">
+          <h2>Review closeDrop — Token #{closePreview.tokenId}</h2>
+          <p>This is a read-only simulation of closing the current on-chain Stacks drop.
+            Closing does not delete the NFT or automatically unpublish a page on The Lab.</p>
+          <p>Simulation: <strong>{closePreview.review.tx?.simulation}</strong></p>
+          <p>Estimated gas: {closePreview.review.tx?.estimatedGas}</p>
+          <details><summary>Review transaction arguments and estimated network fee</summary>
+            <pre>{JSON.stringify(closePreview.review.tx,null,2)}</pre></details>
+          <button className="button" disabled={busy||!info.canWrite} onClick={prepareClose}>
+            {info.canWrite?'Prepare closeDrop wallet review':'Mainnet writes disabled'}
+          </button>
+        </section>}
         {!draft ? (
           <section className="empty-state panel">
             <span className="eyebrow">INDEPENDENT MINT PAGES</span>
@@ -283,9 +368,8 @@ export function MintStudio({
               <br />
               Publish after reviewing the verified on-chain configuration.
             </p>
-            <button className="button" onClick={() => select(undefined, fresh(info))}>
-              Create mint page <Plus size={17} />
-            </button>
+            <p>Select an NFT Token ID from the inventory to start.
+              A configured Stacks drop must be closed first, regardless of its sale phase.</p>
           </section>
         ) : (
           <>
@@ -294,9 +378,13 @@ export function MintStudio({
                 <span className="eyebrow">MINT PAGE STUDIO</span>
                 <h2>{page ? 'Edit your drop' : 'Create your drop'}</h2>
               </div>
-              <span className="tag">
-                {dirty ? 'UNSAVED CHANGES' : page?.state.replaceAll('_', ' ') || 'NEW DRAFT'}
-              </span>
+              <div className="button-row">
+                <span className="tag">
+                  {dirty ? 'UNSAVED CHANGES' : page?.state.replaceAll('_', ' ') || 'NEW DRAFT'}
+                </span>
+                {page && <button className="button secondary compact" disabled={busy||dirty}
+                  onClick={archiveSelected}><Archive size={15}/> Archive</button>}
+              </div>
             </div>
             <section className="panel">
               <h3>01 · Page content</h3>
@@ -821,10 +909,12 @@ export function MintStudio({
                   className="text-link"
                   onClick={() =>
                     run(async () => {
-                      const [r, a] = await Promise.all([
+                      const [r, a, h] = await Promise.all([
                         api('revisions', { id: page.id }),
                         api('audit', { id: page.id }),
+                        api('page_history', { id: page.id }),
                       ]);
+                      setRoundHistory(h);
                       setRevisions(r);
                       setMoreRevisions(r.length === 25);
                       setAudit(a);
@@ -835,7 +925,7 @@ export function MintStudio({
                   <History size={17} />
                   Revision history & audit trail
                 </button>
-                {showHistory && (
+                {showHistory && (<>
                   <div className="history-grid">
                     <div>
                       <h4>Saved revisions</h4>
@@ -896,7 +986,21 @@ export function MintStudio({
                       ))}
                     </div>
                   </div>
-                )}
+                  <div className="panel">
+                    <h4>Sale rounds and transaction evidence</h4>
+                    <p className="muted">Publication intents and receipts are historical records.
+                      The current on-chain round remains authoritative.</p>
+                    {roundHistory.length===0 && <p className="muted">No publication transactions recorded.</p>}
+                    {roundHistory.map((entry:any)=><div className="history-row" key={entry.id}>
+                      <span>Round {entry.payload?.expectedRound ?? 'not yet known'} · {entry.status}
+                        <small>{new Date(entry.created_at).toLocaleString()}</small>
+                        {entry.tx_hash && <a className="text-link"
+                          href={txExplorer(info.chainId,entry.tx_hash)}
+                          target="_blank" rel="noreferrer">Inspect transaction</a>}
+                      </span>
+                    </div>)}
+                  </div>
+                </>)}
               </section>
             )}
           </>

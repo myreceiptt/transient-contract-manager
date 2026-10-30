@@ -36,7 +36,7 @@ async function remoteDb() {
 
 // Bounded reads use existing service-role grants; no migration/RPC changes.
 export async function listRecords(
-  kind: 'pages' | 'revisions' | 'audit' | 'history',
+  kind: 'pages' | 'revisions' | 'audit' | 'history' | 'page_history',
   p: {
     chainId?: number;
     contract?: string;
@@ -50,6 +50,7 @@ export async function listRecords(
     revisions: ['mint_page_revisions', 'version', 'version'],
     audit: ['audit_logs', 'id', 'id'],
     history: ['publication_records', 'created_at', 'id'],
+    page_history: ['publication_records', 'created_at', 'id'],
   } as const;
   const [table, order, tie] = specs[kind];
   if (

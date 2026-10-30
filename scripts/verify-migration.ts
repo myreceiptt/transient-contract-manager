@@ -8,6 +8,7 @@ const migrationPath = process.argv[2] || 'supabase/migrations/20261021111911_cor
 const sql = await readFile(migrationPath, 'utf8');
 const identitySql = await readFile('supabase/migrations/20261028100000_page_identity_drafts.sql', 'utf8');
 const lifecycleSql = await readFile('supabase/migrations/20261030132000_token_first_mint_pages.sql','utf8');
+const slugSql = await readFile('supabase/migrations/20261030150000_published_page_slug_aliases.sql','utf8');
 const expected = [
   'app_sessions',
   'audit_logs',
@@ -16,6 +17,7 @@ const expected = [
   'collections',
   'media_assets',
   'mint_page_revisions',
+  'mint_page_slug_aliases',
   'mint_pages',
   'publication_records',
   'rate_limits',
@@ -41,6 +43,7 @@ for (const defaults of ['supabase', 'broad', 'restricted']) {
     await db.exec(sql);
     await db.exec(identitySql);
     await db.exec(lifecycleSql);
+    await db.exec(slugSql);
     await db.exec('rollback');
     assert.equal(
       (await db.query("select tablename from pg_tables where schemaname='public'")).rows.length,
@@ -56,6 +59,7 @@ for (const defaults of ['supabase', 'broad', 'restricted']) {
     await db.exec(sql);
     await db.exec(identitySql);
     await db.exec(lifecycleSql);
+    await db.exec(slugSql);
     await db.exec('commit');
     const tables = await db.query<{ relname: string; relrowsecurity: boolean }>(
       "select c.relname,c.relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r' order by c.relname",
@@ -77,11 +81,11 @@ for (const defaults of ['supabase', 'broad', 'restricted']) {
     const indexCount = await db.query<{ count: number }>(
       "select count(*)::int as count from pg_index i join pg_class t on t.oid=i.indrelid join pg_namespace n on n.oid=t.relnamespace where n.nspname='public' and not exists(select from pg_constraint c where c.conindid=i.indexrelid)",
     );
-    assert.equal(indexCount.rows[0].count, 12, 'Explicit indexes');
+    assert.equal(indexCount.rows[0].count, 13, 'Explicit indexes');
     const foreignKeys = await db.query<{ count: number }>(
       "select count(*)::int as count from pg_constraint where connamespace='public'::regnamespace and contype='f'",
     );
-    assert.equal(foreignKeys.rows[0].count, 6, 'Foreign key boundaries');
+    assert.equal(foreignKeys.rows[0].count, 7, 'Foreign key boundaries');
     for (const role of ['anon', 'authenticated', 'service_role']) {
       for (const name of expected) {
         for (const privilege of [
@@ -129,6 +133,9 @@ for (const defaults of ['supabase', 'broad', 'restricted']) {
       const lifecyclePriv=await db.query<{allowed:boolean}>(
         "select has_function_privilege($1,'public.tcm_page_lifecycle(jsonb)','EXECUTE') as allowed",[role]);
       assert.equal(lifecyclePriv.rows[0].allowed, role==='service_role');
+      const slugPriv = await db.query<{allowed:boolean}>(
+        "select has_function_privilege($1,'public.tcm_page_slug_edit(jsonb)','EXECUTE') as allowed",[role]);
+      assert.equal(slugPriv.rows[0].allowed,role==='service_role');
     }
     for (const role of ['anon', 'authenticated']) {
       await db.exec(`set role ${role}`);
@@ -143,6 +150,7 @@ for (const defaults of ['supabase', 'broad', 'restricted']) {
         /permission denied/,
       );
       await assert.rejects(db.query("select public.tcm_page_lifecycle('{}'::jsonb)"),/permission denied/);
+      await assert.rejects(db.query("select public.tcm_page_slug_edit('{}'::jsonb)"),/permission denied/);
       await assert.rejects(
         db.query("select nextval('public.audit_logs_id_seq')"),
         /permission denied/,
@@ -208,6 +216,24 @@ for (const defaults of ['supabase', 'broad', 'restricted']) {
       })]),
       /VERSION_CONFLICT/,
     );
+    await db.exec("update public.mint_pages set state='PUBLISHED',published_revision=2 where id='"+revised.id+"'");
+    const renamed = (await db.query<{result:any}>(
+      'select public.tcm_page_slug_edit($1::jsonb) as result',
+      [JSON.stringify({id:revised.id,expectedVersion:revised.version,
+        expectedSlug:revised.slug,slug:'migration-renamed-live',actor:contract})]
+    )).rows[0].result;
+    assert.equal(renamed.token_id,'2');
+    assert.equal(renamed.id,revised.id);
+    assert.equal(renamed.published_revision,2,'Slug rename does not publish unsent content');
+    assert.equal(renamed.version,3);
+    const alias = await db.query<{slug:string,page_id:string}>(
+      'select slug,page_id from public.mint_page_slug_aliases where page_id=$1',[revised.id]);
+    assert.equal(alias.rows[0].slug,'migration-test-renamed');
+    await assert.rejects(command('page_create',{
+      actor:contract,baseline:'test',draft:{
+        chainId:1,contract,tokenId:'3',slug:'migration-test-renamed'
+      }
+    }),/SLUG_RESERVED/);
     await db.exec('reset role');
     const version = (await db.query<{ version: string }>('show server_version')).rows[0];
     results.push({ defaults, postgres: Object.values(version)[0], status: 'PASS' });

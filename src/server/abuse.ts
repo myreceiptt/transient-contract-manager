@@ -63,6 +63,7 @@ export function operationBudget(op: string): Budget {
       'page_save',
       'page_rebase',
       'page_lifecycle',
+      'page_slug_edit',
       'revisions',
       'audit',
       'publish_content',

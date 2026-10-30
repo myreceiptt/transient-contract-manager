@@ -110,6 +110,33 @@ export async function identityPages(chainId: number, contract: string, tokenIds:
     [chainId,contract.toLowerCase(),tokenIds]);
   return q.rows;
 }
+/** Resolve only published, non-archived Mint Page alias targets. */
+export async function resolveMintPageAlias(slug: string): Promise<string | null> {
+  if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 80) return null;
+  try {
+    const remote = await remoteDb();
+    let pageId: string | undefined;
+    if (remote) {
+      const {data,error} = await remote.from('mint_page_slug_aliases')
+        .select('page_id').eq('slug',slug).maybeSingle();
+      if (error) throw error;
+      pageId=data?.page_id;
+    } else {
+      const db=await localDb();
+      const alias=await db.query<{page_id:string}>(
+        'select page_id from public.mint_page_slug_aliases where slug=$1',[slug]);
+      pageId=alias.rows[0]?.page_id;
+    }
+    if (!pageId) return null;
+    const page=await command('page_get',{id:pageId});
+    if (!page || page.archived_at || page.published_revision===null || !page.identity_retained)
+      return null;
+    return page.slug!==slug ? page.slug as string : null;
+  } catch {
+    // A failed redirect lookup must not disclose privileged database data.
+    return null;
+  }
+}
 export async function localDb() {
   if (process.env.NODE_ENV === 'production')
     throw new AppError(
@@ -130,6 +157,7 @@ export async function localDb() {
       await db.exec(await readFile('supabase/migrations/20261021111911_core.sql', 'utf8'));
       await db.exec(await readFile('supabase/migrations/20261028100000_page_identity_drafts.sql', 'utf8'));
       await db.exec(await readFile('supabase/migrations/20261030132000_token_first_mint_pages.sql', 'utf8'));
+      await db.exec(await readFile('supabase/migrations/20261030150000_published_page_slug_aliases.sql', 'utf8'));
       return db;
     })();
   return localPromise;
@@ -139,7 +167,9 @@ export async function command(op: string, p: Record<string, unknown> = {}): Prom
     const dbRemote = await remoteDb();
     if (dbRemote) {
       const db = dbRemote;
-      const { data, error } = op === 'page_reidentify'
+      const { data, error } = op === 'page_slug_edit'
+        ? await db.rpc('tcm_page_slug_edit', { p })
+        : op === 'page_reidentify'
         ? await db.rpc('tcm_page_reidentify', { p })
         : op === 'page_lifecycle'
           ? await db.rpc('tcm_page_lifecycle', { p })
@@ -149,23 +179,29 @@ export async function command(op: string, p: Record<string, unknown> = {}): Prom
     }
     const db = await localDb();
     const r = await db.query<{ result: unknown }>(
-      op === 'page_reidentify'
+      op === 'page_slug_edit'
+        ? 'select public.tcm_page_slug_edit($1::jsonb) as result'
+        : op === 'page_reidentify'
         ? 'select public.tcm_page_reidentify($1::jsonb) as result'
         : op === 'page_lifecycle'
           ? 'select public.tcm_page_lifecycle($1::jsonb) as result'
           : 'select public.tcm_command($1,$2::jsonb) as result',
-      ['page_reidentify','page_lifecycle'].includes(op) ? [JSON.stringify(p)] : [op, JSON.stringify(p)],
+      ['page_reidentify','page_lifecycle','page_slug_edit'].includes(op) ? [JSON.stringify(p)] : [op, JSON.stringify(p)],
     );
     return r.rows[0]?.result;
   } catch (e) {
     if (e instanceof AppError) throw e;
     const msg = e instanceof Error ? e.message : String((e as any)?.message ?? e);
+    if (msg.includes('SLUG_EDIT_REQUIRES_PUBLISHED_PAGE') || msg.includes('PENDING_TRANSACTION'))
+      throw new AppError('SLUG_EDIT_BLOCKED','The Mint Page cannot change its public URL in its current state.',409);
     if (msg.includes('VERSION_CONFLICT'))
       throw new AppError(
         'VERSION_CONFLICT',
         'This draft changed in another session. Reload the latest revision before saving.',
         409,
       );
+    if (msg.includes('SLUG_RESERVED'))
+      throw new AppError('SLUG_RESERVED','This URL was used by another published Mint Page and is permanently reserved.',409);
     if (msg.includes('duplicate key'))
       throw new AppError('CONFLICT', 'This NFT already has a canonical Mint Page, or the slug is reserved. Open or restore its existing page.', 409);
     if (['PENDING_TRANSACTION','DROP_MUST_BE_CLOSED','RELEASED_DRAFT_CANNOT_RESTORE','ALREADY_ARCHIVED'].some(k=>msg.includes(k)))

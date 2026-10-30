@@ -521,6 +521,63 @@ try {
     assert.equal(page.state, 'PUBLISHED');
     assert.equal((await anon.call('public', { slug: page.slug })).consistent, true);
   });
+  await test('Published Mint Page slug can change without minting or publishing another revision', async () => {
+    const prior=page;
+    const target='local-first-edition-renamed';
+    // A fresh unsigned review must block identity changes; once its wallet
+    // review expires, the server can expire it atomically without gas.
+    const pending=await db.query<{id:string}>(
+      "insert into public.publication_records(page_id,revision,actor,chain_id,contract,payload,status) "+
+      "values ($1,$2,$3,31337,$4,jsonb_build_object('tx',jsonb_build_object('expiresAt',"+
+      "(now()+interval '10 minutes')::text)),'PREPARED') returning id",
+      [page.id,page.version,f.owner,f.nft]
+    );
+    await owner.denied('page_slug_edit',{
+      id:prior.id,expectedVersion:prior.version,expectedSlug:prior.slug,slug:target
+    },'SLUG_EDIT_BLOCKED');
+    await db.query(
+      "update public.publication_records set payload=jsonb_set(payload,'{tx,expiresAt}',"+
+      "to_jsonb((now()-interval '10 minutes')::text)) where id=$1",
+      [pending.rows[0].id]
+    );
+    page=await admin.call('page_slug_edit',{
+      id:prior.id,expectedVersion:prior.version,expectedSlug:prior.slug,slug:target
+    });
+    const expired=(await db.query<{status:string}>(
+      "select status from public.publication_records where id=$1",[pending.rows[0].id]
+    )).rows[0].status;
+    assert.equal(expired,'EXPIRED');
+    assert.equal(page.id,prior.id);
+    assert.equal(page.token_id,prior.token_id);
+    assert.equal(page.published_revision,prior.published_revision);
+    assert.equal(page.version,prior.version+1);
+    assert.equal((await anon.call('public',{slug:page.slug})).content.title,'Shared Edition');
+    await anon.denied('public',{slug:prior.slug},'NOT_FOUND');
+    const alias=await db.query<{slug:string,page_id:string}>(
+      'select slug,page_id from public.mint_page_slug_aliases where slug=$1',[prior.slug]);
+    assert.equal(alias.rows[0].page_id,prior.id);
+    await owner.denied('page_create',{
+      draft:{...draft,tokenId:'2',slug:prior.slug}
+    },'SLUG_RESERVED');
+    await outsider.denied('page_slug_edit',{
+      id:page.id,expectedVersion:page.version,expectedSlug:page.slug,
+      slug:'outsider-tried-to-rename'
+    },'ACCESS_DENIED');
+    await owner.denied('page_slug_edit',{
+      id:page.id,expectedVersion:prior.version,expectedSlug:prior.slug,
+      slug:'stale-rename-attempt'
+    },'VERSION_CONFLICT');
+    const changeBack=await owner.call('page_slug_edit',{
+      id:page.id,expectedVersion:page.version,expectedSlug:page.slug,
+      slug:prior.slug
+    });
+    assert.equal(changeBack.slug,prior.slug);
+    const aliasAfter=await db.query<{slug:string}>(
+      'select slug from public.mint_page_slug_aliases where page_id=$1',[page.id]);
+    assert.deepEqual(aliasAfter.rows.map(r=>r.slug),[target]);
+    page=changeBack;
+    assert.equal((await anon.call('public',{slug:page.slug})).state,'PUBLISHED');
+  });
   await test('Native mint transfers editions, exact payout and per-unit protocol fee', async () => {
     const beforePayout = await c.getBalance({ address: f.payout }),
       beforeFee = await c.getBalance({ address: f.feeReceiver });

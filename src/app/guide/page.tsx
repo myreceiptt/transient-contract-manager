@@ -66,6 +66,13 @@ export default function Guide() {
       </section>
       <section className="panel">
         <h2>Before publishing</h2>
+        <p>After the Mint Page has been published, the NFT Token ID and
+          canonical page identity remain permanent. An authorized collection
+          owner/admin can select Edit URL to rename only the off-chain slug.
+          This costs no blockchain gas, creates an audit revision, and keeps
+          the existing published content unchanged. The old published URL
+          returns an HTTP 308 permanent redirect; reserved old URLs cannot
+          be claimed by another page.</p>
         <p>Mint Pages now begins with NFT Token IDs. A NOT_CONFIGURED drop (dropType 0)
           can create a new Mint Page only when no canonical identity exists. Scheduled,
           presale, public sale, and ended drops remain configured and cannot create

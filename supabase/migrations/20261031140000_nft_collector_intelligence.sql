@@ -32,8 +32,8 @@ create index nft_index_wallets_idx on public.nft_index_events(
 alter table public.nft_index_progress enable row level security;
 alter table public.nft_index_events enable row level security;
 revoke all on public.nft_index_progress,public.nft_index_events from public,anon,authenticated;
-grant select,insert,update on public.nft_index_progress to service_role;
-grant select,insert on public.nft_index_events to service_role;
+grant select,insert,update,delete on public.nft_index_progress to service_role;
+grant select,insert,update,delete on public.nft_index_events to service_role;
 
 create function public.tcm_nft_index_init(p jsonb) returns jsonb
 language plpgsql security invoker set search_path=pg_catalog,public as $$

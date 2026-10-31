@@ -329,6 +329,12 @@ export function PublicMint({ slug }: { slug: string }) {
                       </a>
                     </div>
                   ))}
+                  {collectors && !collectors.historyComplete &&
+                    <button type="button" className="button secondary compact"
+                      disabled={collectorBusy}
+                      onClick={()=>void refreshCollectors()}>
+                      {collectorBusy?'Syncing…':'Sync older on-chain history'}
+                    </button>}
                   {collectors?.moreActivity && <button type="button" className="button secondary compact"
                     disabled={collectorBusy} onClick={()=>{
                       const n=activityOffset+25;setActivityOffset(n);

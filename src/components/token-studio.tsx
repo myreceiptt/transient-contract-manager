@@ -8,8 +8,9 @@ import { api } from '@/lib/api-client';
 import { ArrowLeft,ArrowUpRight,Plus,Layers,RefreshCw } from 'lucide-react';
 type View='catalogue'|'create'|'batch'|'manage';
 type Prepared={action:string;uri?:string;tokenId?:string;batch?:string};
-export function TokenStudio({info,onIntent,onOpenMintPages}:{
-  info:any;onIntent:(intent:any)=>void;onOpenMintPages:()=>void
+export function TokenStudio({info,onIntent,onOpenMintPages,onDirtyChange,onActiveChange}:{
+  info:any;onIntent:(intent:any)=>void;onOpenMintPages:()=>void;
+  onDirtyChange?:(dirty:boolean)=>void;onActiveChange?:(active:boolean)=>void
 }){
   const [view,setView]=useState<View>('catalogue');
   const [step,setStep]=useState<'metadata'|'review'>('metadata');
@@ -29,6 +30,8 @@ export function TokenStudio({info,onIntent,onOpenMintPages}:{
   const [balance,setBalance]=useState<string>();
   const [balancing,setBalancing]=useState(false);
   const [detailsOpen,setDetailsOpen]=useState(false);
+  useEffect(()=>{onDirtyChange?.(dirty);},[dirty,onDirtyChange]);
+  useEffect(()=>{onActiveChange?.(view!=='catalogue');},[view,onActiveChange]);
   useEffect(()=>{
     let live=true;setLoading(true);setError('');
     api('inventory',{chainId:info.chainId,contract:info.address,start})

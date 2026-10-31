@@ -117,15 +117,15 @@ export default function Guide() {
             <thead><tr><th>Tab</th><th>Use it for</th></tr></thead>
             <tbody>
               <tr><td><strong>Overview</strong></td><td>Collection name, owner/admin role,
-                verified adapter, token-type count and a featured token&apos;s metadata.</td></tr>
+                verified adapter, token-type count and saved Collection Profile, with a featured-token fallback.</td></tr>
               <tr><td><strong>Tokens &amp; Editions</strong></td><td>View NFT Token IDs and
                 metadata; prepare IPFS artwork/JSON; create tokens, batches, airdrops,
                 metadata changes and token-specific royalties.</td></tr>
               <tr><td><strong>Mint Pages</strong></td><td>Select an existing token, inspect its
                 Stacks drop, create/manage/restore its one canonical Mint Page and configure
                 a fixed-price sale.</td></tr>
-              <tr><td><strong>Collection Settings</strong></td><td>Review ownership, verified
-                Stacks minter permission and supported on-chain collection actions.</td></tr>
+              <tr><td><strong>Collection Settings</strong></td><td>Open a Collection Control Center for profile, identity, ownership, default royalties,
+                Stacks minter permission and technical details.</td></tr>
               <tr><td><strong>Transactions</strong></td><td>Load saved transaction reviews,
                 reopen pending operations and verify receipts after wallet approval.</td></tr>
             </tbody>
@@ -134,15 +134,18 @@ export default function Guide() {
         <p><strong>Token types are not minted units.</strong> For ERC1155TL, the displayed
           <code> totalSupply()</code> reflects the number of created Token IDs, not the total
           number of NFT copies in circulation. In <strong>Tokens &amp; Editions</strong>,
-          use <strong>Check a holder&apos;s balance</strong> with an address and Token ID to
-          read a specific wallet&apos;s units.</p>
+          select <strong>Manage Token</strong> and use <strong>Ownership &amp; balances</strong>
+          to read a specific wallet&apos;s units without guessing total circulation.</p>
       </section>
 
       <section className="panel guide-section" id="metadata">
         <span className="section-number">04 / PREPARE THE WORK</span>
         <h2>Create and pin NFT metadata</h2>
-        <p>Open <strong>Tokens &amp; Editions → NFT Metadata &amp; Edition Studio</strong>.
-          This editor prepares your NFT identity and metadata before a blockchain action.</p>
+        <p>Open <strong>Tokens &amp; Editions</strong> and choose
+          <strong> Create Token</strong> or <strong>Create Batch</strong> from the NFT catalogue.
+          The corresponding Metadata Studio prepares NFT identity and content before a
+          separate on-chain transaction. To edit an existing token, choose its
+          <strong> Manage Token</strong> card and select <strong>Edit metadata URI</strong>.</p>
         <ol className="guide-steps">
           <li>Enter the <strong>NFT name</strong> and <strong>Description</strong>.</li>
           <li>Choose an artwork file under <strong>Or upload artwork</strong>, or paste an
@@ -152,9 +155,10 @@ export default function Guide() {
             <strong> Attributes</strong> (trait/value pairs).</li>
           <li>Click <strong>Pin metadata JSON to IPFS</strong>. Copy or retain the returned
             <code> ipfs://...</code> URI. This creates metadata JSON, not an NFT Token ID.</li>
-          <li>Choose <strong>Prepare new token</strong> to send that URI to
-            <strong> Prepare a collection action</strong>, or
-            <strong> Prepare metadata update</strong> for an existing Token ID.</li>
+          <li>For creation, choose <strong>Prepare new token</strong> to enter the
+            <strong> Edition distribution</strong> and <strong>Simulate &amp; review</strong>
+            steps. For existing tokens, select <strong>Prepare metadata update</strong>
+            within Manage Token. Only the current selected Token ID is used.</li>
         </ol>
         <p>Already have pinned metadata from The Lab or another workflow? Use
           <strong> Import an existing IPFS metadata URI → Load metadata</strong> to populate
@@ -173,9 +177,9 @@ export default function Guide() {
         <h2>Create a Token ID, mint copies or prepare a batch</h2>
         <h3>A. Create one new NFT Token ID</h3>
         <ol className="guide-steps">
-          <li>With a pinned metadata URI ready, choose <strong>Prepare new token</strong>
-            in the Metadata Studio, or select <strong>Create token ID</strong> under
-            <strong> Prepare a collection action</strong>.</li>
+          <li>In <strong>Tokens &amp; Editions</strong>, select <strong>Create Token</strong>
+            above the NFT cards and pin metadata. Choose <strong>Prepare new token</strong>
+            to review the <code>createToken</code> / Create token ID contract action.</li>
           <li>Confirm the <strong>Pinned metadata URI</strong>. Under
             <strong> Recipients: one address, amount per line</strong>, leave the field
             empty to create a Token ID with <strong>zero issued units</strong>, or enter
@@ -191,22 +195,46 @@ export default function Guide() {
             to inspect the new Token ID and artwork.</li>
         </ol>
         <h3>B. Issue more copies of an existing NFT</h3>
-        <p>Select <strong>Mint existing token / airdrop</strong>, enter its Token ID and
-          the recipient wallet/quantity on each line, then simulate and approve.
+        <p>Select a token card and choose <strong>Manage Token → Mint / Airdrop</strong>.
+          Its Token ID is filled automatically. Enter recipient wallets and quantities,
+          then simulate and approve.
           This is an owner/admin contract action, <strong>not</strong> a collector sale
           through Stacks. Permanently mint-locked tokens cannot be minted again.</p>
         <h3>C. Create multiple Token IDs</h3>
-        <p>Pin each metadata JSON and select <strong>Add to batch queue</strong>
+        <p>Choose <strong>Create Batch</strong>, pin each metadata JSON
+          and select <strong>Add to batch queue</strong>
           (up to 40 pinned entries). Set the intended wallet recipient and
           <strong> Units per newly created token</strong>; use 0 for unminted editions.
           Prepare the batch, inspect the generated JSON in the action form and sign only
           after simulation. The contract action supports at most
           <strong> 40 new Token IDs / 200 total recipients</strong> per batch.</p>
         <h3>D. Update an existing Token ID</h3>
-        <p>Use <strong>Update token metadata URI</strong> to change the on-chain token URI.
-          <strong> Update token royalty</strong> and <strong> Update default royalty</strong>
-          are also available, with a maximum of 1,000 basis points (10%) where applicable.
-          Review these permanent on-chain effects before signing.</p>
+        <p>Open a token card with <strong>Manage Token</strong> and choose
+          <strong> Edit metadata URI</strong>, <strong>Mint / Airdrop</strong> or
+          <strong> Token royalty</strong>. The Token ID is locked to that edition.
+          <strong> Default royalty</strong> is managed separately under
+          <strong> Collection Settings → Collection Royalties</strong>.
+          Review every permanent on-chain change before signing.</p>
+        <h3>E. Collection Settings &amp; Collection Profile</h3>
+        <p>Open <strong>Collection Settings</strong> to see the
+          <strong> The foundation of every edition.</strong> banner and dedicated
+          settings cards. <strong>Collection Identity</strong> and
+          <strong> Ownership &amp; Access</strong> are read-only. The
+          <strong> Collection Royalties</strong> card reads the real default-royalty
+          value using <code>getDefaultRoyaltyRecipientAndPercentage</code>.
+          <strong> Stacks Mint Permission</strong> shows approval status and offers
+          an authorized wallet review only when the verified contract is not approved.</p>
+        <p>Choose <strong>Collection Profile</strong> to add a logo, banner,
+          description and HTTPS website/social links. Uploading logo or banner images pins
+          original raster artwork to IPFS. <strong>Save Collection Profile</strong>
+          writes app-managed data to the shared workspace with version checks and audit
+          history, not to the NFT contract. The optional
+          <strong> Pin Collection Profile to IPFS</strong> action creates an immutable
+          public JSON document; save the resulting URI to associate it with the profile.
+          This ERC1155TL v4.1.2 contract does <strong>not</strong> expose
+          <code> contractURI()</code>, so the profile is not natively available to
+          every marketplace. Use <strong>Back to Collection Settings</strong> to return
+          to the settings cards.</p>
       </section>
 
       <section className="panel guide-section" id="eligibility">

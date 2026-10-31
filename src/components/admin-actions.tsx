@@ -11,6 +11,7 @@ export function AdminActions({
   fixedAction,
   lockedTokenId,
   heading,
+  initialRoyalty,
 }: {
   info: any;
   onIntent: (i: any) => void;
@@ -19,13 +20,14 @@ export function AdminActions({
   fixedAction?: string;
   lockedTokenId?: string;
   heading?: string;
+  initialRoyalty?: [string,string];
 }) {
   const [action, setAction] = useState(fixedAction || initialAction);
   const [tokenId, setTokenId] = useState(lockedTokenId || '1');
   const [uri, setUri] = useState('');
   const [recipientText, setRecipientText] = useState('');
-  const [royaltyRecipient, setRoyaltyRecipient] = useState(info.royalty?.[0] || info.owner);
-  const [bps, setBps] = useState('500');
+  const [royaltyRecipient, setRoyaltyRecipient] = useState(initialRoyalty?.[0] || info.royalty?.[0] || info.owner);
+  const [bps, setBps] = useState(initialRoyalty?.[1] || '500');
   const [batch, setBatch] = useState(
     '[\n  {"uri":"ipfs://YOUR_CID/metadata.json","recipients":[{"address":"0x…","amount":"1"}]}\n]',
   );

@@ -37,7 +37,7 @@ export function operationBudget(op: string): Budget {
   if (['challenge', 'login', 'logout'].includes(op)) return 'auth';
   if (op === 'inventory' || op === 'mint_inventory') return 'inventory';
   if (op === 'metadata') return 'metadata';
-  if (['inspect', 'currency', 'balance', 'public', 'public_collectors'].includes(op)) return 'public';
+  if (['inspect', 'currency', 'balance', 'public', 'public_collectors','collection_profile_read'].includes(op)) return 'public';
   if (
     [
       'preview_admin',
@@ -59,6 +59,8 @@ export function operationBudget(op: string): Budget {
       'pages',
       'page',
       'metadata_pin',
+      'collection_profile_write',
+      'collection_profile_pin',
       'page_create',
       'page_save',
       'page_rebase',

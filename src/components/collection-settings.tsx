@@ -19,8 +19,8 @@ const cards=[
  {id:'stacks',title:'Stacks Mint Permission',description:'Verified on-chain authorization for Stacks v2.3.1',icon:Link2},
  {id:'advanced',title:'Advanced On-chain Information',description:'Block numbers, technical contract facts and diagnostics',icon:ScanSearch},
 ] as const;
-export function CollectionSettings({info,onIntent}:{
-  info:any;onIntent:(intent:any)=>void
+export function CollectionSettings({info,onIntent,onProfileSaved}:{
+  info:any;onIntent:(intent:any)=>void;onProfileSaved?:(doc:any)=>void
 }){
   const [panel,setPanel]=useState<Panel>('dashboard');
   const [doc,setDoc]=useState<any>();
@@ -62,7 +62,7 @@ export function CollectionSettings({info,onIntent}:{
         chainId:info.chainId,contract:info.address,
         expectedVersion:Number(doc?.version||0),data
       });
-      setDoc(result);setData({...blank(),...result.data});
+      setDoc(result);setData({...blank(),...result.data});onProfileSaved?.(result);
       setDirty(false);setNotice('Collection Profile saved. This is not an on-chain transaction.');
     });
   }

@@ -20,9 +20,10 @@ describe('Complete in-app creator guide', () => {
   });
   it('documents current collection UI and verified adapters', () => {
     for (const name of [
-      'Start managing', 'Contract Checker', 'NFT Metadata &amp; Edition Studio',
-      'Pin metadata JSON to IPFS', 'Create token ID', 'Mint existing token / airdrop',
+      'Start managing', 'Contract Checker', 'Metadata Studio',
+      'Pin metadata JSON to IPFS', 'Create Token', 'Mint / Airdrop',
       'Create multiple Token IDs', 'Tokens &amp; Editions', 'Collection Settings',
+      'Collection Profile', 'Collection Royalties', 'Stacks Mint Permission',
       'Save revision', 'Prepare publication', 'Check confirmation',
     ]) expect(guide).toContain(name);
     expect(guide).toContain('targetChains.map');

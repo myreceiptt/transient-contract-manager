@@ -22,7 +22,7 @@ describe('Complete in-app creator guide', () => {
     for (const name of [
       'Start managing', 'Contract Checker', 'NFT Metadata &amp; Edition Studio',
       'Pin metadata JSON to IPFS', 'Create token ID', 'Mint existing token / airdrop',
-      'Create multiple token IDs', 'Tokens &amp; Editions', 'Collection Settings',
+      'Create multiple Token IDs', 'Tokens &amp; Editions', 'Collection Settings',
       'Save revision', 'Prepare publication', 'Check confirmation',
     ]) expect(guide).toContain(name);
     expect(guide).toContain('targetChains.map');

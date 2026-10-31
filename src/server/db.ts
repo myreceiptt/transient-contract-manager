@@ -159,6 +159,7 @@ export async function localDb() {
       await db.exec(await readFile('supabase/migrations/20261030132000_token_first_mint_pages.sql', 'utf8'));
       await db.exec(await readFile('supabase/migrations/20261030150000_published_page_slug_aliases.sql', 'utf8'));
       await db.exec(await readFile('supabase/migrations/20261031140000_nft_collector_intelligence.sql', 'utf8'));
+      await db.exec(await readFile('supabase/migrations/20261101110000_collection_profile_versioned.sql','utf8'));
       return db;
     })();
   return localPromise;
@@ -168,7 +169,9 @@ export async function command(op: string, p: Record<string, unknown> = {}): Prom
     const dbRemote = await remoteDb();
     if (dbRemote) {
       const db = dbRemote;
-      const { data, error } = op.startsWith('nft_index_')
+      const { data, error } = op.startsWith('collection_profile_')
+        ? await db.rpc('tcm_collection_profile_op',{p})
+        : op.startsWith('nft_index_')
         ? await db.rpc('tcm_'+op,{p})
         : op === 'page_slug_edit'
         ? await db.rpc('tcm_page_slug_edit', { p })
@@ -182,7 +185,9 @@ export async function command(op: string, p: Record<string, unknown> = {}): Prom
     }
     const db = await localDb();
     const r = await db.query<{ result: unknown }>(
-      op.startsWith('nft_index_')
+      op.startsWith('collection_profile_')
+        ? 'select public.tcm_collection_profile_op($1::jsonb) as result'
+        : op.startsWith('nft_index_')
         ? 'select public.tcm_'+op+'($1::jsonb) as result'
         : op === 'page_slug_edit'
         ? 'select public.tcm_page_slug_edit($1::jsonb) as result'
@@ -191,7 +196,8 @@ export async function command(op: string, p: Record<string, unknown> = {}): Prom
         : op === 'page_lifecycle'
           ? 'select public.tcm_page_lifecycle($1::jsonb) as result'
           : 'select public.tcm_command($1,$2::jsonb) as result',
-      (op.startsWith('nft_index_') || ['page_reidentify','page_lifecycle','page_slug_edit'].includes(op)) ? [JSON.stringify(p)] : [op, JSON.stringify(p)],
+      (op.startsWith('collection_profile_') || op.startsWith('nft_index_') ||
+        ['page_reidentify','page_lifecycle','page_slug_edit'].includes(op)) ? [JSON.stringify(p)] : [op, JSON.stringify(p)],
     );
     return r.rows[0]?.result;
   } catch (e) {
@@ -199,6 +205,8 @@ export async function command(op: string, p: Record<string, unknown> = {}): Prom
     const msg = e instanceof Error ? e.message : String((e as any)?.message ?? e);
     if (msg.includes('SLUG_EDIT_REQUIRES_PUBLISHED_PAGE') || msg.includes('PENDING_TRANSACTION'))
       throw new AppError('SLUG_EDIT_BLOCKED','The Mint Page cannot change its public URL in its current state.',409);
+    if (msg.includes('PROFILE_VERSION_CONFLICT'))
+      throw new AppError('PROFILE_VERSION_CONFLICT','Collection profile was changed in another session. Reload before saving.',409);
     if (msg.includes('VERSION_CONFLICT'))
       throw new AppError(
         'VERSION_CONFLICT',

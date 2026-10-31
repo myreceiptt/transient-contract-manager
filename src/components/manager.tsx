@@ -36,6 +36,7 @@ export function Manager() {
   const [history, setHistory] = useState<any[]>([]);
   const [featured, setFeatured] = useState<any>();
   const [featuredError, setFeaturedError] = useState('');
+  const [collectionProfile,setCollectionProfile]=useState<any>();
   async function refresh() {
     setBusy(true);
     setError('');
@@ -61,6 +62,13 @@ export function Manager() {
     }).catch((e) => { if (active) setFeaturedError((e as Error).message); });
     return () => { active = false; };
   }, [info?.token?.uri]);
+  useEffect(()=>{
+    let alive=true;
+    api('collection_profile_read',{chainId:id,contract})
+      .then(doc=>{if(alive)setCollectionProfile(doc);})
+      .catch(()=>{if(alive)setCollectionProfile(undefined);});
+    return()=>{alive=false;};
+  },[id,contract]);
   async function loadHistory() {
     setError('');
     try {
@@ -147,10 +155,13 @@ export function Manager() {
               <section className="panel">
                 <div className="section-top"><h2>Collection artwork & metadata</h2><span className="tag">FEATURED TOKEN</span></div>
                 <div className="collection-metadata">
-                  <Artwork uri={featured?.image} alt={featured?.name || info.name} />
+                  <Artwork uri={collectionProfile?.data?.banner||collectionProfile?.data?.logo||featured?.image} alt={info.name} />
                   <div><h3>{featured?.name || info.name}</h3>
-                    {featured?.description && <p>{featured.description}</p>}
-                    <small>Featured artwork from token #{String(info.tokenId)}; not verified contract-level metadata.</small>
+                    {(collectionProfile?.data?.description||featured?.description) &&
+                      <p>{collectionProfile?.data?.description||featured.description}</p>}
+                    <small>{collectionProfile?.version?
+                      'Collection Profile is app-managed; on-chain verified name and symbol remain authoritative.' :
+                      'Featured artwork from token #'+String(info.tokenId)+'; not verified collection-level metadata.'}</small>
                     {featuredError && <Notice type="error">Metadata unavailable: {featuredError}</Notice>}
                     {featured?.attributes?.length > 0 && <dl>{featured.attributes.map((a: any, i: number) => <div key={i}><dt>{a.trait_type}</dt><dd>{a.value}</dd></div>)}</dl>}
                     {info.token?.uri && <details><summary>Token metadata URI</summary><code>{info.token.uri}</code></details>}
@@ -197,7 +208,7 @@ export function Manager() {
               <Notice>Mint drafts are private to current collection owner/admin wallets.</Notice>
             ))}
           {tab === 'Collection Settings' && (
-            <CollectionSettings key={id+contract} info={info} onIntent={setIntent}/>
+            <CollectionSettings key={id+contract} info={info} onIntent={setIntent} onProfileSaved={setCollectionProfile}/>
           )}
           {tab === 'Transactions' && (
             <section className="panel">

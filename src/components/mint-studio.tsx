@@ -1,10 +1,10 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSession } from './providers';
 import { api } from '@/lib/api-client';
 import { type Draft, type PageRecord, mediaUrl } from '@/lib/domain';
 import { zeroAddress, formatUnits, parseUnits, formatEther } from 'viem';
-import { Monitor, Smartphone, Plus, ExternalLink, Save, History, RefreshCw, Archive, Copy } from 'lucide-react';
+import { Monitor, Smartphone, Plus, ExternalLink, Save, History, RefreshCw, Archive, Copy, ArrowLeft } from 'lucide-react';
 import { canonicalMintPages } from '@/lib/canonical-mint-pages';
 import { txExplorer } from '@/lib/chains';
 import { Notice, Loading } from './shell';
@@ -44,6 +44,10 @@ export function MintStudio({
   const [pages, setPages] = useState<PageRecord[]>([]);
   const [inventory, setInventory] = useState<any>();
   const [inventoryStart, setInventoryStart] = useState(1);
+  const [tokenMetadata, setTokenMetadata] = useState<Record<string, any>>({});
+  const [tokenMetadataErrors, setTokenMetadataErrors] = useState<Record<string,string>>({});
+  const metadataCache=useRef<Record<string,{uri:string;data:any}>>({});
+  const [metadataRetry, setMetadataRetry] = useState(0);
   const [closePreview, setClosePreview] = useState<any>();
   const [morePages, setMorePages] = useState(false);
   const [moreRevisions, setMoreRevisions] = useState(false);
@@ -117,6 +121,19 @@ export function MintStudio({
       setError('Could not copy automatically. Open the URL and copy it from your browser.');
     }
   }
+  function backToEditions() {
+    if(busy || uploading) return;
+    if(draft && dirty && !window.confirm(
+      'Return to NFT Editions? Unsaved Mint Page changes will be lost. Save revision first to keep them.'
+    )) return;
+    setClosePreview(undefined);
+    setPage(undefined);setDraft(undefined);
+    setError('');setNotice('');
+    setSelectedMedia({});setUploadProgress(undefined);
+    setSnapshot(undefined);setContentReview(undefined);setReadiness(undefined);
+    setCollectorQuote(undefined);setSlugEditOpen(false);
+    void run(()=>loadInventory());
+  }
   async function chooseToken(token:any) {
     setClosePreview(undefined);
     if(token.page?.archived){
@@ -168,6 +185,7 @@ export function MintStudio({
     });
   }
   function select(p: PageRecord | undefined, d: Draft) {
+    setSelectedMedia({});setUploadProgress(undefined);
     setSlugEditOpen(false);
     setSlugCandidate(p?.slug || d.slug);
     setPage(p);
@@ -217,6 +235,36 @@ export function MintStudio({
       if (page) await open(page.id);
     });
   }, [revisionKey, info.address, info.chainId]);
+  // Match the artwork-first Tokens & Editions catalogue. Metadata is read
+  // separately from authoritative token/drop eligibility; a failed URI must
+  // never make an otherwise valid NFT appear available or unavailable.
+  useEffect(() => {
+    if(!inventory?.tokens?.length) return;
+    let alive=true;
+    const items=inventory.tokens as {id:string;uri?:string}[];
+    (async()=>{
+      const found:Record<string,any>={},failed:Record<string,string>={};
+      for(let i=0;i<items.length && alive;i+=4){
+        const batch=items.slice(i,i+4);
+        const outcomes=await Promise.allSettled(batch.map(t=>{
+          const cached=metadataCache.current[String(t.id)];
+          return cached && cached.uri===t.uri ? Promise.resolve(cached.data)
+            : t.uri?api('metadata',{uri:t.uri}):Promise.resolve(null);
+        }));
+        for(let j=0;j<batch.length;j++){
+          const result=outcomes[j],id=String(batch[j].id);
+          if(result.status==='fulfilled' && result.value){
+            found[id]=result.value;
+            metadataCache.current[id]={uri:batch[j].uri||'',data:result.value};
+          }
+          else if(result.status==='rejected')failed[id]=
+            result.reason instanceof Error?result.reason.message:'Metadata unavailable';
+        }
+      }
+      if(alive){setTokenMetadata(found);setTokenMetadataErrors(failed);}
+    })();
+    return()=>{alive=false;};
+  },[inventory,metadataRetry]);
   function content(k: keyof Draft['content'], v: string) {
     setDraft((d) => (d ? { ...d, content: { ...d.content, [k]: v } } : d));
     setContentReview(undefined);
@@ -337,76 +385,125 @@ export function MintStudio({
     });
   }
   return (
-    <div className="studio-layout">
-      <aside className="page-list panel">
-        <div className="section-top">
-          <h3>NFT Editions</h3>
-          <button className="icon-button" title="Refresh on-chain inventory"
-            disabled={busy} onClick={()=>run(()=>loadInventory())}>
-            <RefreshCw size={17}/>
-          </button>
-        </div>
-        <p className="muted">Select a verified token to create, manage, or restore its one canonical Mint Page.</p>
-        <small className="muted">Drop status is read from TLStacks1155; not from The Lab private database.</small>
-        {inventory?.tokens?.map((token:any)=>(
-          <div key={token.id} className="page-list-item" style={{textAlign:'left'}}>
-            <strong>Token #{token.id}</strong>
-            {token.page && <span>/mint/{token.page.slug}</span>}
-            <small>
-              {token.dropType===null?'Chain status: unknown':
-               token.dropType===0?'Drop: not configured':
-               'Drop: configured · phase '+(
-                 {1:'Scheduled',2:'Presale',3:'Public sale',4:'Ended'} as Record<number,string>
-               )[token.phase]}
-              {token.round!==null?' · round '+token.round:''}
-            </small>
-            <small>{token.eligibility==='AVAILABLE'?'Available for new Mint Page':
-              token.eligibility==='RESTORE_CANONICAL'?'Archived · canonical identity retained':
-              token.eligibility==='MANAGE_PAGE'?'Existing Mint Page · '+token.page?.state:
-              token.eligibility==='EXTERNAL_DROP'?'Existing on-chain drop · close first':
-              token.eligibility==='TOKEN_LOCKED'?'NFT minting permanently locked':
-              token.eligibility==='NOT_CREATED'?'NFT not created':
-              'Verification required'}</small>
-            <div className="button-row">
-              {['AVAILABLE','RESTORE_CANONICAL','MANAGE_PAGE'].includes(token.eligibility) &&
-                <button className="button secondary compact" disabled={busy}
-                  onClick={()=>void chooseToken(token)}>
-                  {token.eligibility==='AVAILABLE'?'Create':
-                   token.eligibility==='RESTORE_CANONICAL'?'Restore':'Manage'}
-                </button>}
-              {token.page?.published && !token.page.archived && <>
-                <a className="button secondary compact"
-                  href={'/mint/'+encodeURIComponent(token.page.slug)}
-                  target="_blank" rel="noopener noreferrer"
-                  aria-label={'View Mint Page for Token '+token.id+' in a new tab'}>
-                  <ExternalLink size={14}/> View Mint Page
-                </a>
-                <button className="button secondary compact"
-                  title={'Copy Mint Page URL for Token '+token.id}
-                  onClick={()=>void copyPublicUrl(token.page.slug)}>
-                  <Copy size={14}/> Copy URL
-                </button>
-              </>}
-              {token.dropType!==null && token.dropType!==0 &&
-                <button className="button secondary compact" disabled={busy}
-                  onClick={()=>void closeToken(token)}>Review close</button>}
-            </div>
-          </div>
-        ))}
-        {!inventory && <p className="muted">Reading NFT editions and Stacks status…</p>}
-        {inventory?.tokens?.length===0 && <p className="muted">No minted NFT token IDs in this range.</p>}
-        {inventory && <div className="button-row">
-          <button className="button secondary compact" disabled={busy||inventoryStart<=1}
-            onClick={()=>run(()=>loadInventory(Math.max(1,inventoryStart-20)))}>Previous</button>
-          <button className="button secondary compact"
-            disabled={busy||BigInt(inventoryStart+19)>=BigInt(inventory.total||'0')}
-            onClick={()=>run(()=>loadInventory(inventoryStart+20))}>Next</button>
-        </div>}
-        {inventory?.observedBlock && <small className="muted">Verified at block {inventory.observedBlock}. Refresh before signing any transaction.</small>}
-      </aside>
-      <div className="studio-main">
+    <div className="mint-studio-layout">
+      <section className="mint-studio-banner panel" aria-label="Mint Pages introduction">
+        <span className="eyebrow">INDEPENDENT MINT PAGES</span>
+        <h2>A home for every edition.</h2>
+        <p>Manage your collection&apos;s verified NFT editions, create independent Mint Pages
+          and review on-chain TLStacks1155 drops.</p>
+      </section>
+     <div className="studio-main">
         {error && <Notice type="error">{error}</Notice>}
         {notice && <Notice type="success">{notice}</Notice>}
+        {(draft || closePreview) && (
+          <nav className="mint-detail-navigation" aria-label="Mint Pages navigation">
+            <button type="button" className="button secondary compact"
+              disabled={busy || !!uploading} onClick={backToEditions}>
+              <ArrowLeft size={16}/> Back to NFT Editions
+            </button>
+            <span className="muted">{closePreview
+              ? 'Review closeDrop · Token #'+closePreview.tokenId
+              : (page?'Manage Mint Page':'Create Mint Page')+' · Token #'+draft?.tokenId}
+            </span>
+          </nav>
+        )}
+        {!draft && !closePreview && (
+          <section className="mint-catalogue" aria-label="NFT Editions">
+            <div className="section-top mint-catalogue-heading">
+              <div>
+                <h3>NFT Editions</h3>
+                <p className="muted">Select a verified token to create, manage or restore its canonical Mint Page.</p>
+              </div>
+              <button className="button secondary compact" disabled={busy}
+                onClick={()=>run(()=>loadInventory())}>
+                <RefreshCw size={16}/> Refresh on-chain status
+              </button>
+            </div>
+            <p className="fineprint">Drop status comes from TLStacks1155, not The Lab&apos;s private Mint Page database.
+              A sale that has Ended may still require an on-chain Close Drop transaction.</p>
+            {!inventory && <Loading label="Reading NFT editions and TLStacks1155 status…" />}
+            {inventory?.tokens?.length===0 &&
+              <section className="panel mint-catalogue-empty">No verified NFT Token IDs in this range.</section>}
+            <div className="token-grid mint-edition-grid">
+              {inventory?.tokens?.map((token:any)=>{
+                const data=tokenMetadata[String(token.id)];
+                const phaseLabel=({1:'Scheduled',2:'Presale',3:'Public sale',4:'Ended'} as Record<number,string>)[token.phase] || 'Unknown';
+                const eligibilityLabel=token.eligibility==='AVAILABLE'?'Available for Mint Page':
+                  token.eligibility==='RESTORE_CANONICAL'?'Archived · Restore existing page':
+                  token.eligibility==='MANAGE_PAGE'?'Existing canonical Mint Page':
+                  token.eligibility==='EXTERNAL_DROP'?'External on-chain drop · close first':
+                  token.eligibility==='TOKEN_LOCKED'?'NFT minting permanently locked':
+                  token.eligibility==='NOT_CREATED'?'NFT token not created':'Verification required';
+                return <article className="token-card mint-edition-card" key={token.id}>
+                  <Artwork uri={data?.image} alt={data?.name || 'Token '+token.id}/>
+                  <div className="mint-edition-content">
+                    <span className="eyebrow">TOKEN #{token.id}</span>
+                    <h3>{data?.name || token.page?.title || 'Edition #'+token.id}</h3>
+                    {data?.description && <p className="mint-edition-description">
+                      {String(data.description).slice(0,180)}
+                    </p>}
+                    {tokenMetadataErrors[String(token.id)] && <div>
+                      <p className="fineprint">Token metadata unavailable; on-chain status remains authoritative.</p>
+                      <button type="button" className="button secondary compact"
+                        onClick={()=>setMetadataRetry(n=>n+1)}>Retry artwork</button>
+                    </div>}
+                    <div className="mint-edition-status">
+                      <div>
+                        <span>Mint Page</span>
+                        <strong>{token.page ? token.page.archived?'Archived':
+                          token.page.published?'Published':String(token.page.state).replaceAll('_',' ')
+                          :'Not created'}</strong>
+                      </div>
+                      <div>
+                        <span>On-chain drop</span>
+                        <strong>{token.dropType===null?'Not verified':
+                          token.dropType===0?'Not configured':phaseLabel}</strong>
+                      </div>
+                    </div>
+                    {token.page && <small className="mint-edition-slug">/mint/{token.page.slug}</small>}
+                    <p className="mint-edition-eligibility">{eligibilityLabel}
+                      {token.round!==null?' · Round '+token.round:''}
+                    </p>
+                    <div className="button-row mint-edition-actions">
+                      {['AVAILABLE','RESTORE_CANONICAL','MANAGE_PAGE'].includes(token.eligibility) &&
+                        <button className="button secondary compact" disabled={busy}
+                          onClick={()=>void chooseToken(token)}>
+                          {token.eligibility==='AVAILABLE'?'Create':
+                            token.eligibility==='RESTORE_CANONICAL'?'Restore':'Manage'}
+                        </button>}
+                      {token.page?.published && !token.page.archived && <>
+                        <a className="button secondary compact" target="_blank"
+                          rel="noopener noreferrer" href={'/mint/'+encodeURIComponent(token.page.slug)}>
+                          <ExternalLink size={14}/> View Mint Page
+                        </a>
+                        <button type="button" className="button secondary compact"
+                          onClick={()=>void copyPublicUrl(token.page.slug)}>
+                          <Copy size={14}/> Copy URL
+                        </button>
+                      </>}
+                    </div>
+                    {token.dropType!==null && token.dropType!==0 &&
+                      <div className="mint-edition-close">
+                        <button type="button" className="button secondary compact" disabled={busy}
+                          onClick={()=>void closeToken(token)}>Review closeDrop</button>
+                      </div>}
+                  </div>
+                </article>;
+              })}
+            </div>
+            {inventory && <div className="mint-catalogue-footer">
+              <div className="button-row">
+                <button className="button secondary compact" disabled={busy||inventoryStart<=1}
+                  onClick={()=>run(()=>loadInventory(Math.max(1,inventoryStart-20)))}>Previous</button>
+                <button className="button secondary compact"
+                  disabled={busy||BigInt(inventoryStart+19)>=BigInt(inventory.total||'0')}
+                  onClick={()=>run(()=>loadInventory(inventoryStart+20))}>Next</button>
+              </div>
+              <small className="muted">Verified at block {inventory.observedBlock}.
+                Refresh before signing any transaction.</small>
+            </div>}
+          </section>
+        )}
         {closePreview && <section className="panel">
           <h2>Review closeDrop — Token #{closePreview.tokenId}</h2>
           <p>This is a read-only simulation of closing the current on-chain Stacks drop.
@@ -419,19 +516,7 @@ export function MintStudio({
             {info.canWrite?'Prepare closeDrop wallet review':'Mainnet writes disabled'}
           </button>
         </section>}
-        {!draft ? (
-          <section className="empty-state panel">
-            <span className="eyebrow">INDEPENDENT MINT PAGES</span>
-            <h2>A home for every edition.</h2>
-            <p>
-              Save content and sale settings in a shared draft.
-              <br />
-              Publish after reviewing the verified on-chain configuration.
-            </p>
-            <p>Select an NFT Token ID from the inventory to start.
-              A configured Stacks drop must be closed first, regardless of its sale phase.</p>
-          </section>
-        ) : (
+        {draft && (
           <>
             <div className="section-top">
               <div>

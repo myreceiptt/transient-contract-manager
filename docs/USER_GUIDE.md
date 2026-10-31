@@ -58,7 +58,7 @@ royalty bps are limited to 1,000 (10%). Pinned JSON is not itself a token.
 
 ## 4. Choose an NFT in Mint Pages
 
-Open **Mint Pages**. Select a verified Token ID from the sidebar.
+Open **Mint Pages**. The permanent **A home for every edition.** banner appears above a responsive, artwork-first grid of NFT cards, matching **Tokens & Editions**. Each card shows separate **Mint Page** and **On-chain drop** statuses. Select **Create**, **Manage**, **Restore** or **Review closeDrop** to open a full-width workflow; use **Back to NFT Editions** to return to the grid. Unsaved editor changes trigger a warning before leaving.
 
 | Token status | Meaning | Next action |
 | --- | --- | --- |
@@ -85,7 +85,7 @@ An existing on-chain drop does not establish which UI originally created it.
 
 ### This app → The Lab
 
-1. Select **Review close** for a configured drop here.
+1. Select **Review closeDrop** for a configured drop here.
 2. Review the read-only closeDrop simulation, parameters and gas.
 3. Select **Prepare closeDrop wallet review**, approve the wallet transaction,
    then use **Check confirmation**.

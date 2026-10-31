@@ -22,6 +22,13 @@ export function Manager() {
   const { ensureSession } = useSession();
   const [info, setInfo] = useState<any>();
   const [tab, setTab] = useState('Overview');
+  const [tokenDraftDirty,setTokenDraftDirty]=useState(false);
+  const [tokenWorkflowActive,setTokenWorkflowActive]=useState(false);
+  function changeTab(target:string){
+    if(tab==='Tokens & Editions'&&target!==tab&&tokenWorkflowActive&&tokenDraftDirty &&
+       !window.confirm('Leave Tokens & Editions? Unsaved metadata or batch changes will be lost.'))return;
+    setTab(target);setTokenDraftDirty(false);setTokenWorkflowActive(false);
+  }
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [intent, setIntent] = useState<any>();
@@ -129,7 +136,7 @@ export function Manager() {
                 role="tab"
                 aria-selected={t === tab}
                 className={t === tab ? 'active' : ''}
-                onClick={() => setTab(t)}
+                onClick={() => changeTab(t)}
               >
                 {t}
               </button>
@@ -174,7 +181,9 @@ export function Manager() {
           )}
           {tab === 'Tokens & Editions' && (
             <TokenStudio key={id+contract} info={info} onIntent={setIntent}
-              onOpenMintPages={()=>setTab('Mint Pages')}/>
+              onOpenMintPages={()=>changeTab('Mint Pages')}
+              onDirtyChange={setTokenDraftDirty}
+              onActiveChange={setTokenWorkflowActive}/>
           )}
           {tab === 'Mint Pages' &&
             (info.authorized ? (

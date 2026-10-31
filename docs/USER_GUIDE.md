@@ -27,8 +27,9 @@ new NFT collection contracts or import the private database of The Lab.
   token creation, batch creation, airdrops, metadata changes and royalties.
 - **Mint Pages:** token-first inventory, Stacks sale status, Create/Manage/Restore,
   page content and sale publishing.
-- **Collection Settings:** contract facts and allowed on-chain admin actions,
-  including granting the verified Stacks minter permission.
+- **Collection Settings:** “The foundation of every edition.” dashboard,
+  Collection Profile, verified Identity, read-only Ownership & Access,
+  collection-wide default Royalties, verified Stacks permission and Advanced facts.
 - **Transactions:** saved reviews, hashes, finality checks and replacement recovery.
 
 ERC1155TL totalSupply() counts created **Token IDs**, not the total number
@@ -37,26 +38,53 @@ units of a specific Token ID.
 
 ## 3. Create metadata and a token
 
-In **Tokens & Editions → NFT Metadata & Edition Studio**:
+In **Tokens & Editions**, select **Create Token** or **Create Batch** above the
+NFT cards. The contextual NFT Metadata & Edition Studio prepares metadata
+for the chosen workflow:
 
 1. Enter NFT name, description, optional external URL and attributes.
 2. Upload original JPG/PNG/WebP artwork (up to 100 MiB), or paste an IPFS URI.
 3. Review artwork. Click **Pin metadata JSON to IPFS** and retain its URI.
 4. Choose **Prepare new token**, **Prepare metadata update**, or
    **Add to batch queue**. Preparing metadata alone sends no transaction.
-5. In **Prepare a collection action**, select **Create token ID** and check
+5. Select **Prepare new token** to open the separate edition-distribution and
+   **Simulate & review** step (the create token ID contract action). Check
    the pinned URI. Leave recipients empty for zero issued units, or enter
    one wallet and amount per line to issue units immediately.
 6. Select **Simulate & review**, verify network, contract, recipients,
    amounts and fee, then **Approve in wallet**.
 7. After wallet confirmation, use **Check confirmation** and refresh inventory.
 
-Existing tokens can be minted/airdropped with **Mint existing token / airdrop**
+Existing tokens can be minted/airdropped from **Manage Token → Mint / Airdrop**
 if unlocked. Supported metadata/royalty operations are available in the
 same action form. A batch can prepare up to 40 Token IDs and 200 recipients;
 royalty bps are limited to 1,000 (10%). Pinned JSON is not itself a token.
 
-## 4. Choose an NFT in Mint Pages
+## 4. Collection Settings & Collection Profile
+
+Open **Collection Settings**. The permanent **The foundation of every edition.**
+banner appears above six specialized cards: Collection Profile, Collection
+Identity, Ownership & Access, Collection Royalties, Stacks Mint Permission,
+and Advanced On-chain Information. The latter identity/access cards are
+read-only; do not confuse displayed ownership with an available role-change action.
+
+**Default collection royalties** are read separately via
+`getDefaultRoyaltyRecipientAndPercentage()`, not inferred from Token ID #1.
+The royalty card has a contextual owner/admin simulation and wallet review.
+Stacks approval is offered only if the verified minter is not yet approved.
+
+**Collection Profile** stores an app-managed description, logo, banner, website
+and social links with a version-checked server write and audit entry.
+Use JPG/PNG/WebP uploads (up to 100 MiB) to pin images to IPFS, then
+**Save Collection Profile**. Optionally select **Pin Collection Profile to IPFS**,
+then **Save** again to store the resulting immutable public JSON URI. Profile
+changes are NOT smart-contract transactions and do not create
+a native on-chain `contractURI()` (absent from ERC1155TL v4.1.2).
+On-chain verified name/symbol remain authoritative; collection profile visuals
+can appear in Overview after saving. Unsaved profile edits require confirmation
+before leaving their settings card.
+
+## 5. Choose an NFT in Mint Pages
 
 Open **Mint Pages**. The permanent **A home for every edition.** banner appears above a responsive, artwork-first grid of NFT cards, matching **Tokens & Editions**. Each card shows separate **Mint Page** and **On-chain drop** statuses. Select **Create**, **Manage**, **Restore** or **Review closeDrop** to open a full-width workflow; use **Back to NFT Editions** to return to the grid. Unsaved editor changes trigger a warning before leaving.
 
@@ -95,7 +123,7 @@ An existing on-chain drop does not establish which UI originally created it.
 **Closing a drop does not burn NFT balances, delete blockchain history, or
 automatically unpublish The Lab's off-chain Mint Page.**
 
-## 5. Create and publish an independent Mint Page
+## 6. Create and publish an independent Mint Page
 
 1. **01 · Page content:** fill unique slug, title, description, artwork,
    banner and optional external URL. Page art is separate from NFT metadata.
@@ -121,7 +149,7 @@ The current app uses fixed-price Stacks parameters. It does not offer separate
 preset modes for all Limited, Timed and Inclusive Edition variants of The Lab.
 A finite allocation/time window is not unlimited minting.
 
-## 6. Manage an existing Mint Page
+## 7. Manage an existing Mint Page
 
 One Chain + Collection Contract + Token ID has **one permanent canonical Mint
 Page identity after publication**. New rounds reuse **Manage** or **Restore**.
@@ -143,7 +171,7 @@ Page identity after publication**. New rounds reuse **Manage** or **Restore**.
 A new round may increase total minted copies. Respect any lifetime edition
 cap promised to collectors.
 
-## 7. Recover transactions
+## 8. Recover transactions
 
 Open **Transactions → Load history**, select the saved review and choose
 **Check confirmation**. Wallet speed-up/replacement can be reconciled with
@@ -152,7 +180,7 @@ different replacement. Submitted is not necessarily finalized; closing a
 review modal does not cancel a transaction. Never duplicate configureDrop
 to resolve a stale PUBLISHING indicator.
 
-## 8. Collector minting
+## 9. Collector minting
 
 Collectors visit the published Mint Page, connect a compatible wallet to
 the correct chain and select **Review payment & mint** during an active
@@ -162,7 +190,7 @@ and gas. Presales require the Merkle allowance and proof. Minting is
 blocked on closed, paused, sold-out, locked, out-of-sync or not-yet-started
 sales.
 
-## 9. Network status and supported scope
+## 10. Network status and supported scope
 
 Configured target networks: Ethereum (1), Robinhood Chain (4663),
 Base (8453), Shape (360). Contract Checker and on-chain inventory make

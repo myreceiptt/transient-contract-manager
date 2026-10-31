@@ -42,7 +42,8 @@
     "vitest": "4.1.12"
   },
   "overrides": {
-    "tmp": "0.2.7"
+    "tmp": "0.2.7",
+    "follow-redirects": "1.16.2"
   },
   "engines": {
     "node": ">=22.0.0 <25"

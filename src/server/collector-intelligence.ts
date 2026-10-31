@@ -43,8 +43,8 @@ async function logsInRange(chainId:number,contract:Address,tokenId:bigint,stacks
     push('TRANSFER',log,log.args.from!,log.args.to!,log.args.value!);
   for(const log of batch){
     const ids=log.args.ids||[],values=log.args.values||[];
-    const i=ids.findIndex(v=>v===tokenId);
-    if(i>=0)push('TRANSFER',log,log.args.from!,log.args.to!,values[i]);
+    const qty=ids.reduce((sum,id,i)=>id===tokenId?sum+values[i]:sum,0n);
+    if(qty>0n)push('TRANSFER',log,log.args.from!,log.args.to!,qty);
   }
   for(const log of purchases)
     push('PURCHASE',log,null,log.args.nftReceiver!,log.args.amount!);

@@ -4,7 +4,7 @@ import { useSession } from './providers';
 import { api } from '@/lib/api-client';
 import { type Draft, type PageRecord, mediaUrl } from '@/lib/domain';
 import { zeroAddress, formatUnits, parseUnits, formatEther } from 'viem';
-import { Monitor, Smartphone, Plus, ExternalLink, Save, History, RefreshCw, Archive } from 'lucide-react';
+import { Monitor, Smartphone, Plus, ExternalLink, Save, History, RefreshCw, Archive, Copy } from 'lucide-react';
 import { canonicalMintPages } from '@/lib/canonical-mint-pages';
 import { txExplorer } from '@/lib/chains';
 import { Notice, Loading } from './shell';
@@ -104,6 +104,18 @@ export function MintStudio({
     const data=await api('mint_inventory',{chainId:info.chainId,contract:info.address,start});
     setInventory(data);
     setInventoryStart(start);
+  }
+  function publicUrl(slug: string) {
+    return window.location.origin + '/mint/' + encodeURIComponent(slug);
+  }
+  async function copyPublicUrl(slug: string) {
+    try {
+      await navigator.clipboard.writeText(publicUrl(slug));
+      setNotice('Mint Page URL copied.');
+      setError('');
+    } catch {
+      setError('Could not copy automatically. Open the URL and copy it from your browser.');
+    }
   }
   async function chooseToken(token:any) {
     setClosePreview(undefined);
@@ -362,6 +374,19 @@ export function MintStudio({
                   {token.eligibility==='AVAILABLE'?'Create':
                    token.eligibility==='RESTORE_CANONICAL'?'Restore':'Manage'}
                 </button>}
+              {token.page?.published && !token.page.archived && <>
+                <a className="button secondary compact"
+                  href={'/mint/'+encodeURIComponent(token.page.slug)}
+                  target="_blank" rel="noopener noreferrer"
+                  aria-label={'View Mint Page for Token '+token.id+' in a new tab'}>
+                  <ExternalLink size={14}/> View Mint Page
+                </a>
+                <button className="button secondary compact"
+                  title={'Copy Mint Page URL for Token '+token.id}
+                  onClick={()=>void copyPublicUrl(token.page.slug)}>
+                  <Copy size={14}/> Copy URL
+                </button>
+              </>}
               {token.dropType!==null && token.dropType!==0 &&
                 <button className="button secondary compact" disabled={busy}
                   onClick={()=>void closeToken(token)}>Review close</button>}
@@ -466,6 +491,17 @@ export function MintStudio({
                     <div>
                       <strong>Public Mint Page URL</strong>
                       <p className="muted">Current: /mint/{page.slug}</p>
+                      <div className="button-row" style={{marginTop:'0.65rem'}}>
+                        <a className="button secondary compact"
+                          href={'/mint/'+encodeURIComponent(page.slug)}
+                          target="_blank" rel="noopener noreferrer">
+                          <ExternalLink size={15}/> View Mint Page
+                        </a>
+                        <button className="button secondary compact"
+                          onClick={()=>void copyPublicUrl(page.slug)}>
+                          <Copy size={15}/> Copy URL
+                        </button>
+                      </div>
                     </div>
                     <button className="button secondary compact"
                       disabled={busy || dirty || page.archived_at != null}

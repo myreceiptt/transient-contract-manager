@@ -2101,3 +2101,50 @@ th { color: #c1c1c8; }
   .mint-catalogue-heading { align-items: flex-start; flex-direction: column; }
   .mint-edition-card > .mint-edition-content { padding: 15px; }
 }
+
+/* Collection-wide UX: banner → catalogue/control cards → focused work area. */
+.creator-studio,.creator-settings{display:grid;gap:20px;min-width:0}
+.creator-studio-banner{padding:36px 38px;min-width:0}
+.creator-studio-banner h2{font-size:clamp(26px,2.8vw,39px);line-height:1.18;letter-spacing:-.7px;margin:12px 0}
+.creator-studio-banner p{max-width:800px;line-height:1.7;color:var(--muted);margin:0}
+.creator-studio-back{display:flex;align-items:center;flex-wrap:wrap;gap:14px}
+.creator-studio-back>span{font-size:12px}
+.creator-studio-catalogue>.section-top{align-items:flex-start;gap:12px}
+.creator-studio-catalogue-actions{margin:14px 0 20px}
+.creator-studio-grid{align-items:stretch}
+.creator-studio-card{display:flex;flex-direction:column;min-width:0}
+.creator-studio-card>.artwork{aspect-ratio:1}
+.creator-studio-card>.creator-studio-card-body{display:flex;flex-direction:column;gap:11px;padding:16px;flex:1}
+.creator-studio-card h3{font-size:16px;margin:0}
+.creator-studio-card p{color:var(--muted);line-height:1.6;margin:0}
+.creator-studio-card details{overflow-wrap:anywhere}
+.creator-studio-card .button{margin-top:auto;align-self:flex-start}
+.creator-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:18px 0}
+.creator-steps span{padding:10px;border:1px solid var(--line);border-radius:8px;color:var(--muted);font-size:11px;line-height:1.5}
+.creator-steps span.active{border-color:#8ca769;color:var(--ink);background:rgba(130,160,90,.11)}
+.creator-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.creator-settings-card{text-align:left;display:flex;flex-direction:column;align-items:flex-start;gap:12px;cursor:pointer;min-height:205px}
+.creator-settings-card>strong{font-size:19px}
+.creator-settings-card>span:not(.creator-settings-card-link){color:var(--muted);font-size:13px;line-height:1.65}
+.creator-settings-card>small{font-size:11px;color:var(--muted)}
+.creator-settings-card-link{margin-top:auto;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600}
+.creator-settings-card:hover{border-color:#819965}
+.creator-setting-current{padding:16px;border:1px solid var(--line);border-radius:9px;margin:16px 0;overflow-wrap:anywhere}
+.creator-setting-current>p{overflow-wrap:anywhere}
+.creator-setting-current>small{display:block;color:var(--muted);margin-top:7px}
+.creator-profile .section-top{align-items:flex-start}
+.creator-profile-banner{max-width:100%;height:200px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.creator-profile-banner>.artwork,.creator-profile-banner .artwork{height:100%;width:100%;object-fit:cover}
+.creator-profile-heading{display:flex;align-items:center;gap:18px;margin:14px 0}
+.creator-profile-logo{height:75px;width:75px;flex:none;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.creator-profile-logo>.artwork,.creator-profile-logo .artwork{height:100%;width:100%}
+.creator-profile h3{margin:0}
+.creator-profile .form-grid{margin:16px 0}
+.creator-profile .form-grid label{min-width:0}
+@media(max-width:760px){
+ .creator-studio-banner{padding:24px 20px}
+ .creator-settings-grid{grid-template-columns:1fr}
+ .creator-settings-card{min-height:150px}
+ .creator-steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .creator-profile-banner{height:145px}
+}

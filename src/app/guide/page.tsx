@@ -482,6 +482,34 @@ export default function Guide() {
             is closed, sold out, not yet started, paused, out of sync,
             locked or outside the collector&apos;s allowance.</li>
         </ol>
+        <h3>View your editions, activity and collectors</h3>
+        <p>On a published Mint Page, <strong>Your editions</strong> reads the
+          connected wallet&apos;s current ERC-1155 <code>balanceOf</code>
+          for that Token ID. It is a live ownership balance, not the
+          quantity originally purchased. No wallet connected means no
+          personal balance is displayed.</p>
+        <p><strong>Activity</strong> shows indexed Stacks purchases and ERC-1155
+          mint/transfer events with on-chain transaction links.
+          <strong> Collectors</strong> lists wallet addresses discovered
+          from those transfer events and verifies each displayed quantity
+          using a fresh ERC-1155 balance read. Wallets may have received
+          or transferred editions without minting them personally.</p>
+        <p>Historical blockchain indexing runs in bounded, incremental
+          batches. While the page displays <strong>Historical indexing in
+          progress</strong>, its activity and holder list can be
+          incomplete; the app does <strong>not</strong> assert a complete
+          collector count until older events have been processed.
+          Wallet addresses are not verified real-world identities.</p>
+        <h3>Open and share a published Mint Page from the editor</h3>
+        <p>In <strong>Mint Pages</strong>, a published and non-archived
+          token offers <strong>Manage</strong>,
+          <strong> View Mint Page</strong> (opens a new tab) and
+          <strong> Copy URL</strong>. The same public-link actions are
+          available under <strong>01 · Page content → Public Mint Page URL</strong>
+          inside the editor. They use the current canonical slug;
+          the old slug redirects to it after an Edit URL operation.</p>
+        <ol className="guide-steps">
+        </ol>
       </section>
 
       <section className="panel guide-section" id="networks">

@@ -8,14 +8,20 @@ export function AdminActions({
   onIntent,
   initialAction = 'mintToken',
   prepared,
+  fixedAction,
+  lockedTokenId,
+  heading,
 }: {
   info: any;
   onIntent: (i: any) => void;
   initialAction?: string;
   prepared?: { action: string; uri?: string; tokenId?: string; batch?: string };
+  fixedAction?: string;
+  lockedTokenId?: string;
+  heading?: string;
 }) {
-  const [action, setAction] = useState(initialAction);
-  const [tokenId, setTokenId] = useState('1');
+  const [action, setAction] = useState(fixedAction || initialAction);
+  const [tokenId, setTokenId] = useState(lockedTokenId || '1');
   const [uri, setUri] = useState('');
   const [recipientText, setRecipientText] = useState('');
   const [royaltyRecipient, setRoyaltyRecipient] = useState(info.royalty?.[0] || info.owner);
@@ -28,8 +34,13 @@ export function AdminActions({
   const [simulation, setSimulation] = useState<any>();
   const { ensureSession } = useSession();
   useEffect(() => {
-    if (!prepared) return;
-    setAction(prepared.action);
+    if (fixedAction) setAction(fixedAction);
+    if (lockedTokenId) setTokenId(lockedTokenId);
+    setSimulation(undefined);
+  }, [fixedAction,lockedTokenId]);
+  useEffect(() => {
+    if (!prepared || (fixedAction && prepared.action!==fixedAction)) return;
+    setAction(fixedAction || prepared.action);
     if (prepared.uri) setUri(prepared.uri);
     if (prepared.tokenId) setTokenId(prepared.tokenId);
     if (prepared.batch) setBatch(prepared.batch);
@@ -43,8 +54,8 @@ export function AdminActions({
     setSimulation(undefined);
     try {
       await ensureSession(info.chainId);
-      let args: any = { action };
-      if (['mintToken', 'setTokenUri', 'setTokenRoyalty'].includes(action)) args.tokenId = tokenId;
+      let args: any = { action: fixedAction || action };
+      if (['mintToken', 'setTokenUri', 'setTokenRoyalty'].includes(action)) args.tokenId = lockedTokenId || tokenId;
       if (['createToken', 'setTokenUri'].includes(action)) args.uri = uri;
       if (['createToken', 'mintToken'].includes(action)) {
         args.recipients = recipientText.trim()
@@ -76,12 +87,12 @@ export function AdminActions({
   return (
     <section className="panel" id="collection-action-form">
       <div className="section-top">
-        <h2>Prepare a collection action</h2>
+        <h2>{heading || 'Prepare a collection action'}</h2>
         <span className="tag">OWNER / ADMIN</span>
       </div>
       <p>
-        Contract actions are validated against the pinned implementation and your on-chain admin
-        permission. On mainnet these controls provide simulation only, without sending a transaction.
+        Contract actions use the pinned implementation, fresh on-chain permission checks,
+        and simulation before explicit wallet approval. The network operator can disable live writes.
       </p>
       {!info.canWrite && (
         <Notice>
@@ -90,7 +101,7 @@ export function AdminActions({
         </Notice>
       )}
       <form onSubmit={submit}>
-        <label>
+        {!fixedAction && <label>
           Action
           <select value={action} onChange={(e) => { setAction(e.target.value); setSimulation(undefined); }}>
             <option value="mintToken">Mint existing token / airdrop</option>
@@ -101,7 +112,7 @@ export function AdminActions({
             <option value="setTokenRoyalty">Update token royalty</option>
             <option value="approveStacks">Approve verified Stacks as a minter</option>
           </select>
-        </label>
+        </label>}
         {['mintToken', 'setTokenUri', 'setTokenRoyalty'].includes(action) && (
           <label>
             Token ID
@@ -110,6 +121,7 @@ export function AdminActions({
               onChange={(e) => setTokenId(e.target.value)}
               inputMode="numeric"
               required
+              readOnly={!!lockedTokenId}
             />
           </label>
         )}

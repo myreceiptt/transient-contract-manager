@@ -158,6 +158,7 @@ export async function localDb() {
       await db.exec(await readFile('supabase/migrations/20261028100000_page_identity_drafts.sql', 'utf8'));
       await db.exec(await readFile('supabase/migrations/20261030132000_token_first_mint_pages.sql', 'utf8'));
       await db.exec(await readFile('supabase/migrations/20261030150000_published_page_slug_aliases.sql', 'utf8'));
+      await db.exec(await readFile('supabase/migrations/20261031140000_nft_collector_intelligence.sql', 'utf8'));
       return db;
     })();
   return localPromise;
@@ -167,7 +168,9 @@ export async function command(op: string, p: Record<string, unknown> = {}): Prom
     const dbRemote = await remoteDb();
     if (dbRemote) {
       const db = dbRemote;
-      const { data, error } = op === 'page_slug_edit'
+      const { data, error } = op.startsWith('nft_index_')
+        ? await db.rpc('tcm_'+op,{p})
+        : op === 'page_slug_edit'
         ? await db.rpc('tcm_page_slug_edit', { p })
         : op === 'page_reidentify'
         ? await db.rpc('tcm_page_reidentify', { p })
@@ -179,14 +182,16 @@ export async function command(op: string, p: Record<string, unknown> = {}): Prom
     }
     const db = await localDb();
     const r = await db.query<{ result: unknown }>(
-      op === 'page_slug_edit'
+      op.startsWith('nft_index_')
+        ? 'select public.tcm_'+op+'($1::jsonb) as result'
+        : op === 'page_slug_edit'
         ? 'select public.tcm_page_slug_edit($1::jsonb) as result'
         : op === 'page_reidentify'
         ? 'select public.tcm_page_reidentify($1::jsonb) as result'
         : op === 'page_lifecycle'
           ? 'select public.tcm_page_lifecycle($1::jsonb) as result'
           : 'select public.tcm_command($1,$2::jsonb) as result',
-      ['page_reidentify','page_lifecycle','page_slug_edit'].includes(op) ? [JSON.stringify(p)] : [op, JSON.stringify(p)],
+      (op.startsWith('nft_index_') || ['page_reidentify','page_lifecycle','page_slug_edit'].includes(op)) ? [JSON.stringify(p)] : [op, JSON.stringify(p)],
     );
     return r.rows[0]?.result;
   } catch (e) {

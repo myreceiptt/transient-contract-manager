@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '@/lib/api-client';
 import { useSession } from './providers';
 import { Artwork } from './safe-media';
@@ -22,11 +22,13 @@ const blank = (): NftMetadata => ({
 const DEAD = '0x000000000000000000000000000000000000dEaD';
 
 export function NftMetadataStudio({
-  info, onPrepared,
-}: { info: any; onPrepared: (prepared: Prepared) => void }) {
+  info, onPrepared, mode='create', initialUri, selectedTokenId, onDirtyChange,
+}: { info:any; onPrepared:(prepared:Prepared)=>void;
+  mode?:'create'|'batch'|'update'; initialUri?:string;
+  selectedTokenId?:string; onDirtyChange?:(dirty:boolean)=>void }) {
   const { ensureSession } = useSession();
   const [meta, setMeta] = useState<NftMetadata>(blank);
-  const [tokenId, setTokenId] = useState('1');
+  const [tokenId, setTokenId] = useState(selectedTokenId || '1');
   const [importUri, setImportUri] = useState('');
   const [pinned, setPinned] = useState<Pending>();
   const [queue, setQueue] = useState<Pending[]>([]);
@@ -37,7 +39,22 @@ export function NftMetadataStudio({
   const [notice, setNotice] = useState('');
   const [chosenFile, setChosenFile] = useState<File>();
   const [uploadProgress, setUploadProgress] = useState<number>();
+  useEffect(()=>{
+    if(!initialUri)return;
+    let active=true;
+    api('metadata',{uri:initialUri}).then((raw:any)=>{
+      if(!active)return;
+      setMeta(nftMetadataSchema.parse({
+        name:raw.name,description:raw.description??'',image:raw.image,
+        external_url:raw.external_url??'',attributes:raw.attributes??[]
+      }));
+      setImportUri(initialUri);
+      onDirtyChange?.(false);
+    }).catch(e=>{if(active)setError('Current NFT metadata could not be loaded: '+(e as Error).message);});
+    return()=>{active=false;};
+  },[initialUri]);
   const update = (value: Partial<NftMetadata>) => {
+    onDirtyChange?.(true);
     setMeta(m => ({ ...m, ...value }));
     setPinned(undefined);
   };
@@ -73,6 +90,7 @@ export function NftMetadataStudio({
       });
       setMeta(validated);
       setPinned(undefined);
+      onDirtyChange?.(true);
       setNotice('Metadata loaded for editing. Existing token metadata was not changed.');
     });
   }
@@ -84,13 +102,16 @@ export function NftMetadataStudio({
         chainId: info.chainId, contract: info.address, metadata,
       });
       setPinned({ uri: result.uri, name: metadata.name });
+      onDirtyChange?.(false);
       setNotice('Immutable metadata JSON pinned: ' + result.uri +
         '. No token has been created or updated on-chain.');
     });
   }
   function useAction(action: Prepared['action']) {
     if (!pinned) return;
-    onPrepared({ action, uri: pinned.uri, tokenId });
+    if(mode==='create' && action!=='createToken')return;
+    if(mode==='update' && action!=='setTokenUri')return;
+    onPrepared({ action, uri:pinned.uri, tokenId:selectedTokenId||tokenId });
     setNotice('URI passed to the collection action form. You can now simulate it read-only.');
   }
   function toBatch() {
@@ -111,12 +132,13 @@ export function NftMetadataStudio({
         recipients: [{ address: receiver, amount }],
       })), null, 2),
     });
+    onDirtyChange?.(false);
     setNotice(queue.length + ' prepared token(s) sent to the batch simulation form. Nothing was minted.');
   }
   return (
     <section className="panel nft-metadata-studio" aria-labelledby="metadata-studio-title">
       <div className="section-top">
-        <h2 id="metadata-studio-title">NFT Metadata &amp; Edition Studio</h2>
+        <h2 id="metadata-studio-title">{mode==='batch'?'Batch metadata & edition builder':mode==='update'?'Edit NFT metadata':'NFT Metadata & Edition Studio'}</h2>
         <span className="tag">IPFS · DRAFT FIRST</span>
       </div>
       <p>Create metadata visually, pin it to IPFS and prepare your next ERC-1155 action.
@@ -131,7 +153,7 @@ export function NftMetadataStudio({
           <button type="button" className="button secondary" onClick={importPinned}
             disabled={!!busy || !importUri.trim()}>Load metadata</button>
           <button type="button" className="button secondary" onClick={() => {
-            setMeta(blank()); setPinned(undefined); setError(''); setNotice('');
+            setMeta(blank()); setPinned(undefined); setError(''); setNotice(''); onDirtyChange?.(true);
           }} disabled={!!busy}>New metadata</button>
         </div>
       </div>
@@ -223,24 +245,24 @@ export function NftMetadataStudio({
           <strong>Metadata pinned and ready</strong>
           <code>{pinned.uri}</code>
           <label>Existing token ID (for metadata updates only)
-            <input value={tokenId} inputMode="numeric" onChange={e => setTokenId(e.target.value)} />
+            <input value={selectedTokenId||tokenId} readOnly={!!selectedTokenId} inputMode="numeric" onChange={e => setTokenId(e.target.value)} />
           </label>
           <div className="button-row">
-            <button type="button" className="button secondary"
-              onClick={() => useAction('createToken')}>Prepare new token</button>
-            <button type="button" className="button secondary"
-              disabled={!/^[1-9][0-9]*$/.test(tokenId)}
-              onClick={() => useAction('setTokenUri')}>Prepare metadata update</button>
-            <button type="button" className="button secondary"
+            {mode==='create' && <button type="button" className="button secondary"
+              onClick={() => useAction('createToken')}>Prepare new token</button>}
+            {mode==='update' && <button type="button" className="button secondary"
+              disabled={!/^[1-9][0-9]*$/.test(selectedTokenId||tokenId)}
+              onClick={() => useAction('setTokenUri')}>Prepare metadata update</button>}
+            {mode==='batch' && <button type="button" className="button secondary"
               disabled={queue.length >= 40}
               onClick={() => {
                 if (!queue.some(item => item.uri === pinned.uri)) setQueue(q => [...q, pinned]);
                 setNotice('Pinned metadata added to local batch queue. No on-chain changes.');
-              }}>Add to batch queue</button>
+              }}>Add to batch queue</button>}
           </div>
         </div>
       )}
-      <details>
+      {mode==='batch' && <details>
         <summary>Batch token builder ({queue.length}/40 pinned metadata entries)</summary>
         <p>Only pinned JSON URIs can be queued. Queue is local to this browser tab.</p>
         {queue.map((item, i) =>
@@ -261,7 +283,7 @@ export function NftMetadataStudio({
         </div>
         <button type="button" className="button secondary" disabled={!queue.length}
           onClick={toBatch}>Prepare batch for read-only simulation</button>
-      </details>
+      </details>}
     </section>
   );
 }

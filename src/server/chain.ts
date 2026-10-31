@@ -156,7 +156,7 @@ export async function inspect(id: number, rawAddress: string, wallet?: Address, 
   const adapter = await verifyCreator(c, address, block.number);
   const read = (fn: string, args?: readonly unknown[]) =>
     c.readContract({ address, abi: creatorAbi, functionName: fn, args, blockNumber: block.number });
-  const [name, symbol, owner, admins, count, token, locked, royalty, minters] = await Promise.all([
+  const [name, symbol, owner, admins, count, token, locked, royalty, minters, defaultRoyalty] = await Promise.all([
     read('name'),
     read('symbol'),
     read('owner'),
@@ -166,6 +166,7 @@ export async function inspect(id: number, rawAddress: string, wallet?: Address, 
     read('tokenLocked', [tokenId]),
     read('royaltyInfo', [tokenId, 10000n]),
     read('getRoleMembers', [MINTER_ROLE]),
+    read('getDefaultRoyaltyRecipientAndPercentage'),
   ]);
   const isOwner = !!wallet && String(owner).toLowerCase() === wallet.toLowerCase();
   const isAdmin = !!wallet && (await read('hasRole', [ADMIN_ROLE, wallet])) === true;
@@ -224,6 +225,7 @@ export async function inspect(id: number, rawAddress: string, wallet?: Address, 
     token: token as { created: boolean; uri: string },
     locked: Boolean(locked),
     royalty: royalty as [Address, bigint],
+    defaultRoyalty: defaultRoyalty as [Address,bigint],
     role: isOwner ? 'owner' : isAdmin ? 'admin' : 'viewer',
     authorized: isOwner || isAdmin,
     canWrite: writesAllowed(id),

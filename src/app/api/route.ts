@@ -1,3 +1,4 @@
+import { readCollectionProfile,saveCollectionProfile,pinCollectionProfile } from '@/server/collection-profile';
 import { publicCollectorData } from '@/server/collector-intelligence';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -71,6 +72,9 @@ export async function POST(req: NextRequest) {
         .extend({ wallet: addressSchema.optional(), tokenId: positive.optional() })
         .parse(p);
       result = await inspect(args.chainId, args.contract, args.wallet, BigInt(args.tokenId || '1'));
+    } else if (op === 'collection_profile_read') {
+      const a=identity.parse(p);
+      result=await readCollectionProfile(a.chainId,a.contract);
     } else if (op === 'inventory') {
       const args = identity.extend({ start: z.number().int().min(1).max(1e7).optional() }).parse(p);
       result = await tokenInventory(args.chainId, args.contract, args.start);
@@ -104,7 +108,18 @@ export async function POST(req: NextRequest) {
       release = acquireSlot(req, budget);
       await rateLimit(req, budget, s.wallet);
       if (op === 'session') result = s;
-      else if (op === 'metadata_pin') {
+      else if (op === 'collection_profile_write') {
+         const a=identity.parse(p);
+         requireSessionChain(s,a.chainId);
+         result=await saveCollectionProfile(a.chainId,a.contract,p.data,
+           z.number().int().min(0).max(100000).parse(p.expectedVersion),s);
+       }
+       else if (op === 'collection_profile_pin') {
+         const a=identity.parse(p);
+         requireSessionChain(s,a.chainId);
+         result=await pinCollectionProfile(a.chainId,a.contract,p.data,s,req.signal);
+       }
+       else if (op === 'metadata_pin') {
         const args = identity.parse(p);
         requireSessionChain(s, args.chainId);
         await authorize(args.chainId, args.contract, s.wallet);

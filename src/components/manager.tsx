@@ -6,8 +6,8 @@ import { api, short } from '@/lib/api-client';
 import { getChain, explorer } from '@/lib/chains';
 import { Notice, Loading } from './shell';
 import { ContractFacts } from './checker';
-import { AdminActions } from './admin-actions';
-import { NftMetadataStudio } from './nft-metadata-studio';
+import { TokenStudio } from './token-studio';
+import { CollectionSettings } from './collection-settings';
 import { MintStudio } from './mint-studio';
 import { TransactionReview } from './transaction-review';
 import { useSession } from './providers';
@@ -22,14 +22,21 @@ export function Manager() {
   const { ensureSession } = useSession();
   const [info, setInfo] = useState<any>();
   const [tab, setTab] = useState('Overview');
+  const [tokenDraftDirty,setTokenDraftDirty]=useState(false);
+  const [tokenWorkflowActive,setTokenWorkflowActive]=useState(false);
+  function changeTab(target:string){
+    if(tab==='Tokens & Editions'&&target!==tab&&tokenWorkflowActive&&tokenDraftDirty &&
+       !window.confirm('Leave Tokens & Editions? Unsaved metadata or batch changes will be lost.'))return;
+    setTab(target);setTokenDraftDirty(false);setTokenWorkflowActive(false);
+  }
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [intent, setIntent] = useState<any>();
-  const [preparedMetadataAction, setPreparedMetadataAction] = useState<any>();
   const [revisionKey, setRevisionKey] = useState(0);
   const [history, setHistory] = useState<any[]>([]);
   const [featured, setFeatured] = useState<any>();
   const [featuredError, setFeaturedError] = useState('');
+  const [collectionProfile,setCollectionProfile]=useState<any>();
   async function refresh() {
     setBusy(true);
     setError('');
@@ -55,6 +62,13 @@ export function Manager() {
     }).catch((e) => { if (active) setFeaturedError((e as Error).message); });
     return () => { active = false; };
   }, [info?.token?.uri]);
+  useEffect(()=>{
+    let alive=true;
+    api('collection_profile_read',{chainId:id,contract})
+      .then(doc=>{if(alive)setCollectionProfile(doc);})
+      .catch(()=>{if(alive)setCollectionProfile(undefined);});
+    return()=>{alive=false;};
+  },[id,contract]);
   async function loadHistory() {
     setError('');
     try {
@@ -130,7 +144,7 @@ export function Manager() {
                 role="tab"
                 aria-selected={t === tab}
                 className={t === tab ? 'active' : ''}
-                onClick={() => setTab(t)}
+                onClick={() => changeTab(t)}
               >
                 {t}
               </button>
@@ -141,10 +155,13 @@ export function Manager() {
               <section className="panel">
                 <div className="section-top"><h2>Collection artwork & metadata</h2><span className="tag">FEATURED TOKEN</span></div>
                 <div className="collection-metadata">
-                  <Artwork uri={featured?.image} alt={featured?.name || info.name} />
+                  <Artwork uri={collectionProfile?.data?.banner||collectionProfile?.data?.logo||featured?.image} alt={info.name} />
                   <div><h3>{featured?.name || info.name}</h3>
-                    {featured?.description && <p>{featured.description}</p>}
-                    <small>Featured artwork from token #{String(info.tokenId)}; not verified contract-level metadata.</small>
+                    {(collectionProfile?.data?.description||featured?.description) &&
+                      <p>{collectionProfile?.data?.description||featured.description}</p>}
+                    <small>{collectionProfile?.version?
+                      'Collection Profile is app-managed; on-chain verified name and symbol remain authoritative.' :
+                      'Featured artwork from token #'+String(info.tokenId)+'; not verified collection-level metadata.'}</small>
                     {featuredError && <Notice type="error">Metadata unavailable: {featuredError}</Notice>}
                     {featured?.attributes?.length > 0 && <dl>{featured.attributes.map((a: any, i: number) => <div key={i}><dt>{a.trait_type}</dt><dd>{a.value}</dd></div>)}</dl>}
                     {info.token?.uri && <details><summary>Token metadata URI</summary><code>{info.token.uri}</code></details>}
@@ -174,13 +191,10 @@ export function Manager() {
             </>
           )}
           {tab === 'Tokens & Editions' && (
-            <>
-              <Tokens info={info} />
-              {info.authorized && <>
-                 <NftMetadataStudio info={info} onPrepared={setPreparedMetadataAction} />
-                 <AdminActions info={info} onIntent={setIntent} prepared={preparedMetadataAction} />
-               </>}
-            </>
+            <TokenStudio key={id+contract} info={info} onIntent={setIntent}
+              onOpenMintPages={()=>changeTab('Mint Pages')}
+              onDirtyChange={setTokenDraftDirty}
+              onActiveChange={setTokenWorkflowActive}/>
           )}
           {tab === 'Mint Pages' &&
             (info.authorized ? (
@@ -194,19 +208,7 @@ export function Manager() {
               <Notice>Mint drafts are private to current collection owner/admin wallets.</Notice>
             ))}
           {tab === 'Collection Settings' && (
-            <>
-              <section className="panel">
-                <ContractFacts info={info} />
-              </section>
-              {info.authorized && (
-                <AdminActions
-                  key="settings"
-                  info={info}
-                  initialAction="setDefaultRoyalty"
-                  onIntent={setIntent}
-                />
-              )}
-            </>
+            <CollectionSettings key={id+contract} info={info} onIntent={setIntent} onProfileSaved={setCollectionProfile}/>
           )}
           {tab === 'Transactions' && (
             <section className="panel">
@@ -261,148 +263,5 @@ export function Manager() {
         />
       )}
     </>
-  );
-}
-function Tokens({ info }: { info: any }) {
-  const [tokens, setTokens] = useState<any[]>([]);
-  const [metadata, setMetadata] = useState<Record<string, any>>({});
-  const [metadataErrors, setMetadataErrors] = useState<Record<string, string>>({});
-  const [retry, setRetry] = useState(0);
-  const [start, setStart] = useState(1);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [holder, setHolder] = useState('');
-  const [tokenId, setTokenId] = useState('1');
-  const [balance, setBalance] = useState<string>();
-  useEffect(() => {
-    let live = true;
-    setLoading(true);
-    api('inventory', { chainId: info.chainId, contract: info.address, start })
-      .then(async (r) => {
-        if (!live) return;
-        setTokens(r.tokens);
-        const results: PromiseSettledResult<any>[] = [];
-        const tokenIds: string[] = [];
-        for (let i = 0; i < r.tokens.length && live; i += 4) {
-          tokenIds.push(...r.tokens.slice(i, i + 4).map((t: any) => String(t.id)));
-          results.push(
-            ...(await Promise.allSettled(
-              r.tokens
-                .slice(i, i + 4)
-                .map(async (t: any) => [t.id, await api('metadata', { uri: t.uri })]),
-            )),
-          );
-        }
-        if (live) {
-          setMetadataErrors(Object.fromEntries(results.flatMap((result, i) => result.status === 'rejected' ? [[tokenIds[i], result.reason instanceof Error ? result.reason.message : 'Metadata request failed']] : [])));
-          setMetadata(
-            Object.fromEntries(
-              results
-                .filter((r) => r.status === 'fulfilled')
-                .map((r) => (r as PromiseFulfilledResult<any>).value),
-            ),
-          );
-        }
-      })
-      .catch((e) => {
-        if (live) setError(e.message);
-      })
-      .finally(() => {
-        if (live) setLoading(false);
-      });
-    return () => {
-      live = false;
-    };
-  }, [info.address, info.blockNumber, start, retry]);
-  return (
-    <section className="panel">
-      <div className="section-top">
-        <h2>Tokens & editions</h2>
-        <span className="tag">{info.tokenTypes} TOKEN TYPES</span>
-      </div>
-      {error && <Notice type="error">{error}</Notice>}
-      {loading && <Loading label="Loading token inventory…" />}
-      <div className="token-grid">
-        {tokens.map((t) => (
-          <article className="token-card" key={t.id}>
-            <Artwork uri={metadata[t.id]?.image} alt={metadata[t.id]?.name || 'Token ' + t.id} />
-            <div>
-              <span className="eyebrow">
-                TOKEN {t.id} · {t.locked ? 'MINT LOCKED' : 'MINTABLE'}
-              </span>
-              <h3>{metadata[t.id]?.name || 'Edition #' + t.id}</h3>
-              <p>{metadata[t.id]?.description?.slice(0, 600)}</p>
-              {metadataErrors[String(t.id)] && <div role="alert"><small>Metadata failed: {metadataErrors[String(t.id)]}</small><button className="button secondary compact" onClick={() => setRetry((v) => v + 1)}>Retry metadata</button></div>}
-              {metadata[t.id]?.attributes?.length > 0 && <dl>{metadata[t.id].attributes.map((a: any, i: number) => <div key={i}><dt>{a.trait_type}</dt><dd>{a.value}</dd></div>)}</dl>}
-              <details>
-                <summary>Metadata URI</summary>
-                <code>{t.uri}</code>
-              </details>
-            </div>
-          </article>
-        ))}
-      </div>
-      <div className="button-row">
-        <button
-          className="button secondary compact"
-          disabled={start === 1}
-          onClick={() => setStart(Math.max(1, start - 20))}
-        >
-          Previous
-        </button>
-        <button
-          className="button secondary compact"
-          disabled={BigInt(start + 19) >= BigInt(info.tokenTypes)}
-          onClick={() => setStart(start + 20)}
-        >
-          Next
-        </button>
-      </div>
-      <div className="balance-check">
-        <h3>Check a holder’s balance</h3>
-        <form
-          className="checker-form"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setError('');
-            try {
-              const r = await api('balance', {
-                chainId: info.chainId,
-                contract: info.address,
-                tokenId,
-                holder,
-              });
-              setBalance(r.balance);
-            } catch (e) {
-              setError((e as Error).message);
-            }
-          }}
-        >
-          <label>
-            Token ID
-            <input value={tokenId} onChange={(e) => setTokenId(e.target.value)} />
-          </label>
-          <label>
-            Holder address
-            <input
-              value={holder}
-              onChange={(e) => setHolder(e.target.value)}
-              placeholder="0x…"
-              required
-            />
-          </label>
-          <button className="button secondary">Read balance</button>
-        </form>
-        {balance !== undefined && (
-          <p>
-            <strong>{balance}</strong> units held
-          </p>
-        )}
-      </div>
-      <small>
-        ERC1155TL totalSupply counts token types. Unit supply requires complete
-        TransferSingle/TransferBatch history; it is not inferred from token count.
-      </small>
-    </section>
   );
 }

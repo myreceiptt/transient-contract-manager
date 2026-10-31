@@ -212,10 +212,17 @@ export default function Guide() {
       <section className="panel guide-section" id="eligibility">
         <span className="section-number">06 / CHOOSE YOUR MINT PAGE TOKEN</span>
         <h2>Mint Pages begins with the existing NFT inventory</h2>
-        <p>Open <strong>Mint Pages</strong>. Rather than starting with a generic
-          &quot;Create Mint Page&quot; button, the sidebar lists your collection&apos;s Token IDs
-          and reads their current TLStacks1155 configuration. Refresh this list after
-          any external Stacks operation.</p>
+        <p>Open <strong>Mint Pages</strong>. A persistent
+          <strong> A home for every edition.</strong> banner appears above an artwork-first
+          <strong> NFT Editions</strong> card grid, matching the Tokens &amp; Editions catalogue.
+          Each card shows the NFT, its Mint Page status, and its separate on-chain
+          TLStacks1155 drop status. Use <strong>Refresh on-chain status</strong> after
+          changing a drop in The Lab or an explorer.</p>
+        <p>Select <strong>Create</strong>, <strong>Manage</strong>,
+          <strong> Restore</strong> or <strong>Review closeDrop</strong> on a token card.
+          The catalogue is replaced by a full-width editor or transaction review;
+          choose <strong>Back to NFT Editions</strong> to return to the cards.
+          When editing a Mint Page, the app asks before discarding unsaved changes.</p>
         <div className="table-wrap">
           <table>
             <thead><tr><th>What you see</th><th>What it means</th><th>What to do</th></tr></thead>
@@ -229,7 +236,7 @@ export default function Guide() {
               <tr><td><strong>Archived / Restore</strong></td><td>A previously published
                 canonical Mint Page is archived.</td><td>Select
                 <strong> Restore</strong> to recover its existing URL and history.</td></tr>
-              <tr><td><strong>Existing on-chain drop / Review close</strong></td>
+              <tr><td><strong>Existing on-chain drop / Review closeDrop</strong></td>
                 <td>A Stacks drop is still configured, including Scheduled,
                   Presale, Public Sale or Ended.</td><td>Close the previous drop
                   first if you want to create a new Mint Page here.</td></tr>
@@ -264,7 +271,7 @@ export default function Guide() {
         <h3>Moving a Stacks drop from this app toward The Lab</h3>
         <ol className="guide-steps">
           <li>In <strong>Mint Pages</strong>, find the token with a configured drop and
-            select <strong>Review close</strong>.</li>
+            select <strong>Review closeDrop</strong>.</li>
           <li>Inspect the read-only <code>closeDrop</code> simulation, transaction
             arguments and gas estimate. Then select
             <strong> Prepare closeDrop wallet review</strong> and explicitly approve
@@ -408,7 +415,7 @@ export default function Guide() {
           </div>
           <div className="guide-note">
             <h3>Close a configured drop</h3>
-            <p>Use <strong>Review close</strong>, inspect the simulated
+            <p>Use <strong>Review closeDrop</strong>, inspect the simulated
               <code>closeDrop</code> call and request the wallet review.
               After confirming, check the finalized receipt and refresh status.
               <strong>NOT_CONFIGURED</strong> and an increased

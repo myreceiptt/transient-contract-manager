@@ -37,7 +37,7 @@ export function operationBudget(op: string): Budget {
   if (['challenge', 'login', 'logout'].includes(op)) return 'auth';
   if (op === 'inventory' || op === 'mint_inventory') return 'inventory';
   if (op === 'metadata') return 'metadata';
-  if (['inspect', 'currency', 'balance', 'public'].includes(op)) return 'public';
+  if (['inspect', 'currency', 'balance', 'public', 'public_collectors'].includes(op)) return 'public';
   if (
     [
       'preview_admin',

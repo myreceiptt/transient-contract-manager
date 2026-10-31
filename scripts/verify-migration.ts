@@ -9,6 +9,7 @@ const sql = await readFile(migrationPath, 'utf8');
 const identitySql = await readFile('supabase/migrations/20261028100000_page_identity_drafts.sql', 'utf8');
 const lifecycleSql = await readFile('supabase/migrations/20261030132000_token_first_mint_pages.sql','utf8');
 const slugSql = await readFile('supabase/migrations/20261030150000_published_page_slug_aliases.sql','utf8');
+const nftIndexSql = await readFile('supabase/migrations/20261031140000_nft_collector_intelligence.sql','utf8');
 const expected = [
   'app_sessions',
   'audit_logs',
@@ -18,6 +19,8 @@ const expected = [
   'media_assets',
   'mint_page_revisions',
   'mint_page_slug_aliases',
+  'nft_index_events',
+  'nft_index_progress',
   'mint_pages',
   'publication_records',
   'rate_limits',
@@ -44,6 +47,7 @@ for (const defaults of ['supabase', 'broad', 'restricted']) {
     await db.exec(identitySql);
     await db.exec(lifecycleSql);
     await db.exec(slugSql);
+    await db.exec(nftIndexSql);
     await db.exec('rollback');
     assert.equal(
       (await db.query("select tablename from pg_tables where schemaname='public'")).rows.length,
@@ -60,6 +64,7 @@ for (const defaults of ['supabase', 'broad', 'restricted']) {
     await db.exec(identitySql);
     await db.exec(lifecycleSql);
     await db.exec(slugSql);
+    await db.exec(nftIndexSql);
     await db.exec('commit');
     const tables = await db.query<{ relname: string; relrowsecurity: boolean }>(
       "select c.relname,c.relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r' order by c.relname",
@@ -81,7 +86,7 @@ for (const defaults of ['supabase', 'broad', 'restricted']) {
     const indexCount = await db.query<{ count: number }>(
       "select count(*)::int as count from pg_index i join pg_class t on t.oid=i.indrelid join pg_namespace n on n.oid=t.relnamespace where n.nspname='public' and not exists(select from pg_constraint c where c.conindid=i.indexrelid)",
     );
-    assert.equal(indexCount.rows[0].count, 13, 'Explicit indexes');
+    assert.equal(indexCount.rows[0].count, 15, 'Explicit indexes');
     const foreignKeys = await db.query<{ count: number }>(
       "select count(*)::int as count from pg_constraint where connamespace='public'::regnamespace and contype='f'",
     );
@@ -136,6 +141,12 @@ for (const defaults of ['supabase', 'broad', 'restricted']) {
       const slugPriv = await db.query<{allowed:boolean}>(
         "select has_function_privilege($1,'public.tcm_page_slug_edit(jsonb)','EXECUTE') as allowed",[role]);
       assert.equal(slugPriv.rows[0].allowed,role==='service_role');
+      for(const fn of ['init','ingest','read']) {
+        const x=await db.query<{allowed:boolean}>(
+          'select has_function_privilege($1,$2,$3) as allowed',
+          [role,'public.tcm_nft_index_'+fn+'(jsonb)','EXECUTE']);
+        assert.equal(x.rows[0].allowed,role==='service_role');
+      }
     }
     for (const role of ['anon', 'authenticated']) {
       await db.exec(`set role ${role}`);
@@ -151,6 +162,7 @@ for (const defaults of ['supabase', 'broad', 'restricted']) {
       );
       await assert.rejects(db.query("select public.tcm_page_lifecycle('{}'::jsonb)"),/permission denied/);
       await assert.rejects(db.query("select public.tcm_page_slug_edit('{}'::jsonb)"),/permission denied/);
+      await assert.rejects(db.query("select public.tcm_nft_index_read('{}'::jsonb)"),/permission denied/);
       await assert.rejects(
         db.query("select nextval('public.audit_logs_id_seq')"),
         /permission denied/,
@@ -234,6 +246,26 @@ for (const defaults of ['supabase', 'broad', 'restricted']) {
         chainId:1,contract,tokenId:'3',slug:'migration-test-renamed'
       }
     }),/SLUG_RESERVED/);
+    const indexInput={chainId:1,contract,tokenId:'1',head:'4000'};
+    const init=(await db.query<{result:any}>('select public.tcm_nft_index_init($1::jsonb) as result',
+      [JSON.stringify(indexInput)])).rows[0].result;
+    assert.equal(init.backfill_to,4000);
+    const event={kind:'TRANSFER',txHash:'0x'+'b'.repeat(64),logIndex:1,
+      block:'4000',fromWallet:'0x'+'0'.repeat(40),toWallet:contract,amount:'3'};
+    const write=(await db.query<{result:any}>('select public.tcm_nft_index_ingest($1::jsonb) as result',
+      [JSON.stringify({...indexInput,from:'3000',to:'4000',mode:'backfill',events:[event]})]
+    )).rows[0].result;
+    assert.equal(write.applied,true);
+    const snapshot=(await db.query<{result:any}>('select public.tcm_nft_index_read($1::jsonb) as result',
+      [JSON.stringify({...indexInput,activityOffset:0,holderOffset:0})]
+    )).rows[0].result;
+    assert.equal(snapshot.activities[0].amount,'3');
+    assert.equal(snapshot.wallets[0],contract);
+    assert.equal(snapshot.complete,false);
+    const replay=(await db.query<{result:any}>('select public.tcm_nft_index_ingest($1::jsonb) as result',
+      [JSON.stringify({...indexInput,from:'3000',to:'4000',mode:'backfill',events:[event]})]
+    )).rows[0].result;
+    assert.equal(replay.cursorChanged,true);
     await db.exec('reset role');
     const version = (await db.query<{ version: string }>('show server_version')).rows[0];
     results.push({ defaults, postgres: Object.values(version)[0], status: 'PASS' });

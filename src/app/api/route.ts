@@ -1,3 +1,4 @@
+import { publicCollectorData } from '@/server/collector-intelligence';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import type { Hex } from 'viem';
@@ -90,6 +91,11 @@ export async function POST(req: NextRequest) {
           blockNumber: info.blockNumber,
         }),
       };
+    } else if (op === 'public_collectors') {
+      const a=z.object({slug:z.string().regex(/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/).min(3).max(80),
+        holder:addressSchema.optional(),activityOffset:z.number().int().min(0).max(10000).default(0),
+        holderOffset:z.number().int().min(0).max(10000).default(0)}).parse(p);
+      result=await publicCollectorData(a.slug,a.holder,a.activityOffset,a.holderOffset);
     } else if (op === 'public') {
       result = await publicPage(z.string().min(3).max(80).parse(p.slug));
     } else {

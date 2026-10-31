@@ -3,15 +3,23 @@ import { useEffect, useState } from 'react';
 import { useConnection } from './providers';
 import { formatEther, formatUnits, zeroAddress } from 'viem';
 import { api } from '@/lib/api-client';
-import { getChain, explorer } from '@/lib/chains';
+import { getChain, explorer, txExplorer } from '@/lib/chains';
 import { phases, isSafeUrl } from '@/lib/domain';
 import { Notice, Loading } from './shell';
 import { useSession } from './providers';
 import { TransactionReview } from './transaction-review';
 import { Artwork } from './safe-media';
-import { ShieldCheck, RefreshCw, ArrowUpRight } from 'lucide-react';
+import { ShieldCheck, RefreshCw, ArrowUpRight, Users, Wallet, Activity } from 'lucide-react';
 export function PublicMint({ slug }: { slug: string }) {
   const [page, setPage] = useState<any>();
+  const [collectors, setCollectors] = useState<any>();
+  const [collectorError, setCollectorError] = useState('');
+  const [collectorBusy, setCollectorBusy] = useState(false);
+  const [activityOffset, setActivityOffset] = useState(0);
+  const [holderOffset, setHolderOffset] = useState(0);
+  const [expandedActivity, setExpandedActivity] = useState<any[]>([]);
+  const [expandedHolders, setExpandedHolders] = useState<any[]>([]);
+
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [qty, setQty] = useState('1');
@@ -30,6 +38,37 @@ export function PublicMint({ slug }: { slug: string }) {
       setError((e as Error).message);
     }
   }
+  async function refreshCollectors(nextActivityOffset=0,nextHolderOffset=0,append=false){
+    setCollectorBusy(true);
+    try {
+      const result=await api('public_collectors',{
+        slug,holder:address || undefined,
+        activityOffset:nextActivityOffset,holderOffset:nextHolderOffset
+      });
+      setCollectors(result);
+      setCollectorError('');
+      if(append){
+        if(nextActivityOffset>0) setExpandedActivity(prev=>[...prev,...result.activity]);
+        if(nextHolderOffset>0) setExpandedHolders(prev=>[...prev,...result.holders]);
+      }else{
+        setExpandedActivity(result.activity || []);
+        setExpandedHolders(result.holders || []);
+        setActivityOffset(0);setHolderOffset(0);
+      }
+    }catch(e){setCollectorError((e as Error).message);}
+    finally{setCollectorBusy(false);}
+  }
+  useEffect(()=>{
+    setCollectors(undefined);setExpandedActivity([]);setExpandedHolders([]);
+    void refreshCollectors();
+    const timer=setInterval(()=>{void refreshCollectors();},60000);
+    return ()=>clearInterval(timer);
+  },[slug,address]);
+  const deduplicatedActivity = expandedActivity.filter((event:any)=>{
+    // A Purchase is also an ERC-1155 mint TransferSingle; show it once.
+    if(event.kind!=='TRANSFER' || event.fromWallet!==zeroAddress.toLowerCase())return true;
+    return !expandedActivity.some((other:any)=>other.kind==='PURCHASE' && other.txHash===event.txHash);
+  });
   useEffect(() => {
     refresh();
     const timer = setInterval(refresh, 20000);
@@ -246,6 +285,83 @@ export function PublicMint({ slug }: { slug: string }) {
                   </dl>
                 </>
               )}
+              <section className="collector-intelligence" aria-label="NFT collector intelligence">
+                <div className="collector-balance panel">
+                  <div className="section-top">
+                    <h3><Wallet size={17}/> Your editions</h3>
+                    <button type="button" className="icon-button" aria-label="Refresh on-chain edition balance"
+                      disabled={collectorBusy} onClick={()=>void refreshCollectors()}>
+                      <RefreshCw size={16}/>
+                    </button>
+                  </div>
+                  {!address ? <p className="muted">Connect your wallet to see the number of editions you currently own.</p>
+                    : collectors?.yourBalance !== null && collectors?.yourBalance !== undefined ?
+                      <><strong className="collector-balance-number">{collectors.yourBalance} <small>owned now</small></strong>
+                        <p className="mono muted">{address}</p></> :
+                      <p className="muted">Verifying your ERC-1155 balance on-chain…</p>}
+                  <p className="fineprint">Your current balance may differ from the quantity you minted if editions were transferred.</p>
+                </div>
+                <div className="collector-section panel">
+                  <div className="section-top">
+                    <h3><Activity size={17}/> Activity</h3>
+                    <small>On-chain mint &amp; transfers</small>
+                  </div>
+                  {collectorError && <Notice type="error">{collectorError}</Notice>}
+                  {collectors?.scanWarning && <Notice>{collectors.scanWarning}</Notice>}
+                  {!collectors && !collectorError && <p className="muted">Reading token transfer events…</p>}
+                  {collectors && !collectors.historyComplete && <p className="fineprint">
+                    Historical indexing in progress. This is a partial list; older transactions
+                    may appear after synchronization. Backfill currently reaches block {collectors.historicalBackfillTo}.
+                  </p>}
+                  {deduplicatedActivity.length===0 && collectors &&
+                    <p className="muted">No indexed mint or transfer activity yet.</p>}
+                  {deduplicatedActivity.map((e:any)=>(
+                    <div key={e.txHash+'-'+e.logIndex+'-'+e.kind} className="collector-activity-row">
+                      <strong>{e.kind==='PURCHASE'?'Purchased':
+                        e.fromWallet===zeroAddress.toLowerCase()?'Minted / airdropped':
+                        e.toWallet===zeroAddress.toLowerCase()?'Burned':'Transferred'} {e.amount} edition(s)</strong>
+                      <span className="mono">{e.fromWallet && e.fromWallet!==zeroAddress.toLowerCase()
+                        ?e.fromWallet.slice(0,8)+'…'+e.fromWallet.slice(-6)+' → ':''}
+                        {e.toWallet && e.toWallet!==zeroAddress.toLowerCase()
+                          ?e.toWallet.slice(0,8)+'…'+e.toWallet.slice(-6):''}</span>
+                      <a href={txExplorer(page.chainId,e.txHash)} target="_blank" rel="noopener noreferrer">
+                        Block {e.block} · View transaction ↗
+                      </a>
+                    </div>
+                  ))}
+                  {collectors?.moreActivity && <button type="button" className="button secondary compact"
+                    disabled={collectorBusy} onClick={()=>{
+                      const n=activityOffset+25;setActivityOffset(n);
+                      void refreshCollectors(n,0,true);
+                    }}>Load older activity</button>}
+                </div>
+                <div className="collector-section panel">
+                  <div className="section-top">
+                    <h3><Users size={17}/> Collectors</h3>
+                    <small>Current ERC-1155 holders</small>
+                  </div>
+                  <p className="fineprint">Balances are checked live on-chain. This list includes
+                    wallet addresses discovered from indexed transfer events.
+                    {collectors?.historyComplete?' Historical backfill complete.':
+                      ' The holder directory is incomplete until historical backfill finishes.'}</p>
+                  {expandedHolders.length===0 && collectors &&
+                    <p className="muted">No holders found in the indexed history yet.</p>}
+                  {expandedHolders.map((h:any)=>(
+                    <div className="collector-holder-row" key={h.address}>
+                      <a href={explorer(page.chainId,h.address)} target="_blank" rel="noopener noreferrer"
+                        className="mono">{h.address.slice(0,9)}…{h.address.slice(-6)} ↗</a>
+                      <strong>{h.quantity}</strong>
+                    </div>
+                  ))}
+                  {collectors?.hasMoreWalletCandidates && <button type="button" className="button secondary compact"
+                    disabled={collectorBusy} onClick={()=>{
+                      const n=holderOffset+25;setHolderOffset(n);
+                      void refreshCollectors(0,n,true);
+                    }}>Load more wallet addresses</button>}
+                  <small className="fineprint">Observed chain block: {collectors?.observedBlock ?? '—'}.
+                    Holder identities are wallet addresses, not verified personal profiles.</small>
+                </div>
+              </section>
               {notice && <Notice type="success">{notice}</Notice>}
               {resumeId && (
                 <button

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSession } from './providers';
 import { api } from '@/lib/api-client';
 import { type Draft, type PageRecord, mediaUrl } from '@/lib/domain';
@@ -46,6 +46,7 @@ export function MintStudio({
   const [inventoryStart, setInventoryStart] = useState(1);
   const [tokenMetadata, setTokenMetadata] = useState<Record<string, any>>({});
   const [tokenMetadataErrors, setTokenMetadataErrors] = useState<Record<string,string>>({});
+  const metadataCache=useRef<Record<string,{uri:string;data:any}>>({});
   const [metadataRetry, setMetadataRetry] = useState(0);
   const [closePreview, setClosePreview] = useState<any>();
   const [morePages, setMorePages] = useState(false);
@@ -128,6 +129,7 @@ export function MintStudio({
     setClosePreview(undefined);
     setPage(undefined);setDraft(undefined);
     setError('');setNotice('');
+    setSelectedMedia({});setUploadProgress(undefined);
     setSnapshot(undefined);setContentReview(undefined);setReadiness(undefined);
     setCollectorQuote(undefined);setSlugEditOpen(false);
     void run(()=>loadInventory());
@@ -183,6 +185,7 @@ export function MintStudio({
     });
   }
   function select(p: PageRecord | undefined, d: Draft) {
+    setSelectedMedia({});setUploadProgress(undefined);
     setSlugEditOpen(false);
     setSlugCandidate(p?.slug || d.slug);
     setPage(p);
@@ -243,12 +246,17 @@ export function MintStudio({
       const found:Record<string,any>={},failed:Record<string,string>={};
       for(let i=0;i<items.length && alive;i+=4){
         const batch=items.slice(i,i+4);
-        const outcomes=await Promise.allSettled(batch.map(
-          t=>t.uri?api('metadata',{uri:t.uri}):Promise.resolve(null)
-        ));
+        const outcomes=await Promise.allSettled(batch.map(t=>{
+          const cached=metadataCache.current[String(t.id)];
+          return cached && cached.uri===t.uri ? Promise.resolve(cached.data)
+            : t.uri?api('metadata',{uri:t.uri}):Promise.resolve(null);
+        }));
         for(let j=0;j<batch.length;j++){
           const result=outcomes[j],id=String(batch[j].id);
-          if(result.status==='fulfilled' && result.value)found[id]=result.value;
+          if(result.status==='fulfilled' && result.value){
+            found[id]=result.value;
+            metadataCache.current[id]={uri:batch[j].uri||'',data:result.value};
+          }
           else if(result.status==='rejected')failed[id]=
             result.reason instanceof Error?result.reason.message:'Metadata unavailable';
         }
@@ -434,9 +442,11 @@ export function MintStudio({
                     {data?.description && <p className="mint-edition-description">
                       {String(data.description).slice(0,180)}
                     </p>}
-                    {tokenMetadataErrors[String(token.id)] && <p className="fineprint">
-                      Token metadata unavailable; on-chain status remains authoritative.
-                    </p>}
+                    {tokenMetadataErrors[String(token.id)] && <div>
+                      <p className="fineprint">Token metadata unavailable; on-chain status remains authoritative.</p>
+                      <button type="button" className="button secondary compact"
+                        onClick={()=>setMetadataRetry(n=>n+1)}>Retry artwork</button>
+                    </div>}
                     <div className="mint-edition-status">
                       <div>
                         <span>Mint Page</span>

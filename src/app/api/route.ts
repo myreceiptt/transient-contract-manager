@@ -78,8 +78,8 @@ export async function POST(req: NextRequest) {
         .parse(p);
       result = await inspect(args.chainId, args.contract, args.wallet, BigInt(args.tokenId || '1'));
     } else if (op === 'inspect_erc721') {
-      const a=erc721Identity.parse(p);
-      result=await inspectErc721Candidate(a.chainId,a.contract);
+      const a=erc721Identity.extend({wallet:addressSchema.optional()}).parse(p);
+      result=await inspectErc721Candidate(a.chainId,a.contract,a.wallet);
     } else if (op === 'scan_erc721') {
       const a=erc721Identity.extend({
         start:z.number().int().min(1).max(100000000).default(1),

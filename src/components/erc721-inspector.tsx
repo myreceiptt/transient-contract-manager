@@ -111,7 +111,7 @@ export function Erc721Inspector(){
           not approval of this contract for creation, transfers or auctions.</p>
         <dl>
           <dt>Reported VERSION()</dt><dd className="mono">{diagnosis.version??'Unavailable / reverted'}</dd>
-          <dt>Inspector baseline</dt><dd>ERC721TL v4.1.2</dd>
+          <dt>Read-only baselines</dt><dd>{diagnosis.inspectorBaseline}</dd>
           <dt>ERC-721 interface (ERC-165)</dt>
           <dd>{diagnosis.erc721Interface===true?'Yes':diagnosis.erc721Interface===false?'No':'Unavailable'}</dd>
           <dt>ERC-1155 interface (ERC-165)</dt>
@@ -149,6 +149,9 @@ export function Erc721Inspector(){
           <dt>Implementation</dt><dd className="mono">{collection.implementation}
             {collection.proxy?' · EIP-1167 clone':' · Direct'}</dd>
           <dt>Interface version</dt><dd>{collection.version} · ERC-721 (ERC-165)</dd>
+          <dt>Official source baseline</dt><dd className="mono">
+            <a href={'https://github.com/Transient-Labs/tl-creator-contracts/commit/'+collection.sourceCommit}
+              target="_blank" rel="noopener noreferrer">{collection.sourceCommit} ↗</a></dd>
           <dt>Code hash (observed)</dt><dd className="mono">{collection.implementationCodeHash}</dd>
           <dt>Owner (collection)</dt><dd className="mono">{collection.owner}</dd>
           <dt>Your connected wallet</dt><dd className="mono">{collection.inspectedWallet||
@@ -159,8 +162,11 @@ export function Erc721Inspector(){
               until the exact Ethereum Mainnet runtime is verified.</small></dd>
           <dt>Admin wallets</dt><dd>{collection.admins.length?
             collection.admins.map((a:string)=><div className="mono" key={a}>{a}</div>):'No additional admins'}</dd>
-          <dt>Current total supply</dt><dd>{collection.totalSupply}
-            <small>Existing tokens; not maximum Token ID or planned drop supply</small></dd>
+          <dt>{collection.totalSupplyMeaning==='MINTED_TOKEN_ID_COUNTER_INCLUDES_BURNED'
+            ?'Minted Token ID counter':'Current unburned supply'}</dt><dd>{collection.totalSupply}
+            <small>{collection.totalSupplyMeaning==='MINTED_TOKEN_ID_COUNTER_INCLUDES_BURNED'
+              ?'In ERC721TL v3.6.0 totalSupply() returns the minted Token ID counter, including burned IDs; it is not the number currently owned.'
+              :'ERC721TL v4.1.2 subtracts burned tokens. Neither value is a sale allocation or guaranteed maximum Token ID.'}</small></dd>
           <dt>Read block</dt><dd className="mono">{collection.observedBlock}</dd>
         </dl>
       </section>

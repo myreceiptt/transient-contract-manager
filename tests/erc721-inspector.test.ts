@@ -46,7 +46,7 @@ describe('ERC721TL v4.1.2 read-only research path',()=>{
    expect(info.transactionSigningEnabled).toBe(false);
    expect(info.runtimeVerification).toBe('ABI_COMPATIBLE_UNVERIFIED_RUNTIME');
    expect(info.implementationCodeHash).toBe(keccak256('0x60006000'));
-   expect(rpc.read).toHaveBeenCalledWith(expect.objectContaining({
+   expect(rpc.readContract).toHaveBeenCalledWith(expect.objectContaining({
      functionName:'totalSupply',blockNumber:block
    }));
    expect(erc721ProbeAbi.map(x=>String(x.name))).not.toContain('mint');

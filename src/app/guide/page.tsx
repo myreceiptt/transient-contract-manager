@@ -650,7 +650,13 @@ export default function Guide() {
           and explicit Token ID windows (up to 12 IDs). For each existing
           token it reads <code>ownerOf</code> and <code>tokenURI</code>
           at one observed block. Burned or unknown Token IDs are not
-          treated as zero holdings.</p>
+          treated as zero holdings. The inspector recognizes the pinned
+          official <strong>3.6.0</strong> and <strong>4.1.2</strong>
+          source interface baselines for read-only purposes.</p>
+        <p><strong>Supply meaning differs by version:</strong>
+          ERC721TL 3.6.0 <code>totalSupply()</code> returns the minted Token ID
+          counter (including burned IDs), while v4.1.2 subtracts burned
+          tokens. Neither is an auction listing or a configured sale supply.</p>
         <p>This inspector currently verifies the <strong>public interface
           and reported VERSION only</strong>. It explicitly displays
           <strong> RUNTIME UNVERIFIED</strong>; neither the candidate
@@ -658,7 +664,7 @@ export default function Guide() {
           verified execution allowlist. It provides <strong>no</strong>
           minting, permissions, transfers or auction transaction controls.
           The supported ERC1155TL manager remains separate.</p>
-        <h3>A. 1 of 1 NFT creation (planned ERC721TL v4.1.2)</h3>
+        <h3>A. 1 of 1 NFT creation (planned ERC721TL v3.6.0 / v4.1.2)</h3>
         <ol className="guide-steps">
           <li>Allowlist ERC721TL only after reproducible runtime/ABI,
             clone implementation, chain and role verification.</li>

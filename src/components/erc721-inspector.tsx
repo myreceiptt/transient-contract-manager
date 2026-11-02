@@ -23,16 +23,23 @@ export function Erc721Inspector(){
   const [busy,setBusy]=useState(false);
   const [scanning,setScanning]=useState(false);
   const [error,setError]=useState('');
+  const [diagnosis,setDiagnosis]=useState<any>();
   const [scanError,setScanError]=useState('');
   async function inspect(id:number,contractAddress:string){
     const addressForRole=address;
-    setBusy(true);setError('');setCollection(undefined);setTokens([]);setMetadata({});
+    setBusy(true);setError('');setDiagnosis(undefined);setCollection(undefined);setTokens([]);setMetadata({});
     try{
       const result=await api('inspect_erc721',{chainId:id,contract:contractAddress,wallet:addressForRole});
       setCollection(result);setChainId(id);setContract(contractAddress);
       const url='/erc721?chain='+id+'&contract='+encodeURIComponent(contractAddress.toLowerCase());
       router.replace(url,{scroll:false});
-    }catch(e){setError((e as Error).message);}
+    }catch(e){
+      setError((e as Error).message);
+      try {
+        const report=await api('diagnose_erc721',{chainId:id,contract:contractAddress});
+        setDiagnosis(report);
+      }catch { /* Preserve strict inspect error if diagnostic RPC is unavailable. */ }
+    }
     finally{setBusy(false);}
   }
   useEffect(()=>{
@@ -98,6 +105,36 @@ export function Erc721Inspector(){
       </form>
       {busy && <Loading label="Reading owner, version, interface and code…"/>}
       {error && <Notice type="error">{error}</Notice>}
+      {diagnosis && <section className="erc721-diagnostic" aria-label="Compatibility diagnosis">
+        <h3>Read-only compatibility diagnosis</h3>
+        <p>These are observations from Ethereum RPC at block {diagnosis.observedBlock},
+          not approval of this contract for creation, transfers or auctions.</p>
+        <dl>
+          <dt>Reported VERSION()</dt><dd className="mono">{diagnosis.version??'Unavailable / reverted'}</dd>
+          <dt>Inspector baseline</dt><dd>ERC721TL v4.1.2</dd>
+          <dt>ERC-721 interface (ERC-165)</dt>
+          <dd>{diagnosis.erc721Interface===true?'Yes':diagnosis.erc721Interface===false?'No':'Unavailable'}</dd>
+          <dt>ERC-1155 interface (ERC-165)</dt>
+          <dd>{diagnosis.erc1155Interface===true?'Yes':diagnosis.erc1155Interface===false?'No':'Unavailable'}</dd>
+          <dt>Reported collection name</dt><dd>{diagnosis.name??'Unavailable'}</dd>
+          <dt>Implementation</dt><dd className="mono">{diagnosis.implementation}
+            {' · '+diagnosis.proxyKind}</dd>
+          <dt>Observed implementation codehash</dt>
+          <dd className="mono">{diagnosis.implementationCodeHash}</dd>
+          <dt>On-chain owner()</dt><dd className="mono">{diagnosis.owner??'Unavailable'}</dd>
+        </dl>
+        <strong>Why strict inspection cannot proceed:</strong>
+        <ul>{diagnosis.mismatchReasons.length?
+          diagnosis.mismatchReasons.map((reason:string,index:number)=><li key={index}>{reason}</li>):
+          <li>Candidate interface matches, but the previous inspection failed.
+            Retry or inspect RPC availability. Runtime remains unverified.</li>}
+        </ul>
+        <p className="fineprint">{diagnosis.notice}</p>
+        <a className="text-link" href={explorer(diagnosis.chainId,diagnosis.contract)}
+          target="_blank" rel="noopener noreferrer">
+          View contract on block explorer <ExternalLink size={13}/>
+        </a>
+      </section>}
     </section>
     {collection && <>
       <section className="panel">

@@ -17,7 +17,7 @@ The exact Solidity runtime implementation and Stacks bytecode are checked on eac
 
 | Contract family | Why it matters | State |
 |---|---|---|
-| ERC721TL **4.1.2 candidate** | Unique ERC-721 Token IDs, 1 of 1 artworks and ownerOf/tokenURI | Planned, **not verified as a supported runtime** |
+| ERC721TL **3.6.0 and 4.1.2 read-only** | Unique ERC-721 Token IDs, 1 of 1 artworks and ownerOf/tokenURI | Read-only inspection available; **transactions not enabled** |
 | TLStacks721 | Minting new ERC-721s through a Stacks drop | Planned as a separate integration, **not enabled** |
 | TLAuctionHouse **2.6.1 candidate** | Escrowed auctions and Buy Now for existing ERC-721 tokens | Research and typed preparation only, **no listing/bid/settle actions** |
 | ERC7160TL | ERC-721 with multiple metadata choices | Unsupported |
@@ -118,11 +118,11 @@ later create a TLAuctionHouse listing for the **NFT they actually own**.
 A disposable local test chain may validate behavior before risking ETH, but
 a Base Sepolia collection deployment is **not a prerequisite**. ERC721TL
 transactions cannot be enabled merely because a candidate contract reports
-VERSION 4.1.2; its bytecode, roles, permissions and sale contracts must be
+VERSION 3.6.0 or 4.1.2; its bytecode, roles, permissions and sale contracts must be
 verified. User-facing mainnet actions require simulation, explicit signatures,
 receipts and readback. No secret keys are ever requested.
 
-A **read-only ERC721TL Compatibility Inspector** is available at `/erc721`. It checks the claimed v4.1.2 VERSION, ERC-165/ERC-721 interface, and allows bounded 12-Token-ID windows for `ownerOf` and `tokenURI` reads. It deliberately reports **RUNTIME UNVERIFIED** until the exact deployed implementation's codehash is independently pinned. It does not authorize mint, transfer, listing, bidding or settlement.
+A **read-only ERC721TL Compatibility Inspector** is available at `/erc721`. It checks the official v3.6.0 and v4.1.2 VERSION baselines, ERC-165/ERC-721 interface, and allows bounded 12-Token-ID windows for `ownerOf` and `tokenURI` reads. Source v3.6.0 uses `totalSupply()` as a minted-ID counter (including burns), while v4.1.2 subtracts burned tokens. Both remain **runtime-unverified for transactions**. It deliberately reports **RUNTIME UNVERIFIED** until the exact deployed implementation's codehash is independently pinned. It does not authorize mint, transfer, listing, bidding or settlement.
 
 **None of these actions can yet be performed in this app.** The future ERC-721 track requires its own allowlisted creator adapter and auction runtime.
 

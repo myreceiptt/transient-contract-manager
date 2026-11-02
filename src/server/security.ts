@@ -6,11 +6,14 @@ export function origin() {
     process.env.VERCEL === '1' && process.env.VERCEL_ENV === 'preview'
       ? process.env.VERCEL_URL
       : undefined;
+  // The platform-issued Preview hostname takes precedence over APP_ORIGIN,
+  // which may also target Production. Never trust a request-supplied Host
+  // as the expected origin; it is checked separately by checkHost().
   const raw =
-    process.env.APP_ORIGIN ||
     (previewHost && /^[a-z0-9-]+\.vercel\.app$/.test(previewHost)
       ? `https://${previewHost}`
       : '') ||
+    process.env.APP_ORIGIN ||
     (process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : '');
   let url: URL;
   try {

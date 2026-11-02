@@ -32,7 +32,7 @@ This manager **must not redeploy, recreate, migrate, or take ownership of the cu
 ### First real onboarding sequence
 
 1. Owner deploys an **ERC721TL 1 of 1 collection through The Lab on Ethereum Mainnet**. Do not redeploy from this application.
-2. Owner adds the user's admin wallet during creation if The Lab supports it, or grants **ADMIN_ROLE** after deployment through an authorized contract interface; verify on-chain receipt and role membership.
+2. Owner adds the user's admin wallet during initialization if The Lab permits it, or performs the owner-only ERC721TL v4.1.2 contract call `setRole(ADMIN_ROLE, [userAdminWallet], true)` after deployment (through an authorized interface). **Only the owner can call `setRole`** in this source version; the admin cannot appoint itself. Verify the resulting receipt and `hasRole(ADMIN_ROLE, userAdminWallet) === true` on Ethereum Mainnet.
 3. The owner/user supplies only the **public collection contract address (chain 1)**, deployed implementation/version, and optionally owner/admin public wallet addresses and transaction hashes. Never transmit private keys, seed phrases or service credentials.
 4. Run compatibility read, verify EIP-1167 implementation (if cloned), source-compiled deployed runtime codehash, ERC721 interface, name, symbol, owner, admins and expected `VERSION`. If The Lab deploys a different version, identify and explicitly support it rather than making the owner redeploy to fit an arbitrary pinned version.
 5. On successful **exact-runtime verification**, open the same collection-centric Overview / Tokens & Editions / Mint Pages / Collection Settings / Transactions experience, specialized for ERC-721: per-NFT unique owners rather than edition balances.

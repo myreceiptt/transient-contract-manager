@@ -16,7 +16,7 @@ const admin=('0x'+'3'.repeat(40)) as `0x${string}`;
 const block=7654321n;
 const answers:Record<string,unknown>={
  VERSION:'4.1.2',name:'Gallery 1/1',symbol:'G1',
- owner, getRoleMembers:[admin],totalSupply:2n
+ owner, getRoleMembers:[admin],hasRole:true,totalSupply:2n
 };
 beforeEach(()=>{
  rpc.getChainId.mockReset().mockResolvedValue(8453);
@@ -44,6 +44,8 @@ describe('ERC721TL v4.1.2 read-only research path',()=>{
    expect(info.totalSupply).toBe('2');
    expect(info.owner).toBe(owner);
    expect(info.transactionSigningEnabled).toBe(false);
+   expect(info.walletRole).toBe('not-connected');
+   expect(info.walletRoleVerifiedReadOnly).toBe(true);
    expect(info.runtimeVerification).toBe('ABI_COMPATIBLE_UNVERIFIED_RUNTIME');
    expect(info.implementationCodeHash).toBe(keccak256('0x60006000'));
    expect(rpc.readContract).toHaveBeenCalledWith(expect.objectContaining({
@@ -52,7 +54,17 @@ describe('ERC721TL v4.1.2 read-only research path',()=>{
    expect(erc721ProbeAbi.map(x=>String(x.name))).not.toContain('mint');
    expect(erc721ProbeAbi.map(x=>String(x.name))).not.toContain('approve');
  });
- it('rejects an interface-compatible contract with an incorrect version',async()=>{
+ it('detects a distinct ADMIN_ROLE wallet without making it the owner or authorizing writes',async()=>{
+   const info=await inspectErc721Candidate(8453,contract,admin);
+   expect(info.owner).toBe(owner);
+   expect(info.walletRole).toBe('admin');
+   expect(info.inspectedWallet).toBe(admin);
+   expect(info.transactionSigningEnabled).toBe(false);
+   expect(rpc.readContract).toHaveBeenCalledWith(expect.objectContaining({
+     functionName:'hasRole',args:expect.arrayContaining([admin]),blockNumber:block
+   }));
+ });
+  it('rejects an interface-compatible contract with an incorrect version',async()=>{
    answers.VERSION='4.1.0';
    await expect(inspectErc721Candidate(8453,contract)).rejects.toThrow('ERC721TL 4.1.2');
    answers.VERSION='4.1.2';

@@ -106,6 +106,22 @@ If a wallet confirms but the app still shows PUBLISHING/SUBMITTED, go to **Trans
 
 ## 9. 1 of 1 creation and TLAuctionHouse auctions — preparation only
 
+**Mainnet-first deployment workflow:** The collection owner creates an ERC721TL contract
+through The Lab on **Ethereum Mainnet (chain ID 1)** and grants another wallet
+**ADMIN_ROLE**. The owner retains ownership. The ENDHONESA web app must manage
+this **existing** contract as an admin, similar to ERC1155TL GO1. The admin wallet
+is verified on-chain and never assumes collection ownership. The owner/admin
+may later configure TLStacks721 as a separate **approved minting contract**
+for collection-wide primary sales; a collector with `ownerOf(tokenId)` may
+later create a TLAuctionHouse listing for the **NFT they actually own**.
+
+A disposable local test chain may validate behavior before risking ETH, but
+a Base Sepolia collection deployment is **not a prerequisite**. ERC721TL
+transactions cannot be enabled merely because a candidate contract reports
+VERSION 4.1.2; its bytecode, roles, permissions and sale contracts must be
+verified. User-facing mainnet actions require simulation, explicit signatures,
+receipts and readback. No secret keys are ever requested.
+
 A **read-only ERC721TL Compatibility Inspector** is available at `/erc721`. It checks the claimed v4.1.2 VERSION, ERC-165/ERC-721 interface, and allows bounded 12-Token-ID windows for `ownerOf` and `tokenURI` reads. It deliberately reports **RUNTIME UNVERIFIED** until the exact deployed implementation's codehash is independently pinned. It does not authorize mint, transfer, listing, bidding or settlement.
 
 **None of these actions can yet be performed in this app.** The future ERC-721 track requires its own allowlisted creator adapter and auction runtime.

@@ -93,7 +93,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="compatibility">
-        <span className="section-number">CONTRACT TYPE &amp; FEATURE MATRIX</span>
+        <span className="section-number">02 / CONTRACT TYPE &amp; FEATURE MATRIX</span>
         <h2>Which Transient Labs smart contracts are supported?</h2>
         <p><strong>Supported</strong> here means the application currently implements
           that exact allowlisted runtime and has tested ABI, chain, authorization
@@ -137,7 +137,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="connect">
-        <span className="section-number">02 / OPEN YOUR COLLECTION</span>
+        <span className="section-number">03 / OPEN YOUR COLLECTION</span>
         <h2>Connect an existing Transient Labs contract</h2>
         <ol className="guide-steps">
           <li>On <Link href="/">Collections</Link>, open <strong>Open a collection</strong>.</li>
@@ -162,7 +162,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="overview">
-        <span className="section-number">03 / FIND YOUR WAY AROUND</span>
+        <span className="section-number">04 / FIND YOUR WAY AROUND</span>
         <h2>Five tabs, one collection workspace</h2>
         <div className="table-wrap">
           <table>
@@ -191,7 +191,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="metadata">
-        <span className="section-number">04 / PREPARE THE WORK</span>
+        <span className="section-number">05 / PREPARE THE WORK</span>
         <h2>Create and pin NFT metadata</h2>
         <p>Open <strong>Tokens &amp; Editions</strong> and choose
           <strong> Create Token</strong> or <strong>Create Batch</strong> from the NFT catalogue.
@@ -225,7 +225,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="tokens">
-        <span className="section-number">05 / TOKENS &amp; EDITIONS</span>
+        <span className="section-number">06 / TOKENS &amp; EDITIONS</span>
         <h2>Create a Token ID, mint copies or prepare a batch</h2>
         <h3>A. Create one new NFT Token ID</h3>
         <ol className="guide-steps">
@@ -270,7 +270,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="settings">
-        <span className="section-number">COLLECTION CONTROL CENTER</span>
+        <span className="section-number">07 / COLLECTION CONTROL CENTER</span>
         <h2>Manage Collection Settings and Collection Profile</h2>
         <h3>Collection-wide controls</h3>
         <p>Open <strong>Collection Settings</strong> to see the
@@ -320,7 +320,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="eligibility">
-        <span className="section-number">06 / CHOOSE YOUR MINT PAGE TOKEN</span>
+        <span className="section-number">08 / CHOOSE YOUR MINT PAGE TOKEN</span>
         <h2>Mint Pages begins with the existing NFT inventory</h2>
         <p>Open <strong>Mint Pages</strong>. A persistent
           <strong> A home for every edition.</strong> banner appears above an artwork-first
@@ -397,7 +397,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="draft">
-        <span className="section-number">07 / CREATE A MINT PAGE</span>
+        <span className="section-number">09 / CREATE A MINT PAGE</span>
         <h2>Fill the four sections of Mint Page Studio</h2>
         <h3>01 · Page content</h3>
         <ol className="guide-steps">
@@ -462,7 +462,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="publish">
-        <span className="section-number">08 / PUBLISH SAFELY</span>
+        <span className="section-number">10 / PUBLISH SAFELY</span>
         <h2>Simulate, sign, confirm, then share the public URL</h2>
         <ol className="guide-steps">
           <li>First verify that the collection has granted the pinned
@@ -498,7 +498,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="lifecycle">
-        <span className="section-number">09 / MANAGE YOUR DROP</span>
+        <span className="section-number">11 / MANAGE YOUR DROP</span>
         <h2>One Token ID, one permanent Mint Page identity</h2>
         <p>This app applies the policy <strong>one chain + collection contract +
           Token ID → one canonical Mint Page</strong>. Once a page has been published,
@@ -550,7 +550,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="transactions">
-        <span className="section-number">10 / TRANSACTION RECOVERY</span>
+        <span className="section-number">12 / TRANSACTION RECOVERY</span>
         <h2>When a wallet confirms but the app still says PUBLISHING</h2>
         <ol className="guide-steps">
           <li>Open the collection&apos;s <strong>Transactions</strong> tab and
@@ -577,7 +577,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="collector">
-        <span className="section-number">11 / FOR YOUR COLLECTORS</span>
+        <span className="section-number">13 / FOR YOUR COLLECTORS</span>
         <h2>How visitors mint from your public page</h2>
         <ol className="guide-steps">
           <li>Share the published URL:
@@ -628,7 +628,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="auction">
-        <span className="section-number">FUTURE ADAPTER · NOT LIVE</span>
+        <span className="section-number">14 / FUTURE ADAPTER · NOT LIVE</span>
         <h2>1 of 1 NFT creation and auctions: integration plan</h2>
         <p><strong>Not available in this application yet.</strong> This section
           describes the safe integration sequence, not buttons that are
@@ -697,7 +697,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="networks">
-        <span className="section-number">12 / NETWORK STATUS &amp; COMPATIBILITY</span>
+        <span className="section-number">15 / NETWORK STATUS &amp; COMPATIBILITY</span>
         <h2>Supported adapters and runtime checks</h2>
         <p>These are the application&apos;s <strong>configured target networks</strong>.
           This table is not a live RPC uptime indicator and does not promise that
@@ -740,7 +740,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="troubleshooting">
-        <span className="section-number">13 / QUICK TROUBLESHOOTING</span>
+        <span className="section-number">16 / QUICK TROUBLESHOOTING</span>
         <h2>Common questions and fixes</h2>
         <details className="guide-faq">
           <summary>My collection says Unsupported implementation.</summary>

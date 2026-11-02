@@ -97,5 +97,9 @@ describe('ERC721TL v4.1.2 read-only research path',()=>{
    expect(impl).not.toContain('simulateContract');
    expect(ui).toContain('RUNTIME UNVERIFIED');
    expect(ui).toContain('Read 12 Token IDs');
+   expect(ui).toContain('useState(1)');
+   expect(ui).toContain("Number(query.get('chain')||1)");
+   expect(ui).toContain('Your on-chain role (read-only)');
+   expect(ui).toContain('Ethereum Mainnet');
  });
 });

@@ -6,7 +6,7 @@ import { ArrowLeft,ExternalLink,Search,RefreshCw,LockKeyhole } from 'lucide-reac
 import { Artwork } from './safe-media';
 import { Loading,Notice } from './shell';
 import { api,short } from '@/lib/api-client';
-import { targetChains,localChain,explorer } from '@/lib/chains';
+import { erc721CandidateChains,localChain,explorer } from '@/lib/chains';
 
 type TokenItem={tokenId:string;status:'OWNED'|'UNKNOWN_OR_BURNED';owner?:string;
   tokenUri?:string|null;metadataStatus?:string;message?:string};
@@ -35,7 +35,7 @@ export function Erc721Inspector(){
   useEffect(()=>{
     const initial=query.get('contract');
     const selected=Number(query.get('chain')||8453);
-    if(initial && [1,4663,8453,360,31337].includes(selected)){
+    if(initial && [1,4663,8453,360,84532,31337].includes(selected)){
       setContract(initial);setChainId(selected);
       void inspect(selected,initial);
     }
@@ -65,7 +65,7 @@ export function Erc721Inspector(){
     }catch(e){setScanError((e as Error).message);}
     finally{setScanning(false);}
   }
-  const chains=[...targetChains,...(process.env.NEXT_PUBLIC_LOCAL_CHAIN_ENABLED==='true'?[localChain]:[])];
+  const chains=[...erc721CandidateChains,...(process.env.NEXT_PUBLIC_LOCAL_CHAIN_ENABLED==='true'?[localChain]:[])];
   return <div className="erc721-inspector">
     <Link href="/" className="text-link back-link"><ArrowLeft size={15}/> All collections</Link>
     <div className="page-heading compact-heading">
@@ -104,7 +104,7 @@ export function Erc721Inspector(){
         </div><span className="tag">RUNTIME UNVERIFIED</span></div>
         <Notice>{collection.notice}</Notice>
         <dl>
-          <dt>Collection</dt><dd><a className="mono" href={explorer(chainId,collection.contract)}
+          <dt>Collection</dt><dd><a className="mono" href={explorer(collection.chainId,collection.contract)}
             target="_blank" rel="noopener noreferrer">{collection.contract} <ExternalLink size={12}/></a></dd>
           <dt>Implementation</dt><dd className="mono">{collection.implementation}
             {collection.proxy?' · EIP-1167 clone':' · Direct'}</dd>
@@ -145,7 +145,7 @@ export function Erc721Inspector(){
               <p>{t.status==='OWNED'?'Owned at block '+collection.observedBlock:
                 'Not found / burned / ownership unavailable'}</p>
               {t.owner && <div><small>Current token owner</small><p className="mono">
-                <a href={explorer(chainId,t.owner)} target="_blank"
+                <a href={explorer(collection.chainId,t.owner)} target="_blank"
                   rel="noopener noreferrer">{short(t.owner)} ↗</a>
               </p></div>}
               {t.tokenUri && <details><summary>tokenURI()</summary>

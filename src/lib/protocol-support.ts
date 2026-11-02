@@ -26,6 +26,14 @@ export const protocolSupport = [
     capability:'Fixed-price ERC-1155 drops: schedule, presale, publish, close and collector mint',
   },
   {
+    key:'erc721tl-3.6.0',
+    name:'ERC721TL',
+    version:'3.6.0',
+    family:'creator',
+    level:'research-only',
+    capability:'Verified official source for read-only ERC-721 identity and token ownership; execution adapter not enabled',
+  },
+  {
     key:'erc721tl-4.1.2',
     name:'ERC721TL',
     version:'4.1.2',

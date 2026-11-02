@@ -106,6 +106,8 @@ If a wallet confirms but the app still shows PUBLISHING/SUBMITTED, go to **Trans
 
 ## 9. 1 of 1 creation and TLAuctionHouse auctions — preparation only
 
+A **read-only ERC721TL Compatibility Inspector** is available at `/erc721`. It checks the claimed v4.1.2 VERSION, ERC-165/ERC-721 interface, and allows bounded 12-Token-ID windows for `ownerOf` and `tokenURI` reads. It deliberately reports **RUNTIME UNVERIFIED** until the exact deployed implementation's codehash is independently pinned. It does not authorize mint, transfer, listing, bidding or settlement.
+
 **None of these actions can yet be performed in this app.** The future ERC-721 track requires its own allowlisted creator adapter and auction runtime.
 
 The official pinned creator source contains **ERC721TL v4.1.2** at commit `a2ef226db2e6df9d07e002c7c11ddab17c1df3f5`. The upstream Stacks deployment manifest identifies a **TLAuctionHouse v2.6.1 candidate** address `0x6f66b95a0c512f3497fb46660e0bc3b94b989f8d`. **Neither is a verified execution target in this app today.**

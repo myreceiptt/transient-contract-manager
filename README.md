@@ -25,7 +25,7 @@ Independent Next.js application for existing **verified ERC1155TL v4.1.2** colle
 | TLAuctionHouse v2.6.1 | **Research-only** — no listings, bids, refunds or settlement from this app |
 | ERC7160TL / ERC7160TLEditions / TRACE | **Unsupported** |
 
-The supported matrix and workflows are documented in the [current Creator Guide](docs/USER_GUIDE.md).
+The supported matrix and workflows are documented in the [current Creator Guide](docs/USER_GUIDE.md).\nA new **read-only ERC721TL Compatibility Inspector** is available at `/erc721` for v4.1.2 interface/owner/tokenURI research. Its source runtime is **not yet approved**; its result cannot authorize mint, listing, bid or settlement.
 The separate [1 of 1 and AuctionHouse readiness plan](docs/AUCTION_1OF1_READINESS.md)
 describes required ERC721TL runtime verification, escrowed NFT listing, bidder funds, refunds, fee and settlement checks.
 Neither planning documents nor `src/lib/auction-planning.ts` enable a transaction.

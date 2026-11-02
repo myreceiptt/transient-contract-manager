@@ -8,7 +8,7 @@ vi.mock('../src/server/chain',()=>({
   client:()=>rpc,
   exactChain:async()=>{if(await rpc.getChainId()!==8453)throw Error('CHAIN_MISMATCH');}
 }));
-import {inspectErc721Candidate,scanErc721Candidates,diagnoseErc721Candidate,erc721ProbeAbi}
+import {inspectErc721Candidate,scanErc721Candidates,diagnoseErc721Candidate,erc721ProbeAbi,erc721ReadonlySourceBaselines}
   from '../src/server/erc721-probe';
 const contract=('0x'+'1'.repeat(40)) as `0x${string}`;
 const owner=('0x'+'2'.repeat(40)) as `0x${string}`;
@@ -37,12 +37,13 @@ beforeEach(()=>{
    return answers[functionName];
  });
 });
-describe('ERC721TL v4.1.2 read-only research path',()=>{
+describe('ERC721TL v3.6.0 and v4.1.2 read-only research path',()=>{
  it('probes compatible version and EIP165 without claiming runtime verification',async()=>{
    const info=await inspectErc721Candidate(8453,contract);
    expect(info.standard).toBe('ERC721');
    expect(info.version).toBe('4.1.2');
    expect(info.totalSupply).toBe('2');
+   expect(info.totalSupplyMeaning).toBe('CURRENT_UNBURNED_SUPPLY');
    expect(info.owner).toBe(owner);
    expect(info.transactionSigningEnabled).toBe(false);
    expect(info.walletRole).toBe('not-connected');
@@ -54,6 +55,21 @@ describe('ERC721TL v4.1.2 read-only research path',()=>{
    }));
    expect(erc721ProbeAbi.map(x=>String(x.name))).not.toContain('mint');
    expect(erc721ProbeAbi.map(x=>String(x.name))).not.toContain('approve');
+ });
+ it('allows official v3.6.0 for read-only ownership while keeping signing disabled',async()=>{
+   answers.VERSION='3.6.0';
+   const info=await inspectErc721Candidate(8453,contract,admin);
+   expect(info.version).toBe('3.6.0');
+   expect(info.totalSupplyMeaning).toBe('MINTED_TOKEN_ID_COUNTER_INCLUDES_BURNED');
+   expect(info.sourceCommit).toBe('9063234fb2e4cf5e0459b23a4a1858f496fcf98b');
+   expect(info.walletRole).toBe('admin');
+   expect(info.transactionSigningEnabled).toBe(false);
+   expect(info.runtimeVerification).toBe('ABI_COMPATIBLE_UNVERIFIED_RUNTIME');
+   const scan=await scanErc721Candidates(8453,contract,1,3);
+   expect(scan.tokens.map(x=>x.status)).toEqual(['OWNED','OWNED','UNKNOWN_OR_BURNED']);
+   expect(scan.transactionSigningEnabled).toBe(false);
+   expect(erc721ReadonlySourceBaselines['3.6.0'].totalSupplyMeaning)
+     .not.toBe(erc721ReadonlySourceBaselines['4.1.2'].totalSupplyMeaning);
  });
  it('detects a distinct ADMIN_ROLE wallet without making it the owner or authorizing writes',async()=>{
    const info=await inspectErc721Candidate(8453,contract,admin);
@@ -67,7 +83,7 @@ describe('ERC721TL v4.1.2 read-only research path',()=>{
  });
   it('rejects an interface-compatible contract with an incorrect version',async()=>{
    answers.VERSION='4.1.0';
-   await expect(inspectErc721Candidate(8453,contract)).rejects.toThrow('ERC721TL 4.1.2');
+   await expect(inspectErc721Candidate(8453,contract)).rejects.toThrow('ERC721TL 3.6.0 / 4.1.2');
    answers.VERSION='4.1.2';
  });
  it('diagnoses a different reported ERC721TL version without enabling its runtime',async()=>{
@@ -78,7 +94,7 @@ describe('ERC721TL v4.1.2 read-only research path',()=>{
    expect(report.erc1155Interface).toBe(false);
    expect(report.inspectorMatch).toBe(false);
    expect(report.mismatchReasons).toContain(
-     'Reported VERSION 4.1.0 differs from inspector baseline 4.1.2');
+     'Reported VERSION 4.1.0 is not in read-only baselines 3.6.0 / 4.1.2');
    expect(report.implementationCodeHash).toBe(keccak256('0x60006000'));
    expect(report.runtimeVerification).toBe('UNVERIFIED');
    expect(report.transactionSigningEnabled).toBe(false);

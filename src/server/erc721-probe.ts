@@ -106,3 +106,65 @@ export async function scanErc721Candidates(chainId:number,contract:Address,start
     runtimeVerification:info.runtimeVerification,transactionSigningEnabled:false,
     tokens:rows};
 }
+
+/**
+ * Diagnostic only: inspect mismatched ERC-721 candidates without declaring
+ * them supported and without changing the strict v4.1.2 inspector.
+ * All calls are read-only and pinned to one observed Ethereum block.
+ */
+export async function diagnoseErc721Candidate(chainId:number,contract:Address) {
+  const c=client(chainId);
+  await exactChain(c,chainId);
+  const block=await c.getBlock();
+  const code=await c.getCode({address:contract,blockNumber:block.number});
+  if(!code||code==='0x')throw new AppError('NO_CONTRACT','No deployed code at this address');
+  const clone=parseImplementation(code);
+  const implementation=clone??contract;
+  const implementationCode=clone?
+    await c.getCode({address:clone,blockNumber:block.number}):code;
+  if(!implementationCode||implementationCode==='0x')
+    throw new AppError('MISSING_IMPLEMENTATION','EIP-1167 implementation has no code');
+
+  async function optional<T>(read:()=>Promise<T>):Promise<T|null>{
+    try{return await read();}catch{return null;}
+  }
+  const [version,erc721,erc1155,name,symbol,owner,supply]=await Promise.all([
+    optional(()=>c.readContract({address:contract,abi:erc721ProbeAbi,
+      functionName:'VERSION',blockNumber:block.number})),
+    optional(()=>c.readContract({address:contract,abi:erc721ProbeAbi,
+      functionName:'supportsInterface',args:['0x80ac58cd'],blockNumber:block.number})),
+    optional(()=>c.readContract({address:contract,abi:erc721ProbeAbi,
+      functionName:'supportsInterface',args:['0xd9b67a26'],blockNumber:block.number})),
+    optional(()=>c.readContract({address:contract,abi:erc721ProbeAbi,
+      functionName:'name',blockNumber:block.number})),
+    optional(()=>c.readContract({address:contract,abi:erc721ProbeAbi,
+      functionName:'symbol',blockNumber:block.number})),
+    optional(()=>c.readContract({address:contract,abi:erc721ProbeAbi,
+      functionName:'owner',blockNumber:block.number})),
+    optional(()=>c.readContract({address:contract,abi:erc721ProbeAbi,
+      functionName:'totalSupply',blockNumber:block.number})),
+  ]);
+  const reasons:string[]=[];
+  if(version===null)reasons.push('VERSION() could not be read: absent or reverted');
+  else if(version!=='4.1.2')reasons.push('Reported VERSION '+version+' differs from inspector baseline 4.1.2');
+  if(erc721!==true)reasons.push(erc721===null?
+    'ERC-721 ERC-165 query unavailable':'Contract did not report ERC-721 interface support');
+  if(erc1155===true)reasons.push('Contract also reports ERC-1155 interface support');
+  if(name===null||symbol===null)reasons.push('Name or symbol could not be read');
+  if(owner===null)reasons.push('Owner could not be read with the candidate ABI');
+  if(supply===null)reasons.push('Supply could not be read with the candidate ABI');
+  return serializable({
+    chainId,contract,implementation,
+    proxyKind:clone?'CANONICAL_EIP1167':'DIRECT_OR_UNRECOGNIZED_PROXY',
+    implementationCodeHash:keccak256(implementationCode),
+    contractCodeHash:keccak256(code),
+    version,erc721Interface:erc721,erc1155Interface:erc1155,
+    name,symbol,owner,totalSupply:supply,
+    observedBlock:block.number,
+    inspectorBaseline:'ERC721TL 4.1.2',
+    inspectorMatch:reasons.length===0,
+    mismatchReasons:reasons,
+    runtimeVerification:'UNVERIFIED',transactionSigningEnabled:false,
+    notice:'Informational RPC observations only. A VERSION string and interfaces do not prove official Transient Labs runtime compatibility or authorize signing.',
+  });
+}

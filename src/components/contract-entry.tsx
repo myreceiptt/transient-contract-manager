@@ -97,8 +97,7 @@ export function ContractEntry() {
           </small>
           <div className="erc721-entry-note">
             <strong>Have an ERC721TL 1 of 1 collection?</strong>
-            <p>Use the separate read-only compatibility inspector.
-              Minting and auctions are not enabled yet.</p>
+            <p>If your owner deployed an ERC721TL collection through The Lab on Ethereum Mainnet, inspect its actual address and reported roles here. Minting and auctions are not enabled yet.</p>
             <a className="button secondary compact" href="/erc721">
               Inspect ERC721TL (read-only) <ArrowUpRight size={15}/>
             </a>

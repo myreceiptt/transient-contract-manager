@@ -2148,3 +2148,22 @@ th { color: #c1c1c8; }
  .creator-steps{grid-template-columns:repeat(2,minmax(0,1fr))}
  .creator-profile-banner{height:145px}
 }
+
+/* ERC721TL Phase-A read-only inspector. No auction controls or signing. */
+.erc721-inspector{display:grid;gap:20px;min-width:0}
+.erc721-inspector .page-heading{margin-bottom:2px}
+.erc721-inspector .panel{min-width:0}
+.erc721-inspector dl dd{overflow-wrap:anywhere}
+.erc721-inspector dl dd .mono{display:inline-block;max-width:100%;overflow-wrap:anywhere}
+.erc721-inspector .token-grid{margin:22px 0}
+.erc721-candidate-card{display:flex;flex-direction:column;min-width:0}
+.erc721-candidate-card>.artwork{aspect-ratio:1;object-fit:cover}
+.erc721-candidate-body{display:flex;flex-direction:column;gap:10px;padding:16px}
+.erc721-candidate-body h3{margin:0}
+.erc721-candidate-body p{margin:0;font-size:12px;line-height:1.6}
+.erc721-candidate-body details{overflow-wrap:anywhere}
+.erc721-entry-note{border-top:1px solid var(--line);margin-top:20px;padding-top:20px;display:grid;gap:9px}
+.erc721-entry-note strong{font-size:13px}
+.erc721-entry-note p{font-size:12px;margin:0;line-height:1.65}
+.erc721-entry-note .button{justify-self:start}
+@media (max-width:720px){.erc721-candidate-body{padding:13px}}

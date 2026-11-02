@@ -1,3 +1,4 @@
+import { inspectErc721Candidate,scanErc721Candidates } from '@/server/erc721-probe';
 import { readCollectionProfile,saveCollectionProfile,pinCollectionProfile } from '@/server/collection-profile';
 import { publicCollectorData } from '@/server/collector-intelligence';
 import { NextRequest, NextResponse } from 'next/server';
@@ -72,6 +73,15 @@ export async function POST(req: NextRequest) {
         .extend({ wallet: addressSchema.optional(), tokenId: positive.optional() })
         .parse(p);
       result = await inspect(args.chainId, args.contract, args.wallet, BigInt(args.tokenId || '1'));
+    } else if (op === 'inspect_erc721') {
+      const a=identity.parse(p);
+      result=await inspectErc721Candidate(a.chainId,a.contract);
+    } else if (op === 'scan_erc721') {
+      const a=identity.extend({
+        start:z.number().int().min(1).max(100000000).default(1),
+        count:z.number().int().min(1).max(12).default(12)
+      }).parse(p);
+      result=await scanErc721Candidates(a.chainId,a.contract,a.start,a.count);
     } else if (op === 'collection_profile_read') {
       const a=identity.parse(p);
       result=await readCollectionProfile(a.chainId,a.contract);

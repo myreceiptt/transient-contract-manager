@@ -49,8 +49,8 @@ describe('ERC721TL v4.1.2 read-only research path',()=>{
    expect(rpc.read).toHaveBeenCalledWith(expect.objectContaining({
      functionName:'totalSupply',blockNumber:block
    }));
-   expect(erc721ProbeAbi.some(x=>x.type==='function' && x.name==='mint')).toBe(false);
-   expect(erc721ProbeAbi.some(x=>x.type==='function' && x.name==='approve')).toBe(false);
+   expect(erc721ProbeAbi.map(x=>String(x.name))).not.toContain('mint');
+   expect(erc721ProbeAbi.map(x=>String(x.name))).not.toContain('approve');
  });
  it('rejects an interface-compatible contract with an incorrect version',async()=>{
    answers.VERSION='4.1.0';

@@ -102,7 +102,7 @@ These are **future acceptance tests**, not claims that buttons are currently ava
 
 | # | Wallet / role | Acceptance step | Required evidence |
 | --- | --- | --- | --- |
-| T01 | Any | Load ERC721TL collection and its 1-of-1 NFT cards | Correct contract version, owner, supply, `ownerOf`, `tokenURI` |
+| T01 | Owner/admin (Ethereum chain 1) | Open owner-deployed ERC721TL; check owner remains separate from ADMIN_ROLE wallet; inspect 1-of-1 NFTs when minted | Verified mainnet contract runtime/version, owner/admin roles, supply, `ownerOf`, `tokenURI` and observed block |
 | T02 | Creator/admin | Create a 1-of-1 NFT with original metadata | Simulated mint → wallet approval → receipt → ownership and IPFS URI |
 | T03 | Creator/admin | Create NFT assigned directly to collector wallet | Collector becomes actual `ownerOf`; creator cannot list it |
 | T04 | Creator/admin | Configure 100-item collection-wide primary mint on TLStacks721 | Verified baseUri index mapping, supply, fee, sale phase; separate from per-token 1155 page |
@@ -114,7 +114,7 @@ These are **future acceptance tests**, not claims that buttons are currently ava
 | T10 | New owner | Re-list same Token ID in a new auction | New owner authorized; original creator/admin cannot list it |
 | T11 | Seller | Create Buy Now and complete purchase | Sale finalized, token transferred, payout and royalty verified |
 | T12 | Seller | Delist before bid, attempt delist after bid | First returns NFT; second is blocked |
-| T13 | Unauthorized | Attempt sale/create/admin action from wrong wallet/network | Rejected before any unsafe signature |
+| T13 | Unauthorized | Attempt sale/create/admin action from wrong wallet/network; check unprivileged collector cannot mint while approved admin can | Rejected before unsafe signature; verify `hasRole(ADMIN_ROLE,wallet)` and individual `ownerOf` for auction listing |
 | T14 | Existing ERC1155 user | Open existing 1155 collection and Mint Pages | No regression, published links and collector balances unchanged |
 | T15 | All roles | Follow transaction recovery after rejection/replacement | Clear error/reconciliation; no duplicate mint or bid |
 | T16 | All roles | Test mobile public Auction Page / Mint Page | Correct details, no misleading status or cached owner |

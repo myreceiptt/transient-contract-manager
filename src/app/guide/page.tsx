@@ -635,6 +635,20 @@ export default function Guide() {
           currently enabled. Creating an ERC-721 NFT, listing an existing
           ERC-721 NFT and minting a new ERC-721 through Stacks are
           <strong> three distinct operations</strong>.</p>
+        <h3>Phase A: ERC721TL read-only Compatibility Inspector</h3>
+        <p>Use the <a href="/erc721">ERC721TL Compatibility Inspector</a> to
+          read collection name, symbol, creator owner/admin wallets, supply
+          and explicit Token ID windows (up to 12 IDs). For each existing
+          token it reads <code>ownerOf</code> and <code>tokenURI</code>
+          at one observed block. Burned or unknown Token IDs are not
+          treated as zero holdings.</p>
+        <p>This inspector currently verifies the <strong>public interface
+          and reported VERSION only</strong>. It explicitly displays
+          <strong> RUNTIME UNVERIFIED</strong>; neither the candidate
+          interface nor its observed codehash is yet a pinned, independently
+          verified execution allowlist. It provides <strong>no</strong>
+          minting, permissions, transfers or auction transaction controls.
+          The supported ERC1155TL manager remains separate.</p>
         <h3>A. 1 of 1 NFT creation (planned ERC721TL v4.1.2)</h3>
         <ol className="guide-steps">
           <li>Allowlist ERC721TL only after reproducible runtime/ABI,

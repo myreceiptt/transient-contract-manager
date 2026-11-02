@@ -6,12 +6,14 @@ import { ArrowLeft,ExternalLink,Search,RefreshCw,LockKeyhole } from 'lucide-reac
 import { Artwork } from './safe-media';
 import { Loading,Notice } from './shell';
 import { api,short } from '@/lib/api-client';
+import { useConnection } from './providers';
 import { erc721CandidateChains,localChain,explorer } from '@/lib/chains';
 
 type TokenItem={tokenId:string;status:'OWNED'|'UNKNOWN_OR_BURNED';owner?:string;
   tokenUri?:string|null;metadataStatus?:string;message?:string};
 export function Erc721Inspector(){
   const router=useRouter(),query=useSearchParams();
+  const {address}=useConnection();
   const [chainId,setChainId]=useState(1);
   const [contract,setContract]=useState('');
   const [collection,setCollection]=useState<any>();
@@ -22,12 +24,13 @@ export function Erc721Inspector(){
   const [scanning,setScanning]=useState(false);
   const [error,setError]=useState('');
   const [scanError,setScanError]=useState('');
-  async function inspect(id:number,address:string){
+  async function inspect(id:number,contractAddress:string){
+    const addressForRole=address;
     setBusy(true);setError('');setCollection(undefined);setTokens([]);setMetadata({});
     try{
-      const result=await api('inspect_erc721',{chainId:id,contract:address});
-      setCollection(result);setChainId(id);setContract(address);
-      const url='/erc721?chain='+id+'&contract='+encodeURIComponent(address.toLowerCase());
+      const result=await api('inspect_erc721',{chainId:id,contract:contractAddress,wallet:addressForRole});
+      setCollection(result);setChainId(id);setContract(contractAddress);
+      const url='/erc721?chain='+id+'&contract='+encodeURIComponent(contractAddress.toLowerCase());
       router.replace(url,{scroll:false});
     }catch(e){setError((e as Error).message);}
     finally{setBusy(false);}
@@ -111,6 +114,12 @@ export function Erc721Inspector(){
           <dt>Interface version</dt><dd>{collection.version} · ERC-721 (ERC-165)</dd>
           <dt>Code hash (observed)</dt><dd className="mono">{collection.implementationCodeHash}</dd>
           <dt>Owner (collection)</dt><dd className="mono">{collection.owner}</dd>
+          <dt>Your connected wallet</dt><dd className="mono">{collection.inspectedWallet||
+            'Not connected. Connect a wallet, then inspect again.'}</dd>
+          <dt>Your on-chain role (read-only)</dt>
+          <dd><strong>{String(collection.walletRole).toUpperCase()}</strong>
+            <small>Role checked at the observed block. Execution is still disabled
+              until the exact Ethereum Mainnet runtime is verified.</small></dd>
           <dt>Admin wallets</dt><dd>{collection.admins.length?
             collection.admins.map((a:string)=><div className="mono" key={a}>{a}</div>):'No additional admins'}</dd>
           <dt>Current total supply</dt><dd>{collection.totalSupply}

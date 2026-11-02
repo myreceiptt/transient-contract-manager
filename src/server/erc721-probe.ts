@@ -4,7 +4,7 @@ import { ADMIN_ROLE } from '../lib/chains';
 import { client, exactChain } from './chain';
 
 /**
- * READ-ONLY ERC721TL 4.1.2 candidate inspector.
+ * READ-ONLY ERC721TL 3.6.0 / 4.1.2 candidate inspector.
  *
  * VERSION+ERC165 compatibility is NOT an authenticated runtime allowlist.
  * There is intentionally no admin write, mint, approval or auction operation
@@ -26,6 +26,27 @@ export const erc721ProbeAbi=parseAbi([
   'function tokenURI(uint256 tokenId) view returns (string)',
 ]);
 export type Erc721CandidateState='ABI_COMPATIBLE_UNVERIFIED_RUNTIME';
+/**
+ * Audited, version-specific source refs. Interface support is NOT equivalent
+ * to allowlisting an exact deployed implementation runtime for writes.
+ */
+export const erc721ReadonlySourceBaselines={
+  '3.6.0':{
+    commit:'9063234fb2e4cf5e0459b23a4a1858f496fcf98b',
+    totalSupplyMeaning:'MINTED_TOKEN_ID_COUNTER_INCLUDES_BURNED',
+  },
+  '4.1.2':{
+    commit:'a2ef226db2e6df9d07e002c7c11ddab17c1df3f5',
+    totalSupplyMeaning:'CURRENT_UNBURNED_SUPPLY',
+  },
+} as const;
+export const erc721ReadonlyVersions=Object.keys(erc721ReadonlySourceBaselines);
+export const erc721ReadonlyBaselineLabel='ERC721TL v3.6.0 or v4.1.2';
+function readonlySource(version:string){
+  return Object.prototype.hasOwnProperty.call(erc721ReadonlySourceBaselines,version)
+    ? erc721ReadonlySourceBaselines[version as keyof typeof erc721ReadonlySourceBaselines]
+    : null;
+}
 
 function parseImplementation(code:`0x${string}`):Address | null {
   const clone=code.match(/^0x363d3d373d3d3d363d73([0-9a-fA-F]{40})5af43d82803e903d91602b57fd5bf3$/);
@@ -54,8 +75,9 @@ export async function inspectErc721Candidate(chainId:number,contract:Address,wal
     c.readContract({address:contract,abi:erc721ProbeAbi,functionName:'getRoleMembers',args:[ADMIN_ROLE],blockNumber:block.number}),
     c.readContract({address:contract,abi:erc721ProbeAbi,functionName:'totalSupply',blockNumber:block.number}),
   ]);
-  if(version!=='4.1.2'||erc721!==true||erc1155===true)
-    throw new AppError('ERC721_MISMATCH','Contract does not match the expected ERC721TL 4.1.2 public interface');
+  const source=readonlySource(version);
+  if(!source||erc721!==true||erc1155===true)
+    throw new AppError('ERC721_MISMATCH','Contract does not match the read-only ERC721TL 3.6.0 / 4.1.2 interface baselines');
   const adminForWallet=wallet?await c.readContract({address:contract,abi:erc721ProbeAbi,
     functionName:'hasRole',args:[ADMIN_ROLE,wallet],blockNumber:block.number}):false;
   const walletRole=wallet?(owner.toLowerCase()===wallet.toLowerCase()?
@@ -66,9 +88,10 @@ export async function inspectErc721Candidate(chainId:number,contract:Address,wal
     runtimeVerification:'ABI_COMPATIBLE_UNVERIFIED_RUNTIME' as Erc721CandidateState,
     transactionSigningEnabled:false,
     name,symbol,owner,admins,totalSupply:supply,
+    sourceCommit:source.commit,totalSupplyMeaning:source.totalSupplyMeaning,
     inspectedWallet:wallet??null,walletRole,walletRoleVerifiedReadOnly:true,
     observedBlock:block.number,observedBlockHash:block.hash,
-    notice:'Interface, reported VERSION and displayed on-chain wallet role are read-only findings. Implementation runtime hash is not yet allowlisted. No creator or auction writes are authorized.',
+    notice:'This ERC721TL version has a reviewed official source baseline, but its observed deployment runtime is NOT allowlisted for transactions. Ownership, version and roles are read-only findings. No creator or auction writes are authorized.',
   });
 }
 
@@ -109,7 +132,7 @@ export async function scanErc721Candidates(chainId:number,contract:Address,start
 
 /**
  * Diagnostic only: inspect mismatched ERC-721 candidates without declaring
- * them supported and without changing the strict v4.1.2 inspector.
+ * them supported and without changing the accepted read-only version baselines.
  * All calls are read-only and pinned to one observed Ethereum block.
  */
 export async function diagnoseErc721Candidate(chainId:number,contract:Address) {
@@ -146,7 +169,7 @@ export async function diagnoseErc721Candidate(chainId:number,contract:Address) {
   ]);
   const reasons:string[]=[];
   if(version===null)reasons.push('VERSION() could not be read: absent or reverted');
-  else if(version!=='4.1.2')reasons.push('Reported VERSION '+version+' differs from inspector baseline 4.1.2');
+  else if(!readonlySource(version))reasons.push('Reported VERSION '+version+' is not in read-only baselines 3.6.0 / 4.1.2');
   if(erc721!==true)reasons.push(erc721===null?
     'ERC-721 ERC-165 query unavailable':'Contract did not report ERC-721 interface support');
   if(erc1155===true)reasons.push('Contract also reports ERC-1155 interface support');
@@ -161,7 +184,7 @@ export async function diagnoseErc721Candidate(chainId:number,contract:Address) {
     version,erc721Interface:erc721,erc1155Interface:erc1155,
     name,symbol,owner,totalSupply:supply,
     observedBlock:block.number,
-    inspectorBaseline:'ERC721TL 4.1.2',
+    inspectorBaseline:erc721ReadonlyBaselineLabel,
     inspectorMatch:reasons.length===0,
     mismatchReasons:reasons,
     runtimeVerification:'UNVERIFIED',transactionSigningEnabled:false,

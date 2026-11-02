@@ -7,9 +7,9 @@ const handbook = readFileSync('docs/USER_GUIDE.md', 'utf8');
 describe('Complete in-app creator guide', () => {
   it('includes every working step in navigable, uniquely identified sections', () => {
     const required = [
-      'start', 'connect', 'overview', 'metadata', 'tokens', 'eligibility',
-      'draft', 'publish', 'lifecycle', 'transactions', 'collector', 'networks',
-      'troubleshooting',
+      'start', 'compatibility', 'connect', 'overview', 'metadata', 'tokens', 'settings',
+      'eligibility', 'draft', 'publish', 'lifecycle', 'transactions', 'collector',
+      'auction', 'networks', 'troubleshooting',
     ];
     for (const id of required) {
       expect(guide).toContain("['" + id + "',");
@@ -26,6 +26,11 @@ describe('Complete in-app creator guide', () => {
       'Collection Profile', 'Collection Royalties', 'Stacks Mint Permission',
       'Save revision', 'Prepare publication', 'Check confirmation',
     ]) expect(guide).toContain(name);
+    expect(guide).toContain('protocolSupport.map');
+    expect(guide).toContain('TLAuctionHouse');
+    expect(guide).toContain('ERC721TL');
+    expect(guide).toContain('not enabled for contract management or bidding');
+    expect(guide).toContain('Listing transfers the ERC-721 into AuctionHouse escrow');
     expect(guide).toContain('targetChains.map');
     expect(guide).toContain('TLStacks1155 v2.3.1');
     expect(guide).toContain('ERC1155TL v4.1.2');

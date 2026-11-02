@@ -12,7 +12,7 @@ type TokenItem={tokenId:string;status:'OWNED'|'UNKNOWN_OR_BURNED';owner?:string;
   tokenUri?:string|null;metadataStatus?:string;message?:string};
 export function Erc721Inspector(){
   const router=useRouter(),query=useSearchParams();
-  const [chainId,setChainId]=useState(8453);
+  const [chainId,setChainId]=useState(1);
   const [contract,setContract]=useState('');
   const [collection,setCollection]=useState<any>();
   const [tokens,setTokens]=useState<TokenItem[]>([]);
@@ -34,7 +34,7 @@ export function Erc721Inspector(){
   }
   useEffect(()=>{
     const initial=query.get('contract');
-    const selected=Number(query.get('chain')||8453);
+    const selected=Number(query.get('chain')||1);
     if(initial && [1,4663,8453,360,84532,31337].includes(selected)){
       setContract(initial);setChainId(selected);
       void inspect(selected,initial);
@@ -72,8 +72,8 @@ export function Erc721Inspector(){
       <div>
         <span className="eyebrow">ERC721TL · PHASE A COMPATIBILITY INSPECTOR</span>
         <h1>Every original. One owner.</h1>
-        <p className="lead">Read-only ERC721TL v4.1.2 contract and Token ID exploration.
-          No mint, approval, listing, bidding or settlement is enabled here.</p>
+        <p className="lead">Read-only inspection of ERC721TL collections deployed through Transient Lab,
+          including Ethereum Mainnet. No mint, approval, listing, bidding or settlement is enabled here.</p>
       </div>
     </div>
     <section className="panel">

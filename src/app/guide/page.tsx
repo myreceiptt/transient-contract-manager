@@ -635,6 +635,15 @@ export default function Guide() {
           currently enabled. Creating an ERC-721 NFT, listing an existing
           ERC-721 NFT and minting a new ERC-721 through Stacks are
           <strong> three distinct operations</strong>.</p>
+        <h3>Owner-deployed ERC721TL on Ethereum Mainnet</h3>
+        <p><strong>Canonical user workflow:</strong> the legitimate collection owner
+          deploys an ERC721TL contract directly through Transient Lab on
+          <strong> Ethereum Mainnet (chain ID 1)</strong>, then grants the user&apos;s
+          separate wallet <code>ADMIN_ROLE</code> (or includes it at creation).
+          The owner retains collection ownership. Our independent application
+          opens the <em>existing</em> contract by address; it neither redeploys
+          it nor transfers its ownership. Anvil/forked testing is for internal
+          safety checks only: <strong>no user testnet deployment is required</strong>.</p>
         <h3>Phase A: ERC721TL read-only Compatibility Inspector</h3>
         <p>Use the <a href="/erc721">ERC721TL Compatibility Inspector</a> to
           read collection name, symbol, creator owner/admin wallets, supply

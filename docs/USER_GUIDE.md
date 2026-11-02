@@ -1,207 +1,130 @@
-# Transient Contract Manager by ENDHONESA — User Guide
+# Transient Contract Manager — Creator Guide and Contract Compatibility
 
-The up-to-date illustrated instructions are available in the live app at
-[Guide & network status](https://transient.endhonesa.com/guide).
+Last reviewed: 2 November 2026. This is an independent product operated by ENDHONESA, **not** Transient Labs / The Lab. The in-app [Guide & network status](https://transient.endhonesa.com/guide) is the interactive companion to this handbook.
 
-This is an independent, non-custodial manager for **existing ERC1155TL v4.1.2**
-collections and **TLStacks1155 v2.3.1 fixed-price drops**. It does not deploy
-new NFT collection contracts or import the private database of The Lab.
+## 1. Exactly which smart contracts work?
 
-## 1. Open an existing collection
+**Supported by the production application's verified allowlist**
 
-1. From **Collections → Open a collection**, select the network: Ethereum,
-   Robinhood Chain, Base or Shape.
-2. Paste the **ERC-1155 collection contract address**, not the wallet address
-   or the shared Stacks contract address. Select **Start managing**.
-3. The app verifies bytecode, implementation version and the token standard.
-4. Connect a supported injected EVM wallet using the top-right wallet menu.
-5. Owner/admin changes require the on-chain owner or ADMIN_ROLE wallet.
-   Sign the SIWE sign-in message (no gas) when prompted; actual wallet
-   transactions require a separate explicit approval.
-6. **Contract Checker** performs read-only inspection without a signature.
+| Contract | Version | Supported workflows |
+|---|---|---|
+| **ERC1155TL** | **4.1.2** | Contract inspection, owner/admin access, NFT Token ID inventory, new Token IDs (including batches), mint/airdrop, metadata URI updates, royalty settings and wallet balance lookups |
+| **TLStacks1155** | **2.3.1** | ERC-1155 **fixed-price** drops, scheduled/public windows, presale allowlists, contract-level closeDrop, public Mint Pages and collector minting |
 
-## 2. Understand the five workspace tabs
+The exact Solidity runtime implementation and Stacks bytecode are checked on each supported chain. For directly deployed creator contracts and canonical EIP-1167 clones, compatibility is determined by verified implementation runtime, not by the name or ABI alone.
 
-- **Overview:** verified contract facts, owner/admin role and featured token metadata.
-- **Tokens & Editions:** existing token inventory, NFT metadata on IPFS,
-  token creation, batch creation, airdrops, metadata changes and royalties.
-- **Mint Pages:** token-first inventory, Stacks sale status, Create/Manage/Restore,
-  page content and sale publishing.
-- **Collection Settings:** “The foundation of every edition.” dashboard,
-  Collection Profile, verified Identity, read-only Ownership & Access,
-  collection-wide default Royalties, verified Stacks permission and Advanced facts.
-- **Transactions:** saved reviews, hashes, finality checks and replacement recovery.
+**Not supported in the live app yet**
 
-ERC1155TL totalSupply() counts created **Token IDs**, not the total number
-of circulating NFT units. Use **Check a holder's balance** for one wallet's
-units of a specific Token ID.
+| Contract family | Why it matters | State |
+|---|---|---|
+| ERC721TL **4.1.2 candidate** | Unique ERC-721 Token IDs, 1 of 1 artworks and ownerOf/tokenURI | Planned, **not verified as a supported runtime** |
+| TLStacks721 | Minting new ERC-721s through a Stacks drop | Planned as a separate integration, **not enabled** |
+| TLAuctionHouse **2.6.1 candidate** | Escrowed auctions and Buy Now for existing ERC-721 tokens | Research and typed preparation only, **no listing/bid/settle actions** |
+| ERC7160TL | ERC-721 with multiple metadata choices | Unsupported |
+| ERC7160TLEditions | ERC-721 editions with a shared multi-metadata pool | Unsupported |
+| TRACE | Specialized creator contract | Unsupported |
 
-## 3. Create metadata and a token
+Upstream creator contract families: [Transient-Labs/tl-creator-contracts](https://github.com/Transient-Labs/tl-creator-contracts). Mint/sale/auction contracts: [Transient-Labs/tl-stacks](https://github.com/Transient-Labs/tl-stacks). **Contract presence in The Lab or official source code does not authorize this app to manage it.** Runtime verification and a supported, tested adapter are required.
 
-In **Tokens & Editions**, select **Create Token** or **Create Batch** above the
-NFT cards. The contextual NFT Metadata & Edition Studio prepares metadata
-for the chosen workflow:
+Supported target networks for the **ERC1155TL + TLStacks1155** adapter are Ethereum (1), Robinhood Chain (4663), Base (8453), and Shape (360). This is a configured compatibility list, not an assertion of uninterrupted RPC uptime or enabled live writes. Local chain 31337 is restricted to opt-in development.
 
-1. Enter NFT name, description, optional external URL and attributes.
-2. Upload original JPG/PNG/WebP artwork (up to 100 MiB), or paste an IPFS URI.
-3. Review artwork. Click **Pin metadata JSON to IPFS** and retain its URI.
-4. Choose **Prepare new token**, **Prepare metadata update**, or
-   **Add to batch queue**. Preparing metadata alone sends no transaction.
-5. Select **Prepare new token** to open the separate edition-distribution and
-   **Simulate & review** step (the create token ID contract action). Check
-   the pinned URI. Leave recipients empty for zero issued units, or enter
-   one wallet and amount per line to issue units immediately.
-6. Select **Simulate & review**, verify network, contract, recipients,
-   amounts and fee, then **Approve in wallet**.
-7. After wallet confirmation, use **Check confirmation** and refresh inventory.
+Pinned creator implementation: `0x079e23352721084561fb241593d16a4e6f548a97`. Pinned TLStacks1155: `0x32953d7ae37b05075b88c34e800ae80c1cb1b794`. Neither address is a user's NFT collection address.
 
-Existing tokens can be minted/airdropped from **Manage Token → Mint / Airdrop**
-if unlocked. Supported metadata/royalty operations are available in the
-same action form. A batch can prepare up to 40 Token IDs and 200 recipients;
-royalty bps are limited to 1,000 (10%). Pinned JSON is not itself a token.
+## 2. Enter a collection and authenticate
 
-## 4. Collection Settings & Collection Profile
+1. Open **Collections → Open a collection** and select its actual chain.
+2. Paste the **ERC1155TL creator collection contract address**, not an owner wallet, Stacks contract or auction contract.
+3. Select **Start managing**. The server verifies chain ID, creator bytecode, implementation version and required ERC-1155 interface. Unsupported contracts are rejected.
+4. Connect an injected EVM wallet on the same chain. Read-only inspection needs no wallet signature; editing requires the contract owner or an on-chain ADMIN_ROLE wallet.
+5. Complete the app's gasless SIWE sign-in when prompted. This is not an approval of a contract transaction. The server rechecks owner/admin authority for changes.
+6. Keep enough native network currency for any explicitly signed blockchain operation; IPFS service availability and fees are distinct from gas.
 
-Open **Collection Settings**. The permanent **The foundation of every edition.**
-banner appears above six specialized cards: Collection Profile, Collection
-Identity, Ownership & Access, Collection Royalties, Stacks Mint Permission,
-and Advanced On-chain Information. The latter identity/access cards are
-read-only; do not confuse displayed ownership with an available role-change action.
+## 3. Understand the five workspace tabs
 
-**Default collection royalties** are read separately via
-`getDefaultRoyaltyRecipientAndPercentage()`, not inferred from Token ID #1.
-The royalty card has a contextual owner/admin simulation and wallet review.
-Stacks approval is offered only if the verified minter is not yet approved.
+- **Overview:** verified name, symbol, owner/admin, token type count, contract adapter, and the optional **app-managed Collection Profile** visual.
+- **Tokens & Editions:** **Where every edition begins.** NFT-card catalogue with **Create Token**, **Create Batch**, and contextual **Manage Token** (metadata, mint/airdrop, royalty, current ownership balance).
+- **Mint Pages:** **A home for every edition.** NFT-card catalogue with independent page creation, management, restoration and on-chain `closeDrop` review.
+- **Collection Settings:** **The foundation of every edition.** Cards for **Collection Profile**, **Collection Identity**, **Ownership & Access** (read-only), **Collection Royalties**, **Stacks Mint Permission**, and **Advanced On-chain Information**.
+- **Transactions:** saved transaction reviews, tx hashes, replacement/cancellation handling and finality confirmation.
 
-**Collection Profile** stores an app-managed description, logo, banner, website
-and social links with a version-checked server write and audit entry.
-Use JPG/PNG/WebP uploads (up to 100 MiB) to pin images to IPFS, then
-**Save Collection Profile**. Optionally select **Pin Collection Profile to IPFS**,
-then **Save** again to store the resulting immutable public JSON URI. Profile
-changes are NOT smart-contract transactions and do not create
-a native on-chain `contractURI()` (absent from ERC1155TL v4.1.2).
-On-chain verified name/symbol remain authoritative; collection profile visuals
-can appear in Overview after saving. Unsaved profile edits require confirmation
-before leaving their settings card.
+The tabs share verified collection identity, but **saving an off-chain document is not the same as signing an on-chain transaction**.
 
-## 5. Choose an NFT in Mint Pages
+## 4. Create and manage ERC-1155 token editions
 
-Open **Mint Pages**. The permanent **A home for every edition.** banner appears above a responsive, artwork-first grid of NFT cards, matching **Tokens & Editions**. Each card shows separate **Mint Page** and **On-chain drop** statuses. Select **Create**, **Manage**, **Restore** or **Review closeDrop** to open a full-width workflow; use **Back to NFT Editions** to return to the grid. Unsaved editor changes trigger a warning before leaving.
+1. Open **Tokens & Editions → Create Token**. Provide name, description, artwork (JPG/PNG/WebP originals up to 100 MiB), optional external URL and NFT traits.
+2. Optionally import an existing approved IPFS metadata URI. Upload artwork if necessary, then choose **Pin metadata JSON to IPFS**. This creates an immutable JSON pointer, **not** an NFT.
+3. Choose **Prepare new token**. Specify recipient wallets and counts or leave recipients blank to create a Token ID with zero issued editions.
+4. Review the exact `createToken` action, chain, recipient quantities, gas, permissions and simulation; only then approve in the wallet and **Check confirmation**.
+5. Return to the catalogue and refresh. For multiple tokens choose **Create Batch** instead, pin each metadata JSON, add up to 40 entries to the queue, select recipient / units, prepare, review and sign. The action has a 40-token / 200-recipient maximum.
+6. Choose **Manage Token** on an existing NFT card for **Mint / Airdrop**, **Edit metadata URI**, **Token royalty**, holder balance or navigation to Mint Pages. Its Token ID is fixed to the selected card.
+7. Use **Back to NFT Editions** to return to the catalogue. Unsaved metadata changes prompt for confirmation before discarding them.
 
-| Token status | Meaning | Next action |
-| --- | --- | --- |
-| Available | Created NFT; no configured Stacks drop; no canonical page | Create |
-| Existing Mint Page | This app already owns the Token ID page identity | Manage |
-| Archived canonical page | Historic published page is hidden | Restore |
-| Existing on-chain drop | Drop remains configured, even if Ended | Close first |
-| Verification required or locked | State unreadable or token mint-locked | Resolve or refresh |
+Minting additional units is a creator/admin operation; it does **not** represent a collector sale. An ERC-1155 `totalSupply()` value in this adapter is **Token ID type count**, not the circulating number of units.
 
-**Ended is not Closed.** A Timed Edition may expire and still have a configured
-drop. First-page creation here requires NOT_CONFIGURED (dropType 0) and no
-existing canonical Mint Page in this app.
+## 5. Collection Settings and Collection Profile
 
-### The Lab → this app
+1. Open **Collection Settings**. **Collection Identity** lists verified contract facts. **Ownership & Access** shows owner/admin and wallet authority but does not grant or revoke roles.
+2. **Collection Royalties** reads the contract's `getDefaultRoyaltyRecipientAndPercentage()` separately from individual token royalties. The managed update requires simulation and wallet review; the ERC1155TL 4.1.2 royalty maximum is 1,000 bps (10%).
+3. **Stacks Mint Permission** tells you whether the exact verified TLStacks1155 deployment has minting privileges. If not, an authorized wallet may review the narrow grant for that specific contract; avoid approving arbitrary external contracts.
+4. **Collection Profile** is distinct from NFT metadata. Enter description, logo, banner, website and social links. Upload approved artwork or use supported IPFS image URIs, then **Save Collection Profile**. The app writes versioned data with audit history; this does not alter the creator contract.
+5. Optionally select **Pin Collection Profile to IPFS** for immutable public JSON, then **Save** again to associate the returned URI with the app profile. **ERC1155TL 4.1.2 does not expose `contractURI()`**; this does not automatically synchronize The Lab or marketplaces.
+6. Refresh **Overview** to see a saved profile visual. If another admin saved a newer revision, reload and reconcile rather than overwriting.
 
-1. Find the NFT/drop in [The Lab](https://lab.transient.xyz).
-2. Close its Stacks drop with an authorized wallet, if The Lab provides that
-   action; a verified contract interface can also be used if required.
-3. Confirm the transaction, then refresh the Mint Pages token inventory here.
-4. Verify NOT_CONFIGURED and then **Create** if no canonical page exists.
+## 6. Create a fixed-price ERC-1155 Mint Page
 
-The Lab's private Mint Page contents and slug do not automatically transfer.
-An existing on-chain drop does not establish which UI originally created it.
+**Every chain + NFT collection + Token ID has one canonical Mint Page identity inside this app.** A subsequently reopened sale round uses that same page. A published page can be archived/restored, and its public slug can be edited without changing the NFT identity. Previous published slugs remain reserved and redirect with HTTP 308.
 
-### This app → The Lab
+1. Open **Mint Pages**, inspect the Token ID card, its separate Mint Page and on-chain drop statuses.
+2. If another application configured that token's TLStacks1155 drop, even if **Ended**, close the existing configuration **only if you intend to end that sale**. Ended is not Closed; the app checks the on-chain state, not the origin website.
+3. For an **Available** token select **Create**; for an existing canonical page select **Manage** or **Restore**. Do not create a duplicate page identity.
+4. In **01 Page content**, set title, description, artwork/banner, external link, unique slug.
+5. In **02 Sale configuration**, enter payout wallet, allocation (new units to mint), maximum per recipient per round, currency (native or approved ERC-20), price per unit, UTC sale start, public duration and optional presale duration/price/Merkle allowlist.
+6. Use **03 Content preview** for desktop/mobile. It does not publish or mint.
+7. In **04 Save and publish**, **Save revision**, run **Check sale readiness (read-only)** and optionally **Calculate draft collector quote**. Resolve configuration and permissions errors.
+8. Select **Prepare publication**. Verify the wallet, chain, TLStacks1155, beneficiary, price, supply, time, gas and function call. Approve one transaction in the wallet, then **Check confirmation** to verify receipt/finality and on-chain readback.
+9. Once published, open `https://transient.endhonesa.com/mint/<slug>` or choose **View Mint Page** (new tab) / **Copy URL** from its token card. A scheduled page can be viewable before its mint window opens.
 
-1. Select **Review closeDrop** for a configured drop here.
-2. Review the read-only closeDrop simulation, parameters and gas.
-3. Select **Prepare closeDrop wallet review**, approve the wallet transaction,
-   then use **Check confirmation**.
-4. Refresh to verify the drop is NOT_CONFIGURED.
-5. Use The Lab separately; its page creation rules may differ.
+There are no single-click exact equivalents of The Lab's Limited, Timed and Inclusive Edition labels in this editor. The supported contract path is a fixed-price drop with explicit finite parameters. Velocity/Marathon modes are unsupported.
 
-**Closing a drop does not burn NFT balances, delete blockchain history, or
-automatically unpublish The Lab's off-chain Mint Page.**
+## 7. Drop management and handoff with The Lab
 
-## 6. Create and publish an independent Mint Page
+- **In The Lab → this app:** with appropriate authority, deliberately close an externally configured TLStacks1155 drop if you no longer want it active; confirm on-chain `dropType=0` / NOT_CONFIGURED before creating a first canonical page here. The Lab's private page content is not imported.
+- **This app → The Lab:** use **Review closeDrop** on the relevant token; inspect the simulated `closeDrop` and **Prepare closeDrop wallet review**, explicitly confirm in your wallet, run **Check confirmation**, and refresh status.
+- **Ended is not Closed.** A sale duration ending or allocation selling out does not by itself call `closeDrop()`. Closing advances `getDropRound`, but **does not burn** NFTs or delete their ownership history.
+- A published page's next round stays on the **same identity**. Archiving/restoring affects this app's URL and page visibility, not The Lab's private records.
+- **Edit URL** can rename the canonical public slug; previously published URLs redirect. Draft text must still be published to become visible.
 
-1. **01 · Page content:** fill unique slug, title, description, artwork,
-   banner and optional external URL. Page art is separate from NFT metadata.
-2. **02 · Sale configuration:** payout receiver, allocation, allowance,
-   ETH or ERC-20 payment, price, Start (UTC) and duration (seconds).
-   For ERC-20 choose **Read decimals** first. The protocol fee is in ETH
-   per unit even for ERC-20 purchases. Presale requires valid Merkle root
-   and collector allowance/proof.
-3. **03 · Content preview:** review desktop and mobile layouts.
-4. **04 · Save and publish:** choose **Save revision**, then
-   **Check sale readiness (read-only)**. Fix mint permission or on-chain
-   baseline issues before **Prepare publication**.
-5. In **Review before you sign**, inspect the exact configureDrop/update
-   call and approve only after checking network, payout, price, supply,
-   sale window and fees. Sign in the wallet.
-6. Use **Check confirmation** to reconcile finality and contract state.
-   A page may remain PUBLISHING until the confirmed transaction is
-   verified by the app. **Do not resubmit merely because it looks stuck.**
-7. Published URL: https://transient.endhonesa.com/mint/your-slug.
-   A scheduled future start blocks minting, not public page viewing.
+**Do not close a sale that still has intended or pending collector purchases.** Check transaction finality and current chain state rather than assuming a UI status is authoritative.
 
-The current app uses fixed-price Stacks parameters. It does not offer separate
-preset modes for all Limited, Timed and Inclusive Edition variants of The Lab.
-A finite allocation/time window is not unlimited minting.
+## 8. Collectors, activity and recovery
 
-## 7. Manage an existing Mint Page
+Collectors open the published Mint Page, connect the correct network, check phase/price/quantity and choose **Review payment & mint**. A presale requires compatible allowance and Merkle proof. Native ETH pays edition price and TLStacks protocol fee (plus gas). For ERC-20 price sales, an ERC-20 approval may be needed and the protocol fee is still paid in native ETH.
 
-One Chain + Collection Contract + Token ID has **one permanent canonical Mint
-Page identity after publication**. New rounds reuse **Manage** or **Restore**.
+Public Mint Pages show **Your Editions** via ERC-1155 `balanceOf`; the **Activity** history distinguishes purchases, mints and transfers; **Collectors** are wallet addresses with balances verified on-chain. During incremental indexing the directory may be partial, and must not claim a full unique collector total. Use **Sync older on-chain history** to advance backfill.
 
-- **Save revision:** records draft content without publishing it. The public
-  URL continues serving the last successfully published revision.
-- **Edit URL:** open **01 · Page content → Public Mint Page URL → Edit URL**;
-  enter the new slug and select **Save new URL**. No blockchain gas.
-  Old published URLs permanently redirect (HTTP 308), and remain reserved.
-- **Close drop:** read-only Review close, then explicit wallet transaction,
-  Check confirmation, and refreshed contract status.
-- **Archive:** for published pages, close the drop first; archiving hides the
-  page but preserves identity and historical audits.
-- **Restore:** bring back the canonical page, then manage any permitted
-  new round through the same page.
-- **Draft-only archive:** may release temporary reservation when there is
-  no active/sent transaction history.
+If a wallet confirms but the app still shows PUBLISHING/SUBMITTED, go to **Transactions → Load history → Check confirmation** for the existing hash. If replaced, choose **Verify same action** or **Verify cancellation / changed action**. Do not resubmit automatically.
 
-A new round may increase total minted copies. Respect any lifetime edition
-cap promised to collectors.
+## 9. 1 of 1 creation and TLAuctionHouse auctions — preparation only
 
-## 8. Recover transactions
+**None of these actions can yet be performed in this app.** The future ERC-721 track requires its own allowlisted creator adapter and auction runtime.
 
-Open **Transactions → Load history**, select the saved review and choose
-**Check confirmation**. Wallet speed-up/replacement can be reconciled with
-**Verify same action**, or **Verify cancellation / changed action** for a
-different replacement. Submitted is not necessarily finalized; closing a
-review modal does not cancel a transaction. Never duplicate configureDrop
-to resolve a stale PUBLISHING indicator.
+The official pinned creator source contains **ERC721TL v4.1.2** at commit `a2ef226db2e6df9d07e002c7c11ddab17c1df3f5`. The upstream Stacks deployment manifest identifies a **TLAuctionHouse v2.6.1 candidate** address `0x6f66b95a0c512f3497fb46660e0bc3b94b989f8d`. **Neither is a verified execution target in this app today.**
 
-## 9. Collector minting
+The auction formats documented by the public TLAuctionHouse source: **Scheduled Auction**, **Reserve Auction**, **Reserve Auction + Buy Now** and **Buy Now**. The seller must *actually own the minted ERC-721*; the `list()` method transfers the NFT into **AuctionHouse escrow**. Merely having creator ADMIN_ROLE does not grant ownership of the token. Cancellation with `delist()` is possible only before there is a bid. Bidding extends time for late bids. After a winning bid and expiry, `settleAuction()` completes the separate asset/payout transfer. Listing, bidding, cancellation, purchase and settlement all require a rigorously verified adapter and transaction receipts.
 
-Collectors visit the published Mint Page, connect a compatible wallet to
-the correct chain and select **Review payment & mint** during an active
-sale. ETH sales require edition price + native protocol fee + gas.
-ERC-20 sales require token approval/payment plus native ETH protocol fee
-and gas. Presales require the Merkle allowance and proof. Minting is
-blocked on closed, paused, sold-out, locked, out-of-sync or not-yet-started
-sales.
+Before enabling any action, implement exact-runtime checks for creator and AuctionHouse on each target chain; test approved ERC-721 operators, token ownership, escrow, payout, royalties, ERC-20 approvals, protocol fee behavior, reserve/next-bid rules, anti-sniping extension, refunds, cancellation, paused state, finality and settlement through disposable local-chain tests followed by explicitly authorized staged acceptance tests. The app must not reuse the ERC-1155 `balanceOf(owner,tokenId)` / Token ID supply assumptions for ERC-721.
 
-## 10. Network status and supported scope
+Full technical plan: [1 of 1 Auction Integration Readiness](AUCTION_1OF1_READINESS.md).
 
-Configured target networks: Ethereum (1), Robinhood Chain (4663),
-Base (8453), Shape (360). Contract Checker and on-chain inventory make
-fresh runtime checks. Supported pinned adapters: ERC1155TL v4.1.2
-and TLStacks1155 v2.3.1 fixed-price drops.
+## 10. Troubleshooting and safety
 
-Mainnet writes are available only when explicitly enabled by the operator
-and allowed by chain, verified contract, wallet permissions and wallet
-approval. Otherwise the app offers safe simulations and draft editing.
-The web app does not duplicate all of The Lab's features, manage Velocity
-drops, arbitrary creator contracts, ownership transfer, arbitrary role
-revocation or burns.
+- **Unsupported implementation:** only the exact verified ERC1155TL v4.1.2 adapter is accepted by Contract Checker. ERC721TL and auction contracts are not yet supported management targets.
+- **Wrong wallet or chain:** use the collection owner/ADMIN_ROLE wallet and correct network; SIWE sign-in is gasless, blockchain approvals are not.
+- **Mint Page inaccessible:** verify it was published, not archived, and the transaction receipt is final. A future start date blocks minting, normally not an already published page.
+- **Ended but Create unavailable:** TLStacks1155 still has a configured drop. Close only when intentionally retiring that sale and recheck on-chain.
+- **New title not visible:** Save revision is private; publish the content revision. Changing slug does not automatically publish other edits.
+- **Collection Profile not visible in The Lab:** app-managed collection profiles are not automatically written to The Lab and do not create a native `contractURI()`.
+- **Wallet replacement/cancellation:** use the transaction recovery controls, never assume a SUBMITTED status means finality.
+- **API and private keys:** never share a seed phrase, signing key or secret credential with the app or support. This application does not need them.
 
-**Never enter wallet seed phrases, private keys or recovery words in the app.**
+The source of truth for live contract eligibility is **the application's verified adapter + an on-chain read**, not a screenshot, promotional description, or this planning document.

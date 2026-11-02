@@ -1,18 +1,22 @@
 import Link from 'next/link';
 import { targetChains, STACKS, CREATOR_IMPLEMENTATION } from '@/lib/chains';
+import { protocolSupport, auctionResearch } from '@/lib/protocol-support';
 
 const chapters = [
   ['start', 'Start here'],
+  ['compatibility', 'Supported contract types'],
   ['connect', 'Connect a collection'],
   ['overview', 'Understand your workspace'],
   ['metadata', 'Create NFT metadata'],
   ['tokens', 'Create tokens & editions'],
+  ['settings', 'Collection settings & profile'],
   ['eligibility', 'Choose an NFT for a Mint Page'],
   ['draft', 'Set up your Mint Page'],
   ['publish', 'Publish & confirm'],
   ['lifecycle', 'Manage & close drops'],
   ['transactions', 'Recover transactions'],
   ['collector', 'For collectors'],
+  ['auction', '1 of 1 & auction roadmap'],
   ['networks', 'Network status & limits'],
   ['troubleshooting', 'Troubleshooting'],
 ] as const;
@@ -22,10 +26,11 @@ export default function Guide() {
     <div className="document creator-guide">
       <header className="guide-hero">
         <span className="eyebrow">CREATOR HANDBOOK · TRANSIENT CONTRACT MANAGER BY ENDHONESA</span>
-        <h1>From existing collection to a live Mint Page.</h1>
-        <p className="lead">A step-by-step guide to managing verified Transient Labs NFT contracts,
-          creating ERC-1155 editions, publishing independent Mint Pages and safely
-          handing off an on-chain Stacks drop between this app and The Lab.</p>
+        <h1>From verified NFT collection to edition Mint Page.</h1>
+        <p className="lead">Complete guidance for verified ERC1155TL editions,
+          their Mint Pages, collection settings, collector transactions and
+          future 1 of 1 auctions. Supported today and planned integrations are
+          identified separately; no unsupported contract is silently accepted.</p>
         <div className="guide-hero-links">
           <Link className="button" href="/">Open a collection</Link>
           <Link className="button secondary" href="/checker">Contract Checker</Link>
@@ -52,13 +57,16 @@ export default function Guide() {
         <h2>Start with a collection you already own or administer</h2>
         <p>This is an independent, non-custodial application. It does <strong>not</strong> deploy a
           new NFT collection, import The Lab&apos;s private drafts, or take custody of your wallet.
-          It works with existing supported collection contracts and the verified TLStacks1155
-          sale protocol on the same blockchain.</p>
+          It currently manages verified <strong>ERC1155TL v4.1.2</strong> collection
+          contracts and <strong>TLStacks1155 v2.3.1</strong> fixed-price sales
+          on the same supported chain. ERC721TL / 1 of 1 and auction support
+          is being prepared, <strong>not enabled for contract management or bidding</strong>.</p>
         <div className="guide-grid">
           <div className="guide-note">
             <h3>You will need</h3>
             <ul>
-              <li>An existing Transient Labs <strong>ERC1155TL v4.1.2</strong> collection contract address.</li>
+              <li>An existing, supported <strong>ERC1155TL v4.1.2</strong> collection contract
+                address, not an ERC721TL address or the shared sales-contract address.</li>
               <li>The correct supported network and an injected EVM wallet (for example MetaMask,
                 OKX Wallet or Phantom with EVM support).</li>
               <li>A wallet that is the collection <strong>owner</strong> or has its on-chain <strong>ADMIN_ROLE</strong>
@@ -84,8 +92,52 @@ export default function Guide() {
         </div>
       </section>
 
+      <section className="panel guide-section" id="compatibility">
+        <span className="section-number">02 / CONTRACT TYPE &amp; FEATURE MATRIX</span>
+        <h2>Which Transient Labs smart contracts are supported?</h2>
+        <p><strong>Supported</strong> here means the application currently implements
+          that exact allowlisted runtime and has tested ABI, chain, authorization
+          and transaction handling. A contract that exists in The Lab or the
+          upstream repository is <strong>not automatically supported</strong>
+          by this manager. Unsupported implementations fail closed in Contract Checker.</p>
+        <div className="table-wrap">
+          <table>
+            <thead><tr><th>Contract / type</th><th>Purpose</th><th>Current app status</th></tr></thead>
+            <tbody>{protocolSupport.map(protocol => (
+              <tr key={protocol.key}>
+                <td><strong>{protocol.name}</strong>
+                  <small> {protocol.version}</small></td>
+                <td>{protocol.capability}</td>
+                <td><strong>{protocol.level === 'verified-live-adapter'
+                    ? 'Supported: verified adapter'
+                    : 'Not supported: research / preparation'}</strong></td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+        <p>For the current supported ERC-1155 sales, the app enables only
+          <strong> fixed-price</strong> TLStacks1155 drop configuration. Scheduled
+          or timed public windows, finite allocations and presale allowlists are
+          configurable; Velocity / Marathon variants are not.</p>
+        <p>The upstream <a href="https://github.com/Transient-Labs/tl-creator-contracts"
+            target="_blank" rel="noopener noreferrer">creator-contract repository</a>
+          documents ERC721TL, ERC1155TL, ERC7160TL and ERC7160TLEditions.
+          The <a href="https://github.com/Transient-Labs/tl-stacks"
+            target="_blank" rel="noopener noreferrer">Stacks repository</a>
+          documents separate TLStacks721, TLStacks1155 and TLAuctionHouse
+          contracts. The Lab&apos;s private draft, auction page or listing
+          records are not automatically imported.</p>
+        <div className="guide-callout">
+          <strong>Do not try a 1 of 1 collection in this ERC-1155 workspace yet.</strong>
+          ERC721TL uses <code>ownerOf(tokenId)</code> and
+          <code>tokenURI(tokenId)</code>, not the ERC-1155 inventory,
+          balance and mint methods expected by the current adapter.
+          The planned 1 of 1 path has its own requirements below.
+        </div>
+      </section>
+
       <section className="panel guide-section" id="connect">
-        <span className="section-number">02 / OPEN YOUR COLLECTION</span>
+        <span className="section-number">03 / OPEN YOUR COLLECTION</span>
         <h2>Connect an existing Transient Labs contract</h2>
         <ol className="guide-steps">
           <li>On <Link href="/">Collections</Link>, open <strong>Open a collection</strong>.</li>
@@ -110,7 +162,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="overview">
-        <span className="section-number">03 / FIND YOUR WAY AROUND</span>
+        <span className="section-number">04 / FIND YOUR WAY AROUND</span>
         <h2>Five tabs, one collection workspace</h2>
         <div className="table-wrap">
           <table>
@@ -139,7 +191,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="metadata">
-        <span className="section-number">04 / PREPARE THE WORK</span>
+        <span className="section-number">05 / PREPARE THE WORK</span>
         <h2>Create and pin NFT metadata</h2>
         <p>Open <strong>Tokens &amp; Editions</strong> and choose
           <strong> Create Token</strong> or <strong>Create Batch</strong> from the NFT catalogue.
@@ -173,7 +225,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="tokens">
-        <span className="section-number">05 / TOKENS &amp; EDITIONS</span>
+        <span className="section-number">06 / TOKENS &amp; EDITIONS</span>
         <h2>Create a Token ID, mint copies or prepare a batch</h2>
         <h3>A. Create one new NFT Token ID</h3>
         <ol className="guide-steps">
@@ -215,7 +267,12 @@ export default function Guide() {
           <strong> Default royalty</strong> is managed separately under
           <strong> Collection Settings → Collection Royalties</strong>.
           Review every permanent on-chain change before signing.</p>
-        <h3>E. Collection Settings &amp; Collection Profile</h3>
+      </section>
+
+      <section className="panel guide-section" id="settings">
+        <span className="section-number">07 / COLLECTION CONTROL CENTER</span>
+        <h2>Manage Collection Settings and Collection Profile</h2>
+        <h3>Collection-wide controls</h3>
         <p>Open <strong>Collection Settings</strong> to see the
           <strong> The foundation of every edition.</strong> banner and dedicated
           settings cards. <strong>Collection Identity</strong> and
@@ -235,10 +292,35 @@ export default function Guide() {
           <code> contractURI()</code>, so the profile is not natively available to
           every marketplace. Use <strong>Back to Collection Settings</strong> to return
           to the settings cards.</p>
+        <h3>Saving the Collection Profile safely</h3>
+        <ol className="guide-steps">
+          <li>Choose <strong>Collection Settings → Collection Profile</strong>;
+            review the contract-verified name and symbol.</li>
+          <li>Enter description, optional HTTPS site/social links, and
+            upload JPG, PNG or WebP logo/banner artwork to public IPFS
+            (up to 100 MiB per image) or paste approved image URIs.</li>
+          <li>Select <strong>Save Collection Profile</strong>. Authorized
+            owner/admin sessions persist a versioned app-managed profile;
+            changes do not modify the NFT contract.</li>
+          <li>Optionally choose <strong>Pin Collection Profile to IPFS</strong>
+            to create an immutable public JSON snapshot. Select
+            <strong>Save Collection Profile</strong> again to associate the
+            returned URI with the app profile. IPFS pinning itself does not
+            make this ERC1155TL contract advertise <code>contractURI()</code>.</li>
+          <li>Return to <strong>Overview</strong> to confirm the app-managed
+            collection visual and description. Recheck the current version
+            if another admin edited the profile simultaneously.</li>
+        </ol>
+        <p>In <strong>Collection Royalties</strong>, review the actual
+          <code>getDefaultRoyaltyRecipientAndPercentage()</code> values
+          before any owner/admin simulation. <strong>Ownership &amp; Access</strong>
+          is read-only; no grant/revoke roles or transfer ownership action is
+          provided. <strong>Stacks Mint Permission</strong> only offers
+          review if the verified TLStacks1155 is not approved.</p>
       </section>
 
       <section className="panel guide-section" id="eligibility">
-        <span className="section-number">06 / CHOOSE YOUR MINT PAGE TOKEN</span>
+        <span className="section-number">08 / CHOOSE YOUR MINT PAGE TOKEN</span>
         <h2>Mint Pages begins with the existing NFT inventory</h2>
         <p>Open <strong>Mint Pages</strong>. A persistent
           <strong> A home for every edition.</strong> banner appears above an artwork-first
@@ -315,7 +397,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="draft">
-        <span className="section-number">07 / CREATE A MINT PAGE</span>
+        <span className="section-number">09 / CREATE A MINT PAGE</span>
         <h2>Fill the four sections of Mint Page Studio</h2>
         <h3>01 · Page content</h3>
         <ol className="guide-steps">
@@ -380,15 +462,15 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="publish">
-        <span className="section-number">08 / PUBLISH SAFELY</span>
+        <span className="section-number">10 / PUBLISH SAFELY</span>
         <h2>Simulate, sign, confirm, then share the public URL</h2>
         <ol className="guide-steps">
           <li>First verify that the collection has granted the pinned
-            TLStacks1155 contract mint permission. In
-            <strong> Collection Settings</strong> or the collection action form,
-            choose <strong>Approve verified Stacks as a minter</strong>
-            if the checker reports <strong>Not approved</strong>.
-            This is a separate on-chain action.</li>
+            TLStacks1155 contract mint permission. Open
+            <strong> Collection Settings → Stacks Mint Permission</strong>
+            and select its review action only when status is
+            <strong>Not approved</strong>. This is a separate on-chain
+            operation, not a Mint Page publication.</li>
           <li>Save the latest page revision, review the sale-readiness result
             and select <strong>Prepare publication</strong>. For a first drop,
             the reviewed function is normally <code>configureDrop</code>.
@@ -416,7 +498,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="lifecycle">
-        <span className="section-number">09 / MANAGE YOUR DROP</span>
+        <span className="section-number">11 / MANAGE YOUR DROP</span>
         <h2>One Token ID, one permanent Mint Page identity</h2>
         <p>This app applies the policy <strong>one chain + collection contract +
           Token ID → one canonical Mint Page</strong>. Once a page has been published,
@@ -468,7 +550,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="transactions">
-        <span className="section-number">10 / TRANSACTION RECOVERY</span>
+        <span className="section-number">12 / TRANSACTION RECOVERY</span>
         <h2>When a wallet confirms but the app still says PUBLISHING</h2>
         <ol className="guide-steps">
           <li>Open the collection&apos;s <strong>Transactions</strong> tab and
@@ -495,7 +577,7 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="collector">
-        <span className="section-number">11 / FOR YOUR COLLECTORS</span>
+        <span className="section-number">13 / FOR YOUR COLLECTORS</span>
         <h2>How visitors mint from your public page</h2>
         <ol className="guide-steps">
           <li>Share the published URL:
@@ -543,12 +625,79 @@ export default function Guide() {
           available under <strong>01 · Page content → Public Mint Page URL</strong>
           inside the editor. They use the current canonical slug;
           the old slug redirects to it after an Edit URL operation.</p>
+      </section>
+
+      <section className="panel guide-section" id="auction">
+        <span className="section-number">14 / FUTURE ADAPTER · NOT LIVE</span>
+        <h2>1 of 1 NFT creation and auctions: integration plan</h2>
+        <p><strong>Not available in this application yet.</strong> This section
+          describes the safe integration sequence, not buttons that are
+          currently enabled. Creating an ERC-721 NFT, listing an existing
+          ERC-721 NFT and minting a new ERC-721 through Stacks are
+          <strong> three distinct operations</strong>.</p>
+        <h3>A. 1 of 1 NFT creation (planned ERC721TL v4.1.2)</h3>
         <ol className="guide-steps">
+          <li>Allowlist ERC721TL only after reproducible runtime/ABI,
+            clone implementation, chain and role verification.</li>
+          <li>Use a separate ERC-721 inventory with <code>ownerOf</code>
+            and <code>tokenURI</code>, plus <code>Transfer</code> events.
+            Do not use ERC-1155 <code>balanceOf(owner,id)</code> or
+            Token ID type-count assumptions.</li>
+          <li>Prepare artwork and JSON metadata; allow owner/admin
+            to create an ERC-721 Token ID with the verified mint function,
+            followed by simulation, wallet review and finalized receipt.</li>
         </ol>
+        <h3>B. Auctions are sales of already-minted NFTs</h3>
+        <p>Transient Labs&apos; <code>TLAuctionHouse</code> is separate
+          from <code>TLStacks721</code>. Its official deployment registry
+          lists <strong>{auctionResearch.auctionSourceVersion}</strong>
+          at <code>{auctionResearch.auctionCandidate}</code>; this is
+          <strong> an unverified integration candidate</strong>, not
+          an approved signing target in this app.</p>
+        <div className="table-wrap">
+          <table>
+            <thead><tr><th>Listing format</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td>Scheduled Auction</td><td>Scheduled opening and finite bidding window</td></tr>
+              <tr><td>Reserve Auction</td><td>First qualifying bid initiates auction timing</td></tr>
+              <tr><td>Reserve Auction + Buy Now</td><td>Reserve bidding or immediate purchase before any bid</td></tr>
+              <tr><td>Buy Now</td><td>Fixed-price sale of the already-minted ERC-721</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ol className="guide-steps">
+          <li>Verify AuctionHouse&apos;s runtime bytecode, correct chain,
+            version, pause/fee configuration, seller wallet and
+            actual NFT <code>ownerOf(tokenId)</code>.</li>
+          <li>Present the exact custody change: seller separately
+            approves the AuctionHouse and listing transfers the NFT
+            into contract <strong>escrow</strong>. Creator ADMIN_ROLE
+            is not enough; the caller must own the ERC-721.</li>
+          <li>Show currency, reserve, start time, duration, payout
+            receiver, minimum next bid, anti-sniping extension,
+            protocol fees and royalty implications before signature.</li>
+          <li>Read listing state with <code>getListing</code> and
+            <code>getNextBid</code>. Verify ERC-20 allowance or native
+            value, bid changes and transaction receipts. Never guess
+            an auction has settled merely because a timer expired.</li>
+          <li>Allow <code>delist</code> only before any bid; after
+            a valid winning bid and end time, use separately
+            simulated <code>settleAuction</code> and verify the NFT
+            recipient and seller payout. Reconciliation is required
+            after every state transition.</li>
+        </ol>
+        <div className="guide-callout">
+          <strong>Escrow and bidding involve real assets.</strong> An
+          approved listing transfers the ERC-721 out of the seller&apos;s
+          wallet. Ending the timer does not automatically release escrow.
+          Until a tested adapter and verified on-chain readback are
+          shipped, the current app must reject 1 of 1 management
+          and all auction signatures.
+        </div>
       </section>
 
       <section className="panel guide-section" id="networks">
-        <span className="section-number">12 / NETWORK STATUS &amp; COMPATIBILITY</span>
+        <span className="section-number">15 / NETWORK STATUS &amp; COMPATIBILITY</span>
         <h2>Supported adapters and runtime checks</h2>
         <p>These are the application&apos;s <strong>configured target networks</strong>.
           This table is not a live RPC uptime indicator and does not promise that
@@ -582,13 +731,16 @@ export default function Guide() {
         <p>It does not reproduce all of The Lab. It supports the verified
           ERC1155TL creator adapter and TLStacks1155 fixed-price drop flow,
           not every Transient Labs contract, every drop style or private
-          The Lab page feature. It does not automatically manage ownership
-          transfers, role revocations, arbitrary mint contracts, burning,
-          Velocity drops or third-party private Mint Page records.</p>
+          The Lab page feature. <strong>ERC721TL, TLStacks721,
+          TLAuctionHouse, ERC7160TL, ERC7160TLEditions and TRACE are
+          not supported at runtime</strong>. It does not automatically
+          manage ownership transfers, role revocations, arbitrary mint
+          contracts, burning, Velocity / Marathon drops, 1 of 1
+          auctions or third-party private Mint Page records.</p>
       </section>
 
       <section className="panel guide-section" id="troubleshooting">
-        <span className="section-number">13 / QUICK TROUBLESHOOTING</span>
+        <span className="section-number">16 / QUICK TROUBLESHOOTING</span>
         <h2>Common questions and fixes</h2>
         <details className="guide-faq">
           <summary>My collection says Unsupported implementation.</summary>
@@ -647,6 +799,27 @@ export default function Guide() {
             replacement hash. Use Verify same action or Verify
             cancellation / changed action as applicable. Never
             automatically resend a transaction because the UI looks stale.</p>
+        </details>
+        <details className="guide-faq">
+          <summary>My ERC721TL or 1 of 1 collection was rejected. Can I still use auctions?</summary>
+          <p>Not in this web app yet. This release accepts only its verified
+            ERC1155TL v4.1.2 creator runtime. An ERC-721 and TLAuctionHouse
+            integration is documented in the 1 of 1 roadmap, but no
+            auction bids, listings or custody transactions are enabled.
+            Never paste an AuctionHouse address as a creator collection address.</p>
+        </details>
+        <details className="guide-faq">
+          <summary>Does a timed edition automatically close its Stacks drop?</summary>
+          <p>No. Expiration or selling out can produce Ended while a drop is
+            still configured. Confirm its actual state on-chain before
+            creating a new independent Mint Page.</p>
+        </details>
+        <details className="guide-faq">
+          <summary>Why does my Collection Profile not appear on The Lab?</summary>
+          <p>The app saves its own versioned profile and optionally pins
+            a standalone JSON document to IPFS. ERC1155TL v4.1.2 does not
+            automatically publish this information as an on-chain
+            contractURI() or sync The Lab&apos;s private collection profile.</p>
         </details>
         <p className="guide-finish"><strong>Need to start again?</strong>{' '}
           Open <Link href="/">Collections</Link>, or read the contract

@@ -1,8 +1,8 @@
 # Transient Contract Manager by ENDHONESA
 
-Independent Next.js application for existing ERC1155TL v4.1.2 collections and TLStacks1155 v2.3.1 fixed-price drops. It does not use The Lab's private APIs or database.
+Independent Next.js application for existing **verified ERC1155TL v4.1.2** collections and **TLStacks1155 v2.3.1 fixed-price drops** on Ethereum, Robinhood Chain, Base, and Shape. It does not use The Lab's private APIs or database. ERC721TL / TLAuctionHouse auctions are **research-only, not executable in this release**.
 
-**Release status: tested local implementation; deployment blocked on service access and database selection.** Mainnet writes are disabled by default. A successful local build is not a claim of a deployed or fully four-chain-tested service. Read [Implementation Report](docs/IMPLEMENTATION_REPORT.md) first.
+**Production:** [transient.endhonesa.com](https://transient.endhonesa.com). Contract and transaction operations are gated by exact verified bytecode, owner/admin authority, a wallet review and the operator's `MAINNET_WRITES_ENABLED` switch; not all production-chain transactions have been acceptance-tested with real assets. The original [Implementation Report](docs/IMPLEMENTATION_REPORT.md) is a historical snapshot rather than a current deployment statement.
 
 ## What works
 
@@ -13,6 +13,22 @@ Independent Next.js application for existing ERC1155TL v4.1.2 collections and TL
 - Fixed-price sale configuration and sequential updates, simulation, transaction review, persisted hashes, replacement recovery, finality and on-chain readback.
 - Public `/mint/[slug]` using the published revision and live sale data. Native ETH, ERC-20 decimals/exact approvals, per-unit ETH protocol fees and Merkle presale proofs.
 - Safe metadata/media gateway with an operator-controlled hostname allowlist, size/time limits, redirect refusal and raster-only responses.
+
+## Supported contracts and 1 of 1 preparation
+
+| Protocol | Release status |
+| --- | --- |
+| ERC1155TL v4.1.2 (creator) | **Supported** — exact verified runtime |
+| TLStacks1155 v2.3.1 fixed-price drops | **Supported** — exact verified runtime |
+| ERC721TL v4.1.2 1 of 1 | **Planned** — no supported runtime adapter |
+| TLStacks721 | **Planned** — not an auction house |
+| TLAuctionHouse v2.6.1 | **Research-only** — no listings, bids, refunds or settlement from this app |
+| ERC7160TL / ERC7160TLEditions / TRACE | **Unsupported** |
+
+The supported matrix and workflows are documented in the [current Creator Guide](docs/USER_GUIDE.md).
+The separate [1 of 1 and AuctionHouse readiness plan](docs/AUCTION_1OF1_READINESS.md)
+describes required ERC721TL runtime verification, escrowed NFT listing, bidder funds, refunds, fee and settlement checks.
+Neither planning documents nor `src/lib/auction-planning.ts` enable a transaction.
 
 ## Local read-only workspace
 
@@ -78,7 +94,9 @@ Where the environment uses an HTTP proxy, start these standalone Node scripts wi
 
 | Path                           | Responsibility                                                            |
 | ------------------------------ | ------------------------------------------------------------------------- |
-| `src/lib/adapters.ts`          | Allowlisted adapter metadata, ABIs, commits and capabilities              |
+| `src/lib/adapters.ts`          | **Live** allowlisted adapter metadata, ABIs, commits and capabilities     |
+| `src/lib/protocol-support.ts` | Documented live-versus-research protocol matrix; never grants writes    |
+| `src/lib/auction-planning.ts` | Preparation-only 1-of-1 listing validation; no RPC or wallet calls      |
 | `src/server/chain.ts`          | Pinned implementation checks, exact chain, permission and live sale reads |
 | `src/server/auth.ts`           | SIWE challenge, session, CSRF, request bounds and throttling              |
 | `src/server/workspace.ts`      | Shared drafts, identity and revision checks                               |

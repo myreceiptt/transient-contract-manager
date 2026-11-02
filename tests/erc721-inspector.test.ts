@@ -8,7 +8,7 @@ vi.mock('../src/server/chain',()=>({
   client:()=>rpc,
   exactChain:async()=>{if(await rpc.getChainId()!==8453)throw Error('CHAIN_MISMATCH');}
 }));
-import {inspectErc721Candidate,scanErc721Candidates,erc721ProbeAbi}
+import {inspectErc721Candidate,scanErc721Candidates,diagnoseErc721Candidate,erc721ProbeAbi}
   from '../src/server/erc721-probe';
 const contract=('0x'+'1'.repeat(40)) as `0x${string}`;
 const owner=('0x'+'2'.repeat(40)) as `0x${string}`;
@@ -19,6 +19,7 @@ const answers:Record<string,unknown>={
  owner, getRoleMembers:[admin],hasRole:true,totalSupply:2n
 };
 beforeEach(()=>{
+ answers.VERSION='4.1.2';
  rpc.getChainId.mockReset().mockResolvedValue(8453);
  rpc.getCode.mockReset().mockResolvedValue('0x60006000');
  rpc.getBlock.mockReset().mockResolvedValue({number:block,hash:'0x'+'f'.repeat(64)});
@@ -69,6 +70,32 @@ describe('ERC721TL v4.1.2 read-only research path',()=>{
    await expect(inspectErc721Candidate(8453,contract)).rejects.toThrow('ERC721TL 4.1.2');
    answers.VERSION='4.1.2';
  });
+ it('diagnoses a different reported ERC721TL version without enabling its runtime',async()=>{
+   answers.VERSION='4.1.0';
+   const report=await diagnoseErc721Candidate(8453,contract);
+   expect(report.version).toBe('4.1.0');
+   expect(report.erc721Interface).toBe(true);
+   expect(report.erc1155Interface).toBe(false);
+   expect(report.inspectorMatch).toBe(false);
+   expect(report.mismatchReasons).toContain(
+     'Reported VERSION 4.1.0 differs from inspector baseline 4.1.2');
+   expect(report.implementationCodeHash).toBe(keccak256('0x60006000'));
+   expect(report.runtimeVerification).toBe('UNVERIFIED');
+   expect(report.transactionSigningEnabled).toBe(false);
+ });
+ it('reports failed VERSION reads distinctly, not as a fake unsupported standard',async()=>{
+   rpc.readContract.mockImplementation(async ({functionName,args}:any)=>{
+     if(functionName==='VERSION')throw Error('VERSION_NOT_FOUND');
+     if(functionName==='supportsInterface')return args?.[0]==='0x80ac58cd';
+     if(functionName==='totalSupply')return 2n;
+     return answers[functionName];
+   });
+   const report=await diagnoseErc721Candidate(8453,contract);
+   expect(report.version).toBeNull();
+   expect(report.erc721Interface).toBe(true);
+   expect(report.mismatchReasons).toContain('VERSION() could not be read: absent or reverted');
+   expect(report.transactionSigningEnabled).toBe(false);
+ });
  it('does not treat existing token counts as maximum Token ID or missing tokens as balances',async()=>{
    const scan=await scanErc721Candidates(8453,contract,1,3);
    expect(scan.tokens.map(x=>x.status)).toEqual(['OWNED','OWNED','UNKNOWN_OR_BURNED']);
@@ -90,6 +117,7 @@ describe('ERC721TL v4.1.2 read-only research path',()=>{
    const impl=readFileSync('src/server/erc721-probe.ts','utf8');
    const ui=readFileSync('src/components/erc721-inspector.tsx','utf8');
    expect(path).toContain("op === 'inspect_erc721'");
+   expect(path).toContain("op === 'diagnose_erc721'");
    expect(path).toContain("op === 'scan_erc721'");
    expect(path).not.toContain("op === 'prepare_erc721_mint'");
    expect(path).not.toContain("op === 'create_auction'");

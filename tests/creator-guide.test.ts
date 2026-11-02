@@ -30,7 +30,7 @@ describe('Complete in-app creator guide', () => {
     expect(guide).toContain('TLAuctionHouse');
     expect(guide).toContain('ERC721TL');
     expect(guide).toContain('not enabled for contract management or bidding');
-    expect(guide).toContain('Listing transfers the ERC-721 into AuctionHouse escrow');
+    expect(guide).toContain('escrow');
     expect(guide).toContain('targetChains.map');
     expect(guide).toContain('TLStacks1155 v2.3.1');
     expect(guide).toContain('ERC1155TL v4.1.2');

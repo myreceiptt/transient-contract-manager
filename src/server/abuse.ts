@@ -35,9 +35,9 @@ export function requestIdentity(req: Request) {
 
 export function operationBudget(op: string): Budget {
   if (['challenge', 'login', 'logout'].includes(op)) return 'auth';
-  if (op === 'inventory' || op === 'mint_inventory') return 'inventory';
+  if (op === 'inventory' || op === 'mint_inventory' || op === 'scan_erc721') return 'inventory';
   if (op === 'metadata') return 'metadata';
-  if (['inspect', 'currency', 'balance', 'public', 'public_collectors','collection_profile_read'].includes(op)) return 'public';
+  if (['inspect', 'currency', 'balance', 'public', 'public_collectors','collection_profile_read','inspect_erc721'].includes(op)) return 'public';
   if (
     [
       'preview_admin',

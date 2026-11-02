@@ -2167,3 +2167,13 @@ th { color: #c1c1c8; }
 .erc721-entry-note p{font-size:12px;margin:0;line-height:1.65}
 .erc721-entry-note .button{justify-self:start}
 @media (max-width:720px){.erc721-candidate-body{padding:13px}}
+
+/* Read-only diagnostic for Ethereum ERC721 variants. Never a write authorization. */
+.erc721-diagnostic{border:1px solid var(--line);border-radius:10px;padding:20px;margin-top:18px;overflow-wrap:anywhere}
+.erc721-diagnostic h3{margin:0 0 12px}
+.erc721-diagnostic p,.erc721-diagnostic li{font-size:13px;line-height:1.65}
+.erc721-diagnostic dl{display:grid;grid-template-columns:minmax(145px,1fr) minmax(0,2fr);gap:10px 15px;margin:20px 0}
+.erc721-diagnostic dt{color:var(--muted);font-size:12px}
+.erc721-diagnostic dd{min-width:0;margin:0;overflow-wrap:anywhere;font-size:12px}
+.erc721-diagnostic .mono{word-break:break-word}
+@media(max-width:760px){.erc721-diagnostic{padding:14px}.erc721-diagnostic dl{grid-template-columns:1fr;gap:5px}.erc721-diagnostic dd{margin-bottom:9px}}

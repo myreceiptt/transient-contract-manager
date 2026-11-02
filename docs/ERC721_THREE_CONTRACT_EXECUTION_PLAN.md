@@ -19,9 +19,26 @@
 - Both are research-only addresses until chain-specific `eth_getCode`/bytecode hash and VERSION verified; no guarantee of deployment on a selected testnet.
 - Running app's live adapter remains `erc1155tl-4.1.2-stacks-2.3.1` only.
 
-## First development environment and sequencing
+## Canonical project goal: Transient Lab → Ethereum Mainnet → ENDHONESA manager
 
-Use disposable **Anvil local chain** first; verify compatibility on an official **Base Sepolia** test deployment if available, otherwise a specifically deployed local fixture / authorized testnet fixture. Do not assume official code is present on any testnet without checking. Keep the existing Vercel protected Preview and its current production traffic unaffected.
+**Customer workflow is mainnet-first and owner/admin separated, exactly like ERC1155TL Ganti Oli #1 (GO1).** The collection is deployed externally by its legitimate owner using Transient Lab / The Lab on **Ethereum Mainnet, chain ID 1**. The user's wallet is granted the on-chain **ADMIN_ROLE**, without transferring collection ownership. The user opens the existing deployed collection by address at `transient.endhonesa.com` and manages all **contract-authorized** creation, metadata, sale, and Mint Page operations through the independent ENDHONESA application.
+
+This manager **must not redeploy, recreate, migrate, or take ownership of the customer's ERC721TL creator contract**. Keep the actual owner authoritative. The owner/admin wallet grant is performed through the deployed contract by an authorized wallet, outside this app if role management is not supported; the app must read back `owner()`, `getRoleMembers(ADMIN_ROLE)` and `hasRole(ADMIN_ROLE,user)` before authorizing actions. In pinned ERC721TL v4.1.2, `mint(...)` is `onlyRoleOrOwner(ADMIN_ROLE)`, and `externalMint(...)` requires a separate **APPROVED_MINT_CONTRACT** role. The ability to manage a collection does not imply a right to list NFTs no longer held by the admin.
+
+**Local Anvil or forked-chain fixtures are internal automated regression/simulation tools only. They are not a customer prerequisite and do not require the owner to deploy on Base Sepolia.** The app's production execution target for this release is **Ethereum Mainnet first**. A protected Preview may perform safe mainnet **reads**; actual on-chain writes require verified exact implementation/ABI, correct chain and permissions, explicit signed wallet review, receipt verification, and independently authorized real-value acceptance.
+
+**Current implementation:** ERC721TL inspector accepts Ethereum chain ID 1 for interface-only read-only research. It does **not yet prove runtime compatibility** until its codehash is checked against the pinned official deployment. After the collection owner deploys through The Lab, use its **public** mainnet contract address and tx hash to verify that real contract and owner/admin roles. Keep existing Vercel Production and ERC1155TL fully functional while completing the 721 adapter.
+
+### First real onboarding sequence
+
+1. Owner deploys an **ERC721TL 1 of 1 collection through The Lab on Ethereum Mainnet**. Do not redeploy from this application.
+2. Owner adds the user's admin wallet during creation if The Lab supports it, or grants **ADMIN_ROLE** after deployment through an authorized contract interface; verify on-chain receipt and role membership.
+3. The owner/user supplies only the **public collection contract address (chain 1)**, deployed implementation/version, and optionally owner/admin public wallet addresses and transaction hashes. Never transmit private keys, seed phrases or service credentials.
+4. Run compatibility read, verify EIP-1167 implementation (if cloned), source-compiled deployed runtime codehash, ERC721 interface, name, symbol, owner, admins and expected `VERSION`. If The Lab deploys a different version, identify and explicitly support it rather than making the owner redeploy to fit an arbitrary pinned version.
+5. On successful **exact-runtime verification**, open the same collection-centric Overview / Tokens & Editions / Mint Pages / Collection Settings / Transactions experience, specialized for ERC-721: per-NFT unique owners rather than edition balances.
+6. Test read-only ownership first; then run individual creator/admin mint, official TLStacks721 collection-wide primary sale and separate owner-driven TLAuctionHouse auction under explicit real-value wallet confirmation. Every Ethereum transaction costs real gas and may move ETH/NFT. Never automatically submit.
+
+**No new deploy on a testnet is necessary for the user.** Internal contract tests may use a local chain to avoid risking mainnet ETH while validating source-level behavior.
 
 ### Phase A — read-only ERC721TL
 
@@ -70,12 +87,12 @@ Use disposable **Anvil local chain** first; verify compatibility on an official 
 
 ## Information the owner can provide (optional until staged tests)
 
-1. **First target network**: default **Base Sepolia** for wallet testing after disposable local chain. For later production: select Ethereum, Base, Shape or Robinhood explicitly; each needs its own deployed-contract/runtime check.
-2. **ERC721TL 1-of-1 collection**: if already owned, provide **public chain ID + creator contract address + known Token ID** (no seed/private key). If none exists, use disposable local fixture and later create a fresh test collection only with explicit user authorization for testnet transaction and gas.
-3. **Roles**: a wallet with owner/admin role for test creator actions, a different buyer wallet, and a third bidder/secondary owner wallet; **public addresses only** may be shared. Actual SIWE/approvals/signatures remain in user's wallet.
+1. **Target network is already chosen: Ethereum Mainnet (chain ID 1)**. We can run local/forked contract simulations internally, but the user does not need a Base Sepolia deployment. Other chains are not prerequisites or enabled by implication.
+2. **ERC721TL collection**: the owner will deploy through Transient Lab on Ethereum mainnet and give the user ADMIN_ROLE. **Once deployed**, provide the public collection address, owner/admin public wallet addresses (if helpful), deployment and admin-grant transaction hashes. There may be **no NFT Token ID until creator/admin mints**; do not require one for initial compatibility verification.
+3. **Roles**: legitimate collection **owner/deployer wallet** distinct from the user's **authorized ADMIN_ROLE wallet**, plus buyer and bidder/secondary seller wallets. **Public addresses only** may be shared. Owner need not hand over credentials; only the user signs admin operations from their own wallet after on-chain grant.
 4. **Sample creative assets**: 1-3 original/authorized test images + descriptions; for a 100-NFT primary mint scenario, provide a metadata directory containing 100 unique entries or permit generated original placeholder test artwork.
-5. **Test sale preferences**: small testnet reserve/buy-now amounts, auction duration, payout receiver, royalty rate, and whether ERC-20 payments must be included in first acceptance; defaults can be chosen for local tests.
-6. **Wallet gas**: no gas needed for docs, read-only work, unit tests or local simulations; small testnet native token for later signed test transactions. Mainnet funds are neither required nor requested.
+5. **Sale preferences**: choose low-risk explicit Ethereum mainnet prices, buy-now/reserve, auction duration, payout wallet and royalty rate with the real owner before signing. Use illustrative numbers only in local simulations; never prefill irreversible mainnet purchases from dummy assumptions.
+6. **Wallet gas**: no gas for docs, read-only checks, unit tests or local simulations. The owner pays Ethereum gas to deploy/grant roles; the user/admin pays Ethereum gas for approved creator actions, and sellers/bidders/collectors may pay gas plus actual ETH prices. Do not transfer any ETH to the assistant. No mainnet transaction is sent without wallet confirmation.
 
 Never provide mnemonic, wallet private key, Pinata JWT, Supabase service key, Vercel token, or raw unrestricted RPC credential in chat. Configure needed credentials only in trusted service dashboards.
 
@@ -102,4 +119,4 @@ These are **future acceptance tests**, not claims that buttons are currently ava
 | T15 | All roles | Follow transaction recovery after rejection/replacement | Clear error/reconciliation; no duplicate mint or bid |
 | T16 | All roles | Test mobile public Auction Page / Mint Page | Correct details, no misleading status or cached owner |
 
-Definition of ready: verified codehash + green CI + staging browser acceptance + user-confirmed test transaction results, never merely a successful build.
+Definition of ready for **Ethereum mainnet**: verified real deployed codehash + role checks + green CI + protected Preview read-only acceptance + explicitly authorized signed mainnet transactions with receipts/finality/ownership and payment readback + no ERC1155TL regressions. A successful local build or empty testnet fixture is never enough.

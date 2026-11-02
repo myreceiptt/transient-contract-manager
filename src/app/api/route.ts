@@ -41,6 +41,10 @@ import {
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 const identity = z.object({ chainId: chainSchema, contract: addressSchema });
+const erc721Identity = z.object({
+  chainId:z.union([chainSchema,z.literal(84532)]),
+  contract:addressSchema
+});
 const idSchema = z.string().uuid();
 const pagination = z.object({
   limit: z.number().int().min(1).max(25).default(25),
@@ -74,10 +78,10 @@ export async function POST(req: NextRequest) {
         .parse(p);
       result = await inspect(args.chainId, args.contract, args.wallet, BigInt(args.tokenId || '1'));
     } else if (op === 'inspect_erc721') {
-      const a=identity.parse(p);
+      const a=erc721Identity.parse(p);
       result=await inspectErc721Candidate(a.chainId,a.contract);
     } else if (op === 'scan_erc721') {
-      const a=identity.extend({
+      const a=erc721Identity.extend({
         start:z.number().int().min(1).max(100000000).default(1),
         count:z.number().int().min(1).max(12).default(12)
       }).parse(p);

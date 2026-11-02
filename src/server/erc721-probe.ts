@@ -20,6 +20,7 @@ export const erc721ProbeAbi=parseAbi([
   'function symbol() view returns (string)',
   'function owner() view returns (address)',
   'function getRoleMembers(bytes32 role) view returns (address[])',
+  'function hasRole(bytes32 role,address account) view returns (bool)',
   'function totalSupply() view returns (uint256)',
   'function ownerOf(uint256 tokenId) view returns (address)',
   'function tokenURI(uint256 tokenId) view returns (string)',
@@ -30,7 +31,7 @@ function parseImplementation(code:`0x${string}`):Address | null {
   const clone=code.match(/^0x363d3d373d3d3d363d73([0-9a-fA-F]{40})5af43d82803e903d91602b57fd5bf3$/);
   return clone?getAddress('0x'+clone[1]):null;
 }
-export async function inspectErc721Candidate(chainId:number,contract:Address){
+export async function inspectErc721Candidate(chainId:number,contract:Address,wallet?:Address){
   const c=client(chainId);
   await exactChain(c,chainId);
   const block=await c.getBlock();
@@ -55,14 +56,19 @@ export async function inspectErc721Candidate(chainId:number,contract:Address){
   ]);
   if(version!=='4.1.2'||erc721!==true||erc1155===true)
     throw new AppError('ERC721_MISMATCH','Contract does not match the expected ERC721TL 4.1.2 public interface');
+  const adminForWallet=wallet?await c.readContract({address:contract,abi:erc721ProbeAbi,
+    functionName:'hasRole',args:[ADMIN_ROLE,wallet],blockNumber:block.number}):false;
+  const walletRole=wallet?(owner.toLowerCase()===wallet.toLowerCase()?
+    'owner':adminForWallet?'admin':'viewer'):'not-connected';
   return serializable({
     chainId,contract,standard:'ERC721',version,implementation,
     proxy:!!clone,implementationCodeHash:keccak256(implementationCode),
     runtimeVerification:'ABI_COMPATIBLE_UNVERIFIED_RUNTIME' as Erc721CandidateState,
     transactionSigningEnabled:false,
     name,symbol,owner,admins,totalSupply:supply,
+    inspectedWallet:wallet??null,walletRole,walletRoleVerifiedReadOnly:true,
     observedBlock:block.number,observedBlockHash:block.hash,
-    notice:'Interface and VERSION are compatible. Implementation runtime hash is not yet allowlisted. Read-only research: no creator or auction writes are authorized.',
+    notice:'Interface, reported VERSION and displayed on-chain wallet role are read-only findings. Implementation runtime hash is not yet allowlisted. No creator or auction writes are authorized.',
   });
 }
 

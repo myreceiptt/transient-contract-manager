@@ -1,7 +1,7 @@
 # ERC-721 / TLStacks721 / TLAuctionHouse Implementation and Acceptance Plan
 
 **Date:** 2026-11-02
-**State:** Phase 0 verified-source inventory and executable implementation plan. This document alone enables **no blockchain transactions**.
+**State:** Phase 0 source inventory done; **Phase A ERC721TL interface-only read-only Compatibility Inspector implemented** in the feature branch. This is not a verified runtime adapter and enables **no blockchain transactions**. Complete exact codehash pinning before advancing creator writes.
 **Project:** Transient Contract Manager by ENDHONESA. Preserve all existing ERC1155TL / TLStacks1155 / Mint Page features and data.
 
 ## Verified initial source baselines

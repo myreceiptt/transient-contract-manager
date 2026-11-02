@@ -90,7 +90,7 @@ There are no single-click exact equivalents of The Lab's Limited, Timed and Incl
 
 - **In The Lab → this app:** with appropriate authority, deliberately close an externally configured TLStacks1155 drop if you no longer want it active; confirm on-chain `dropType=0` / NOT_CONFIGURED before creating a first canonical page here. The Lab's private page content is not imported.
 - **This app → The Lab:** use **Review closeDrop** on the relevant token; inspect the simulated `closeDrop` and **Prepare closeDrop wallet review**, explicitly confirm in your wallet, run **Check confirmation**, and refresh status.
-- **Ended is not Closed.** A sale duration ending or allocation selling out does not by itself call `closeDrop()`. Closing advances `getDropRound` but never burns NFTs or deletes their ownership history.
+- **Ended is not Closed.** A sale duration ending or allocation selling out does not by itself call `closeDrop()`. Closing advances `getDropRound`, but **does not burn** NFTs or delete their ownership history.
 - A published page's next round stays on the **same identity**. Archiving/restoring affects this app's URL and page visibility, not The Lab's private records.
 - **Edit URL** can rename the canonical public slug; previously published URLs redirect. Draft text must still be published to become visible.
 

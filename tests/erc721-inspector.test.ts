@@ -2,7 +2,7 @@ import {beforeEach,describe,expect,it,vi} from 'vitest';
 import {keccak256} from 'viem';
 
 const rpc=vi.hoisted(()=>({
-  read:vi.fn(),getCode:vi.fn(),getBlock:vi.fn(),getChainId:vi.fn()
+  readContract:vi.fn(),getCode:vi.fn(),getBlock:vi.fn(),getChainId:vi.fn()
 }));
 vi.mock('../src/server/chain',()=>({
   client:()=>rpc,
@@ -22,7 +22,7 @@ beforeEach(()=>{
  rpc.getChainId.mockReset().mockResolvedValue(8453);
  rpc.getCode.mockReset().mockResolvedValue('0x60006000');
  rpc.getBlock.mockReset().mockResolvedValue({number:block,hash:'0x'+'f'.repeat(64)});
- rpc.read.mockReset().mockImplementation(async ({functionName,args,blockNumber}:any)=>{
+ rpc.readContract.mockReset().mockImplementation(async ({functionName,args,blockNumber}:any)=>{
    if(blockNumber!==block)throw Error('INCONSISTENT_BLOCK');
    if(functionName==='supportsInterface')return args?.[0]==='0x80ac58cd';
    if(functionName==='ownerOf'){
@@ -65,7 +65,7 @@ describe('ERC721TL v4.1.2 read-only research path',()=>{
    expect(scan.tokens[2]).not.toHaveProperty('owner');
    expect(scan.transactionSigningEnabled).toBe(false);
    expect(scan.observedBlock).toBe(String(block));
-   expect(rpc.read.mock.calls.every(([call])=>call.blockNumber===block)).toBe(true);
+   expect(rpc.readContract.mock.calls.every(([call])=>call.blockNumber===block)).toBe(true);
  });
  it('bounds token probing and rejects wrong RPC chain',async()=>{
    await expect(scanErc721Candidates(8453,contract,1,100)).rejects.toThrow('12 IDs');

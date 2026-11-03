@@ -76,7 +76,7 @@ describe('ERC721TL mainnet mint dry-run: no wallet signing path',()=>{
  it('preserves ERC1155 credential and exact role authorization for its existing operations',()=>{
    const sign=readFileSync('src/app/api/media-upload/sign/route.ts','utf8');
    expect(sign).toContain("args.standard==='ERC721TL'");
-   expect(sign).toContain('await authorize(args.chainId,args.contract,s.wallet)');
+   expect(sign).toContain('await authorize(args.chainId, args.contract, s.wallet)');
    const api=readFileSync('src/app/api/route.ts','utf8');
    expect(api).toContain("op === 'metadata_pin_erc721'");
    expect(api).toContain("op === 'preview_erc721_mint'");

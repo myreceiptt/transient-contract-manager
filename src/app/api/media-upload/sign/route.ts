@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { checkOrigin, errorHeaders, readBody } from '@/server/security';
 import { session, requireSessionChain } from '@/server/auth';
 import { authorize } from '@/server/chain';
-import { inspectErc721Candidate } from '@/server/erc721-probe';
+import { assertErc721DraftAuthor } from '@/server/erc721-mint-preview';
 import { acquireSlot, rateLimit } from '@/server/abuse';
 import { AppError, addressSchema, chainSchema } from '@/lib/domain';
 
@@ -37,9 +37,7 @@ export async function POST(req: NextRequest) {
     const args = requestSchema.parse(await readBody(req));
     requireSessionChain(s, args.chainId);
     if(args.standard==='ERC721TL'){
-      const info=await inspectErc721Candidate(args.chainId,args.contract,s.wallet);
-      if(info.walletRole!=='owner'&&info.walletRole!=='admin')
-        throw new AppError('ERC721_ADMIN_REQUIRED','Collection owner or ADMIN_ROLE required to upload artwork',403);
+      await assertErc721DraftAuthor(args.chainId,args.contract,s.wallet);
     } else {
       await authorize(args.chainId,args.contract,s.wallet);
     }

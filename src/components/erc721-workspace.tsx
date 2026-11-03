@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, ExternalLink, RefreshCw, ShieldCheck, Gavel, Layers3 } from 'lucide-react';
 import { useConnection } from './providers';
 import { Erc721Inspector } from './erc721-inspector';
+import { Erc721CreateDraftStudio } from './erc721-create-draft-studio';
 import { api, short } from '@/lib/api-client';
 import { getChain, explorer } from '@/lib/chains';
 import { Loading, Notice } from './shell';
@@ -92,15 +93,22 @@ export function Erc721Workspace(){
           <div className="section-top"><h2>Workspace readiness</h2><ShieldCheck size={19}/></div>
           <p>Inspection and ownership lookups are available. Creator minting
             requires a verified codehash, version-specific ABI, owner/admin
-            simulation, explicit wallet review and confirmed on-chain results.</p>
+            simulation, explicit wallet review and confirmed on-chain results.
+            The Tokens &amp; Editions studio can now pin unique metadata and
+            run a transaction-free mint simulation. Actual minting remains disabled.</p>
           <button className="button secondary" onClick={()=>setTab('Tokens & Editions')}>
             View 1 of 1 NFTs
           </button>
         </section>
       </>}
-      {tab==='Tokens & Editions'&&<Suspense fallback={<Loading/>}>
-        <Erc721Inspector mode="workspace"/>
-      </Suspense>}
+      {tab==='Tokens & Editions'&&<>
+        <Suspense fallback={<Loading/>}>
+          <Erc721Inspector mode="workspace"/>
+        </Suspense>
+        {isAdmin&&<Erc721CreateDraftStudio
+          key={info.contract+'-'+String(info.inspectedWallet)}
+          chainId={chainId} contract={info.contract} owner={info.owner} role={role}/>}
+      </>}
       {tab==='Mint Pages'&&<section className="panel erc721-coming">
         <div className="section-top"><h2>Primary Mint Pages · TLStacks721</h2><Layers3 size={20}/></div>
         <p>A TLStacks721 drop configures sales at the <strong>collection level</strong>,

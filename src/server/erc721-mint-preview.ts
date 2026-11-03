@@ -19,24 +19,38 @@ export const mintDryRunAbi=parseAbi([
   'function mint(address recipient,string uri)',
 ]);
 
+/**
+ * Limits public-IPFS creator capabilities to the observed official 4.1.2
+ * Ethereum runtime and a currently verified owner/admin. This is NOT a
+ * permission to mint. Nonmatching/older versions remain read-only.
+ */
+export async function assertErc721DraftAuthor(chainId:number,contract:Address,wallet:Address){
+  if(chainId!==1)throw new AppError('ERC721_CHAIN_SCOPE',
+    'ERC721 creator draft capabilities currently support Ethereum Mainnet only',403);
+  const info=await inspectErc721Candidate(chainId,getAddress(contract),getAddress(wallet));
+  if(info.version!=='4.1.2' ||
+     info.implementation.toLowerCase()!==MAINNET_ERC721_V412_IMPLEMENTATION ||
+     info.implementationCodeHash!==OBSERVED_V412_IMPLEMENTATION_CODEHASH ||
+     info.proxy!==true)
+    throw new AppError('ERC721_RUNTIME_NOT_APPROVED',
+      'ERC721TL runtime does not match the restricted creator-draft candidate',403);
+  if(info.walletRole!=='owner'&&info.walletRole!=='admin')
+    throw new AppError('ERC721_ADMIN_REQUIRED',
+      'Current Ethereum owner or ADMIN_ROLE permission required for creator drafts',403);
+  return info;
+}
+
 export async function previewErc721Mint(
   chainId:number,contract:Address,caller:Address,recipient:Address,uri:string
 ){
-  if(chainId!==1)throw new AppError('ERC721_CHAIN_SCOPE','ERC721 mint dry-runs currently support Ethereum Mainnet only',400);
+
   const metadata=uri.trim();
   if(metadata!==uri || metadata.length>2048 ||
     !/^ipfs:\/\/(?:ipfs\/)?[A-Za-z0-9]{40,}(?:\/[A-Za-z0-9._~!$&'()*+,;=:@%-]*)?$/.test(metadata))
     throw new AppError('INVALID_METADATA_URI','Pin original NFT JSON to IPFS before requesting a mint simulation',400);
   const c=client(chainId);
   await exactChain(c,chainId);
-  const info=await inspectErc721Candidate(chainId,getAddress(contract),getAddress(caller));
-  if(info.version!=='4.1.2' ||
-     info.implementation.toLowerCase()!==MAINNET_ERC721_V412_IMPLEMENTATION ||
-     info.implementationCodeHash!==OBSERVED_V412_IMPLEMENTATION_CODEHASH ||
-     info.proxy!==true)
-    throw new AppError('ERC721_RUNTIME_NOT_APPROVED','Exact ERC721TL v4.1.2 mainnet runtime does not match the reviewed dry-run candidate',403);
-  if(info.walletRole!=='owner'&&info.walletRole!=='admin')
-    throw new AppError('ERC721_ADMIN_REQUIRED','Caller does not hold owner or ADMIN_ROLE at the observed block',403);
+  const info=await assertErc721DraftAuthor(chainId,contract,caller);
   const locked=await c.readContract({address:getAddress(contract),abi:mintDryRunAbi,
     functionName:'supplyLocked',blockNumber:BigInt(info.observedBlock)});
   if(locked)throw new AppError('ERC721_SUPPLY_LOCKED','The owner/admin has permanently locked additional NFT supply',403);

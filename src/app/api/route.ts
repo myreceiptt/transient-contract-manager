@@ -1,3 +1,4 @@
+import { previewErc721Mint } from '@/server/erc721-mint-preview';
 import { detectCollection } from '@/server/collection-router';
 import { inspectErc721Candidate,scanErc721Candidates,diagnoseErc721Candidate } from '@/server/erc721-probe';
 import { readCollectionProfile,saveCollectionProfile,pinCollectionProfile } from '@/server/collection-profile';
@@ -139,6 +140,14 @@ export async function POST(req: NextRequest) {
          const a=identity.parse(p);
          requireSessionChain(s,a.chainId);
          result=await pinCollectionProfile(a.chainId,a.contract,p.data,s,req.signal);
+       }
+       else if (op === 'preview_erc721_mint') {
+         const args=identity.extend({
+           recipient:addressSchema,
+           uri:z.string().min(46).max(2048),
+         }).parse(p);
+         requireSessionChain(s,args.chainId);
+         result=await previewErc721Mint(args.chainId,args.contract,s.wallet,args.recipient,args.uri);
        }
        else if (op === 'metadata_pin') {
         const args = identity.parse(p);

@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     if(args.standard==='ERC721TL'){
       await assertErc721DraftAuthor(args.chainId,args.contract,s.wallet);
     } else {
-      await authorize(args.chainId,args.contract,s.wallet);
+      await authorize(args.chainId, args.contract, s.wallet);
     }
     const jwt = process.env.PINATA_JWT;
     if (!jwt) throw new AppError('UPLOAD_NOT_CONFIGURED', 'IPFS upload service is not configured', 503);

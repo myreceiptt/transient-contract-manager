@@ -37,7 +37,7 @@ export function operationBudget(op: string): Budget {
   if (['challenge', 'login', 'logout'].includes(op)) return 'auth';
   if (op === 'inventory' || op === 'mint_inventory' || op === 'scan_erc721') return 'inventory';
   if (op === 'metadata') return 'metadata';
-  if (['inspect', 'currency', 'balance', 'public', 'public_collectors','collection_profile_read','inspect_erc721','diagnose_erc721'].includes(op)) return 'public';
+  if (['detect_collection', 'inspect', 'currency', 'balance', 'public', 'public_collectors','collection_profile_read','inspect_erc721','diagnose_erc721'].includes(op)) return 'public';
   if (
     [
       'preview_admin',

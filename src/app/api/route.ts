@@ -1,4 +1,5 @@
 import { previewErc721Mint, assertErc721DraftAuthor } from '@/server/erc721-mint-preview';
+import { readErc721MarketStatus } from '@/server/erc721-market-observer';
 import { detectCollection } from '@/server/collection-router';
 import { inspectErc721Candidate,scanErc721Candidates,diagnoseErc721Candidate } from '@/server/erc721-probe';
 import { readCollectionProfile,saveCollectionProfile,pinCollectionProfile } from '@/server/collection-profile';
@@ -85,6 +86,10 @@ export async function POST(req: NextRequest) {
     } else if (op === 'inspect_erc721') {
       const a=erc721Identity.extend({wallet:addressSchema.optional()}).parse(p);
       result=await inspectErc721Candidate(a.chainId,a.contract,a.wallet);
+    } else if (op === 'read_erc721_market') {
+      const a=erc721Identity.extend({tokenId:positive.optional()}).parse(p);
+      result=await readErc721MarketStatus(a.chainId,a.contract,
+        a.tokenId===undefined?undefined:BigInt(a.tokenId));
     } else if (op === 'diagnose_erc721') {
       const a=erc721Identity.parse(p);
       result=await diagnoseErc721Candidate(a.chainId,a.contract);

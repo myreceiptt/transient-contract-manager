@@ -37,6 +37,10 @@ The separate [1 of 1 and AuctionHouse readiness plan](docs/AUCTION_1OF1_READINES
 describes required ERC721TL runtime verification, escrowed NFT listing, bidder funds, refunds, fee and settlement checks.
 Neither planning documents nor `src/lib/auction-planning.ts` enable a transaction.
 
+## ERC721TL mainnet draft preparation
+
+An owner/admin of a recognized **ERC721TL v4.1.2** collection can prepare artwork and metadata IPFS pins through the new 1 of 1 studio and run a **transaction-free** `mint(address,string)` dry-run. This preview requires official creator implementation address + observed codehash + admin role + unlocked supply and is **not** a writer runtime allowlist. There is no ERC721 mint/sign endpoint yet. The existing ERC1155 upload and writes remain unchanged.
+
 ## Local read-only workspace
 
 Requirements: Node 22–24, npm, network access to chain RPCs. Node 24 is the tested runtime.

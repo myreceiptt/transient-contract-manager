@@ -53,6 +53,14 @@ This manager **must not redeploy, recreate, migrate, or take ownership of the cu
 - [ ] UI: Collection Overview, 1 of 1 token cards, Collection Settings/Collection Profile, role-separated admin and collector views.
 - [ ] Negative tests: wrong network, wrong bytecode, 1155 masquerading as 721, nonexistent/burned token, partial index.
 
+### Delivered Phase-B preparation: IPFS and transaction-free mint preview
+
+A separate `ERC721 Create 1 of 1` draft form in the ERC-721 Tokens & Editions tab can now (for a verified owner/admin SIWE session):
+- Upload original JPG/PNG/WebP artwork to public IPFS with signed capability scoped to the exact ERC721 collection and owner/admin wallet (existing ERC1155 upload authorization remains unchanged).
+- Validate/pin NFT JSON metadata to public IPFS using the same immutable metadata validator as the existing edition studio.
+- Set a recipient wallet and run a **read-only mainnet simulation** of `mint(address,string)` at a coherent observed block. The simulation requires chain 1, ERC721TL v4.1.2, EIP1167 implementation matching the official release manifest `0xea573d90cfd624bed1344a7a7eb44785ae1ad540`, candidate runtime hash `0x3ef32f426fbb9aadd50d894e5c9a8cfea059f7c02106e692e871508da62b05f4`, current owner/ADMIN_ROLE and `supplyLocked()==false`. Any mismatch fails closed.
+- This source/implementation and observed hash pair currently gates **simulation only**. No mint intent, wallet transaction, NFT transfer, or on-chain write API exists. Actual execution requires stronger independently reproducible deployed-runtime attestation, review, nonce/finality handling, and explicit separate user authorization.
+
 ### Phase B — Create 1 of 1
 
 - [ ] Extend metadata/image/IPFS studio for unique ERC-721 mint, recipient wallet and optional token royalty.

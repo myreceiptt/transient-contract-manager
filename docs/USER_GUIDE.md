@@ -33,13 +33,13 @@ Pinned creator implementation: `0x079e23352721084561fb241593d16a4e6f548a97`. Pin
 ## 2. Enter a collection and authenticate
 
 1. Open **Collections → Open a collection** and select its actual chain.
-2. Paste the **ERC1155TL creator collection contract address**, not an owner wallet, Stacks contract or auction contract.
-3. Select **Start managing**. The server verifies chain ID, creator bytecode, implementation version and required ERC-1155 interface. Unsupported contracts are rejected.
+2. Paste an existing **ERC1155TL or ERC721TL creator collection contract address**, not an owner wallet, shared Stacks deployment or AuctionHouse contract.
+3. Select **Open collection**. The server detects ERC-721 versus ERC-1155 using ERC-165 and verifies the relevant version/implementation. **ERC1155TL** opens the existing verified management workspace. **ERC721TL 3.6.0 or 4.1.2** opens its dedicated **read-only** collection workspace; no mint or auction transaction is available until runtime verification is complete.
 4. Connect an injected EVM wallet on the same chain. Read-only inspection needs no wallet signature; editing requires the contract owner or an on-chain ADMIN_ROLE wallet.
 5. Complete the app's gasless SIWE sign-in when prompted. This is not an approval of a contract transaction. The server rechecks owner/admin authority for changes.
 6. Keep enough native network currency for any explicitly signed blockchain operation; IPFS service availability and fees are distinct from gas.
 
-## 3. Understand the five workspace tabs
+## 3. Understand the collection workspaces
 
 - **Overview:** verified name, symbol, owner/admin, token type count, contract adapter, and the optional **app-managed Collection Profile** visual.
 - **Tokens & Editions:** **Where every edition begins.** NFT-card catalogue with **Create Token**, **Create Batch**, and contextual **Manage Token** (metadata, mint/airdrop, royalty, current ownership balance).
@@ -47,7 +47,7 @@ Pinned creator implementation: `0x079e23352721084561fb241593d16a4e6f548a97`. Pin
 - **Collection Settings:** **The foundation of every edition.** Cards for **Collection Profile**, **Collection Identity**, **Ownership & Access** (read-only), **Collection Royalties**, **Stacks Mint Permission**, and **Advanced On-chain Information**.
 - **Transactions:** saved transaction reviews, tx hashes, replacement/cancellation handling and finality confirmation.
 
-The tabs share verified collection identity, but **saving an off-chain document is not the same as signing an on-chain transaction**.
+The tabs share verified collection identity, but **saving an off-chain document is not the same as signing an on-chain transaction**. ERC721TL uses a separate workspace with **Overview, Tokens & Editions, Mint Pages, Auctions, Collection Settings and Transactions**. Its 1 of 1 inventory is currently read-only: Mint Pages and Auctions explain pending authorizations without enabling signatures. The **Contract Checker** provides two vertically stacked forms: **01 — 1 of 1 Collection (ERC721TL)** and **02 — Editions Collection (ERC1155TL)**.
 
 ## 4. Create and manage ERC-1155 token editions
 
@@ -122,7 +122,7 @@ VERSION 3.6.0 or 4.1.2; its bytecode, roles, permissions and sale contracts must
 verified. User-facing mainnet actions require simulation, explicit signatures,
 receipts and readback. No secret keys are ever requested.
 
-A **read-only ERC721TL Compatibility Inspector** is available at `/erc721`. It checks the official v3.6.0 and v4.1.2 VERSION baselines, ERC-165/ERC-721 interface, and allows bounded 12-Token-ID windows for `ownerOf` and `tokenURI` reads. Source v3.6.0 uses `totalSupply()` as a minted-ID counter (including burns), while v4.1.2 subtracts burned tokens. Both remain **runtime-unverified for transactions**. It deliberately reports **RUNTIME UNVERIFIED** until the exact deployed implementation's codehash is independently pinned. It does not authorize mint, transfer, listing, bidding or settlement.
+The universal homepage opens recognized ERC721TL collections in `/manage-721`, and a **read-only ERC721TL Compatibility Inspector** remains available at `/erc721` and within Contract Checker. It checks the official v3.6.0 and v4.1.2 VERSION baselines, ERC-165/ERC-721 interface, and allows bounded 12-Token-ID windows for `ownerOf` and `tokenURI` reads. Source v3.6.0 uses `totalSupply()` as a minted-ID counter (including burns), while v4.1.2 subtracts burned tokens. Both remain **runtime-unverified for transactions**. It deliberately reports **RUNTIME UNVERIFIED** until the exact deployed implementation's codehash is independently pinned. It does not authorize mint, transfer, listing, bidding or settlement.
 
 **None of these actions can yet be performed in this app.** The future ERC-721 track requires its own allowlisted creator adapter and auction runtime.
 

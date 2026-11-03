@@ -56,6 +56,7 @@ export function operationBudget(op: string): Budget {
     return 'transaction';
   if (
     [
+      'metadata_pin_erc721',
       'session',
       'pages',
       'page',

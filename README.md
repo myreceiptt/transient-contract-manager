@@ -32,7 +32,7 @@ contract, as it already does for ERC1155TL. Testnet deployment is optional,
 not an onboarding dependency. Automated Anvil/fork testing is internal safety
 verification. No creator NFT is redeployed or reassigned to this app.
 
-A **read-only ERC721TL Compatibility Inspector** is available at `/erc721` for v3.6.0 and v4.1.2 interface/owner/tokenURI research. For v3.6.0, `totalSupply()` includes burned Token IDs; v4.1.2 subtracts burns. Its source runtime is **not yet approved**; its result cannot authorize mint, listing, bid or settlement.
+The homepage now uses one universal address form and a fail-closed ERC-165/version detector: **verified ERC1155TL** opens `/manage`; **recognized ERC721TL** opens `/manage-721` (read-only). Contract Checker has two dedicated forms. A **read-only ERC721TL Compatibility Inspector** is also available at `/erc721` for v3.6.0 and v4.1.2 interface/owner/tokenURI research. For v3.6.0, `totalSupply()` includes burned Token IDs; v4.1.2 subtracts burns. Its source runtime is **not yet approved**; its result cannot authorize mint, listing, bid or settlement.
 The separate [1 of 1 and AuctionHouse readiness plan](docs/AUCTION_1OF1_READINESS.md)
 describes required ERC721TL runtime verification, escrowed NFT listing, bidder funds, refunds, fee and settlement checks.
 Neither planning documents nor `src/lib/auction-planning.ts` enable a transaction.

@@ -6,6 +6,7 @@ import { ArrowLeft, ExternalLink, RefreshCw, ShieldCheck, Gavel, Layers3 } from 
 import { useConnection } from './providers';
 import { Erc721Inspector } from './erc721-inspector';
 import { Erc721CreateDraftStudio } from './erc721-create-draft-studio';
+import { Erc721MarketStatus } from './erc721-market-status';
 import { api, short } from '@/lib/api-client';
 import { getChain, explorer } from '@/lib/chains';
 import { Loading, Notice } from './shell';
@@ -117,6 +118,7 @@ export function Erc721Workspace(){
         <Notice>Configuration, wallet approval, collector payment and closeDrop
           remain unavailable until the exact TLStacks721 runtime and creator
           mint permission are independently verified.</Notice>
+        <Erc721MarketStatus chainId={chainId} contract={contract} view="stacks"/>
       </section>}
       {tab==='Auctions'&&<section className="panel erc721-coming">
         <div className="section-top"><h2>Secondary Auctions · TLAuctionHouse</h2><Gavel size={20}/></div>
@@ -125,6 +127,7 @@ export function Erc721Workspace(){
           approve the verified AuctionHouse and explicitly accept ERC-721 escrow.</p>
         <Notice>Listing, bidding, buy now, delisting and settlement are still
           disabled. No asset transfer or ETH payment is initiated here.</Notice>
+        <Erc721MarketStatus chainId={chainId} contract={contract} view="auction"/>
       </section>}
       {tab==='Collection Settings'&&<section className="panel">
         <div className="section-top"><h2>Collection Settings</h2>

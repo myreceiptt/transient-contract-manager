@@ -11,7 +11,7 @@ import { erc721CandidateChains,localChain,explorer } from '@/lib/chains';
 
 type TokenItem={tokenId:string;status:'OWNED'|'UNKNOWN_OR_BURNED';owner?:string;
   tokenUri?:string|null;metadataStatus?:string;message?:string};
-export function Erc721Inspector(){
+export function Erc721Inspector({mode='standalone'}:{mode?:'standalone'|'checker'|'workspace'}={}){
   const router=useRouter(),query=useSearchParams();
   const {address}=useConnection();
   const [chainId,setChainId]=useState(1);
@@ -32,7 +32,7 @@ export function Erc721Inspector(){
       const result=await api('inspect_erc721',{chainId:id,contract:contractAddress,wallet:addressForRole});
       setCollection(result);setChainId(id);setContract(contractAddress);
       const url='/erc721?chain='+id+'&contract='+encodeURIComponent(contractAddress.toLowerCase());
-      router.replace(url,{scroll:false});
+      if(mode==='standalone')router.replace(url,{scroll:false});
     }catch(e){
       setError((e as Error).message);
       try {
@@ -77,18 +77,18 @@ export function Erc721Inspector(){
   }
   const chains=[...erc721CandidateChains,...(process.env.NEXT_PUBLIC_LOCAL_CHAIN_ENABLED==='true'?[localChain]:[])];
   return <div className="erc721-inspector">
-    <Link href="/" className="text-link back-link"><ArrowLeft size={15}/> All collections</Link>
-    <div className="page-heading compact-heading">
-      <div>
-        <span className="eyebrow">ERC721TL · PHASE A COMPATIBILITY INSPECTOR</span>
+    {mode==='standalone'&&<>
+      <Link href="/" className="text-link back-link"><ArrowLeft size={15}/> All collections</Link>
+      <div className="page-heading compact-heading"><div>
+        <span className="eyebrow">ERC721TL · READ-ONLY INSPECTOR</span>
         <h1>Every original. One owner.</h1>
-        <p className="lead">Read-only inspection of ERC721TL collections deployed through Transient Lab,
-          including Ethereum Mainnet. No mint, approval, listing, bidding or settlement is enabled here.</p>
-      </div>
-    </div>
-    <section className="panel">
-      <div className="section-top"><h2>Inspect an ERC-721 collection</h2>
-        <span className="tag">READ-ONLY</span></div>
+        <p className="lead">Read-only ERC721TL contract and Token ID exploration on Ethereum Mainnet.
+          No mint, approval, listing, bidding or settlement is enabled here.</p>
+      </div></div>
+    </>}
+    {mode!=='workspace'&&<section className="panel">
+      <div className="section-top"><h2>{mode==='checker'?'01 — 1 of 1 Collection':'Inspect an ERC-721 collection'}</h2>
+        <span className="tag">ERC721TL · READ-ONLY</span></div>
       <form className="checker-form" onSubmit={e=>{e.preventDefault();void inspect(chainId,contract);}}>
         <label>Network
           <select value={chainId} onChange={e=>setChainId(Number(e.target.value))}>
@@ -135,9 +135,11 @@ export function Erc721Inspector(){
           View contract on block explorer <ExternalLink size={13}/>
         </a>
       </section>}
-    </section>
+    </section>}
+    {mode==='workspace'&&busy&&<Loading label="Reading on-chain ERC721 collection…"/>}
+    {mode==='workspace'&&error&&<Notice type="error">{error}</Notice>}
     {collection && <>
-      <section className="panel">
+      {mode!=='workspace'&&<section className="panel">
         <div className="section-top"><div>
           <span className="eyebrow">ERC-721 · SOURCE INTERFACE CANDIDATE</span>
           <h2>{collection.name} <span className="muted">{collection.symbol}</span></h2>
@@ -169,15 +171,20 @@ export function Erc721Inspector(){
               :'ERC721TL v4.1.2 subtracts burned tokens. Neither value is a sale allocation or guaranteed maximum Token ID.'}</small></dd>
           <dt>Read block</dt><dd className="mono">{collection.observedBlock}</dd>
         </dl>
-      </section>
+      </section>}
       <section className="panel">
         <div className="section-top">
-          <div><h2>Explore Token IDs</h2>
+          <div><h2>{mode==='workspace'?'1 of 1 NFT Catalogue':'Explore Token IDs'}</h2>
           <p className="muted">Scan a bounded 12-ID window, including missing/burned IDs.
             Each owned token is checked with ERC-721 ownerOf and tokenURI.</p></div>
           <LockKeyhole color="#76816c" size={20}/>
         </div>
-        <form className="checker-form" onSubmit={e=>{e.preventDefault();void scan(start);}}>
+        {BigInt(collection.totalSupply)===0n&&<div className="erc721-empty-state">
+          <strong>No NFT minted yet</strong>
+          <p>This collection currently reports zero minted 1 of 1 NFTs.
+            Create 1 of 1 remains unavailable until exact runtime and admin-write simulation pass.</p>
+        </div>}
+        {BigInt(collection.totalSupply)>0n&&<form className="checker-form" onSubmit={e=>{e.preventDefault();void scan(start);}}>
           <label>First Token ID
             <input type="number" min="1" max="100000000" step="1" value={start}
               onChange={e=>setStart(Number(e.target.value))}/>
@@ -185,7 +192,7 @@ export function Erc721Inspector(){
           <button className="button secondary" disabled={scanning}>
             <RefreshCw size={15}/> {scanning?'Reading…':'Read 12 Token IDs'}
           </button>
-        </form>
+        </form>}
         {scanError && <Notice type="error">{scanError}</Notice>}
         {scanning && <Loading label="Inspecting ownership and metadata at a consistent block…"/>}
         {tokens.length>0 && <div className="token-grid">
@@ -217,8 +224,8 @@ export function Erc721Inspector(){
           not an exhaustive holder index. A reverted ownerOf call is never treated as a zero balance.
           Full Transfer-event indexing and codehash allowlisting are pending.</p>
       </section>
-      <Notice>TLStacks721 primary Mint Pages and TLAuctionHouse collector auctions
-        remain disabled until their exact chain runtimes and test transactions are verified.</Notice>
+      {mode!=='workspace'&&<Notice>TLStacks721 primary Mint Pages and TLAuctionHouse collector auctions
+        remain disabled until their exact chain runtimes and test transactions are verified.</Notice>}
     </>}
   </div>;
 }

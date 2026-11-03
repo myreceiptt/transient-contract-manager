@@ -1,3 +1,4 @@
+import { detectCollection } from '@/server/collection-router';
 import { inspectErc721Candidate,scanErc721Candidates,diagnoseErc721Candidate } from '@/server/erc721-probe';
 import { readCollectionProfile,saveCollectionProfile,pinCollectionProfile } from '@/server/collection-profile';
 import { publicCollectorData } from '@/server/collector-intelligence';
@@ -72,7 +73,10 @@ export async function POST(req: NextRequest) {
     if (op === 'login') return await login(req, p);
     if (op === 'logout') return await logout(req);
     let result: unknown;
-    if (op === 'inspect') {
+    if (op === 'detect_collection') {
+      const a=identity.extend({wallet:addressSchema.optional()}).parse(p);
+      result=await detectCollection(a.chainId,a.contract,a.wallet);
+    } else if (op === 'inspect') {
       const args = identity
         .extend({ wallet: addressSchema.optional(), tokenId: positive.optional() })
         .parse(p);

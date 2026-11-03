@@ -678,6 +678,19 @@ export default function Guide() {
           verified execution allowlist. It provides <strong>no</strong>
           minting, permissions, transfers or auction transaction controls.
           The supported ERC1155TL manager remains separate.</p>
+        <h3>Phase B preparation: metadata and simulated mint</h3>
+        <p>For an ERC721TL v4.1.2 collection opened through the universal
+          homepage, the <strong>Tokens &amp; Editions</strong> tab includes
+          a restricted <strong>Prepare an original NFT</strong> studio
+          for wallets with verified owner or ADMIN_ROLE. You may upload original
+          artwork, pin a validated NFT JSON to IPFS, choose its future recipient
+          and run a <strong>read-only Ethereum Mainnet mint simulation</strong>.
+          IPFS files become public and immutable when pinned; simulation itself
+          does not create or reserve any NFT, charge gas or sign a transaction.
+          A dry-run requires the exact observed official implementation
+          candidate, matching codehash, current caller authority and unlocked
+          supply. Actual minting remains disabled until an independently
+          verified write adapter and wallet review are deployed.</p>
         <h3>A. 1 of 1 NFT creation (planned ERC721TL v3.6.0 / v4.1.2)</h3>
         <ol className="guide-steps">
           <li>Allowlist ERC721TL only after reproducible runtime/ABI,

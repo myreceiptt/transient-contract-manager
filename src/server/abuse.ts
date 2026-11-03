@@ -40,6 +40,7 @@ export function operationBudget(op: string): Budget {
   if (['detect_collection', 'inspect', 'currency', 'balance', 'public', 'public_collectors','collection_profile_read','inspect_erc721','diagnose_erc721'].includes(op)) return 'public';
   if (
     [
+      'preview_erc721_mint',
       'preview_admin',
       'prepare_admin',
       'preview_collector_quote',

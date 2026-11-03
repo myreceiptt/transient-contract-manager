@@ -149,6 +149,14 @@ export async function POST(req: NextRequest) {
          requireSessionChain(s,args.chainId);
          result=await previewErc721Mint(args.chainId,args.contract,s.wallet,args.recipient,args.uri);
        }
+       else if (op === 'metadata_pin_erc721') {
+         const args=identity.parse(p);
+         requireSessionChain(s,args.chainId);
+         const info=await inspectErc721Candidate(args.chainId,args.contract,s.wallet);
+         if(info.walletRole!=='owner'&&info.walletRole!=='admin')
+           throw new AppError('ERC721_ADMIN_REQUIRED','Owner or ADMIN_ROLE is required to pin creator metadata',403);
+         result=await pinTokenMetadata(p.metadata,req.signal);
+       }
        else if (op === 'metadata_pin') {
         const args = identity.parse(p);
         requireSessionChain(s, args.chainId);

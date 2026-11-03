@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { Erc721Inspector } from './erc721-inspector';
 import { useConnection } from './providers';
 import { targetChains, GO1, explorer, localChain } from '@/lib/chains';
 import { api } from '@/lib/api-client';
@@ -70,10 +71,20 @@ export function Checker() {
         <div>
           <div className="eyebrow">READ-ONLY INSPECTION</div>
           <h1>Contract Checker</h1>
-          <p className="lead">See what the chain says. No wallet signature required.</p>
+          <p className="lead">Inspect 1 of 1 and Editions contracts separately. No wallet signature required.</p>
         </div>
       </div>
+      <Suspense fallback={<Loading label="Opening 1 of 1 Inspector…" />}>
+        <Erc721Inspector mode="checker" />
+      </Suspense>
       <section className="panel">
+        <div className="section-top">
+          <div>
+            <h2>02 — Editions Collection</h2>
+            <p className="muted">Verified ERC1155TL editions and collection permissions, including TLStacks1155.</p>
+          </div>
+          <span className="tag">ERC1155TL · VERIFIED</span>
+        </div>
         <form
           className="checker-form"
           onSubmit={async (e) => {

@@ -20,7 +20,7 @@ describe('Complete in-app creator guide', () => {
   });
   it('documents current collection UI and verified adapters', () => {
     for (const name of [
-      'Start managing', 'Contract Checker', 'Metadata Studio',
+      'Open collection', 'Contract Checker', 'Metadata Studio',
       'Pin metadata JSON to IPFS', 'Create Token', 'Mint / Airdrop',
       'Create multiple Token IDs', 'Tokens &amp; Editions', 'Collection Settings',
       'Collection Profile', 'Collection Royalties', 'Stacks Mint Permission',

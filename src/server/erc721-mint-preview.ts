@@ -1,4 +1,4 @@
-import { getAddress, keccak256, parseAbi, type Address } from 'viem';
+import { getAddress, parseAbi, type Address } from 'viem';
 import { AppError, serializable } from '../lib/domain';
 import { client, exactChain } from './chain';
 import { inspectErc721Candidate } from './erc721-probe';

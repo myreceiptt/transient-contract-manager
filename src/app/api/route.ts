@@ -1,4 +1,4 @@
-import { previewErc721Mint } from '@/server/erc721-mint-preview';
+import { previewErc721Mint, assertErc721DraftAuthor } from '@/server/erc721-mint-preview';
 import { detectCollection } from '@/server/collection-router';
 import { inspectErc721Candidate,scanErc721Candidates,diagnoseErc721Candidate } from '@/server/erc721-probe';
 import { readCollectionProfile,saveCollectionProfile,pinCollectionProfile } from '@/server/collection-profile';
@@ -152,9 +152,7 @@ export async function POST(req: NextRequest) {
        else if (op === 'metadata_pin_erc721') {
          const args=identity.parse(p);
          requireSessionChain(s,args.chainId);
-         const info=await inspectErc721Candidate(args.chainId,args.contract,s.wallet);
-         if(info.walletRole!=='owner'&&info.walletRole!=='admin')
-           throw new AppError('ERC721_ADMIN_REQUIRED','Owner or ADMIN_ROLE is required to pin creator metadata',403);
+         await assertErc721DraftAuthor(args.chainId,args.contract,s.wallet);
          result=await pinTokenMetadata(p.metadata,req.signal);
        }
        else if (op === 'metadata_pin') {

@@ -78,6 +78,10 @@ A separate `ERC721 Create 1 of 1` draft form in the ERC-721 Tokens & Editions ta
 - [ ] Prepare/confirm `configureDrop`, public `purchase`, close/reconfigure; verify minted ERC-721 Token IDs, recipients and URI events; don't mistake a 100-token planned drop for 100 already minted tokens.
 - [ ] Protect legacy TLStacks1155 Token-ID-scoped Mint Pages and lifecycle.
 
+### Delivered read-only Phase C/D protocol observations (feature branch)
+
+The 1 of 1 workspace now contains separate **Mint Pages → Read current protocol status** and **Auctions → Read current protocol status** panels. These read the collection-wide `getDropPhase(collection)` / `getDropRound(collection)` of the TLStacks721 2.3.1 **deployment candidate**, and the Token-ID-scoped `getListing(collection,tokenId)` / `getNextBid` of TLAuctionHouse 2.6.1 **deployment candidate**. The app checks reported `VERSION()`, observes code hashes at the same Ethereum mainnet block as the creator, and does not assume an empty listing is active. Nonexistent code, source-version mismatch and RPC failure fail closed. **These are not execution allowlists; no wallet signing, custody transfers, ETH payment, auction bids or mint transactions have been enabled.**
+
 ### Phase D — TLAuctionHouse read-only + wallet owner flows
 
 - [ ] Pin 2.6.1 source, ABI, deployed bytecode and list currency/fee settings chain by chain.

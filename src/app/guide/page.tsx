@@ -143,12 +143,19 @@ export default function Guide() {
           <li>On <Link href="/">Collections</Link>, open <strong>Open a collection</strong>.</li>
           <li>Choose the network where your NFT collection actually exists: Ethereum,
             Robinhood Chain, Base or Shape.</li>
-          <li>Paste your <strong>collection contract address</strong> into the field. Use the
-            ERC-1155 collection address, <em>not</em> your wallet address and <em>not</em>
-            the shared TLStacks1155 contract address.</li>
-          <li>Click <strong>Start managing</strong>. The app reads the collection and verifies
-            the bytecode, version and ERC-1155 interface. Your existing NFT and transactions
-            remain on their original chain.</li>
+          <li>Paste your <strong>collection contract address</strong> into the universal
+            form, not a wallet, TLStacks721/TLStacks1155 or AuctionHouse address.
+            The app automatically distinguishes ERC721TL (1 of 1) from ERC1155TL
+            (Editions) using read-only ERC-165 checks followed by the appropriate
+            version and implementation validation.</li>
+          <li>Choose <strong>Open collection</strong>. Verified ERC1155TL contracts
+            open the existing management workspace. Recognized ERC721TL v3.6.0
+            and v4.1.2 contracts open the dedicated <strong>read-only</strong>
+            collection workspace until their signing adapters are independently
+            verified. Existing NFT ownership never moves between contracts.</li>
+          <li>Under <strong>Contract Checker</strong>, inspect 1 of 1 collections
+            using the first ERC721TL form or Editions using the second ERC1155TL
+            form. Results and on-chain permissions are shown separately.</li>
           <li>Use the top-right <strong>Connect wallet</strong> control to choose your browser
             wallet. Switch the wallet to the same network as your collection.</li>
           <li>When you first save or prepare a privileged operation, sign the app&apos;s
@@ -644,7 +651,14 @@ export default function Guide() {
           opens the <em>existing</em> contract by address; it neither redeploys
           it nor transfers its ownership. Anvil/forked testing is for internal
           safety checks only: <strong>no user testnet deployment is required</strong>.</p>
-        <h3>Phase A: ERC721TL read-only Compatibility Inspector</h3>
+        <h3>Phase A: ERC721TL read-only Collection Workspace</h3>
+        <p>A single <strong>Open collection</strong> form now routes each supported
+          standard to its own workspace. ERC-721 uses familiar tabs:
+          Overview, Tokens &amp; Editions, Mint Pages, Auctions,
+          Collection Settings and Transactions. The latter sales and
+          administration tabs remain read-only until their exact runtime
+          is approved. Two separate read-only forms are also available on
+          <a href="/checker"> Contract Checker</a>.</p>
         <p>Use the <a href="/erc721">ERC721TL Compatibility Inspector</a> to
           read collection name, symbol, creator owner/admin wallets, supply
           and explicit Token ID windows (up to 12 IDs). For each existing

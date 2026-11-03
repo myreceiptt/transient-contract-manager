@@ -18,8 +18,8 @@ export function ContractEntry() {
     setBusy(true);
     setError('');
     try {
-      await api('inspect', { chainId: id, contract: c, wallet: address });
-      router.push(`/manage?chain=${id}&contract=${c.toLowerCase()}`);
+      const result = await api('detect_collection', { chainId: id, contract: c, wallet: address });
+      router.push(result.destination);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -56,7 +56,7 @@ export function ContractEntry() {
             <ShieldCheck size={19} />
           </div>
           <h2>Open a collection</h2>
-          <p>Connect as an owner or admin. Your on-chain role is your access.</p>
+          <p>Enter a verified Transient Labs collection address. We'll identify 1 of 1 or Editions automatically.</p>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -87,7 +87,7 @@ export function ContractEntry() {
               />
             </label>
             <button className="button wide" disabled={busy}>
-              {busy ? 'Checking contract…' : 'Start managing'}
+              {busy ? 'Checking contract type…' : 'Open collection'}
               <ArrowRight size={17} />
             </button>
           </form>
@@ -95,13 +95,7 @@ export function ContractEntry() {
           <small className="fineprint">
             Existing contracts stay exactly where they are. Nothing is redeployed.
           </small>
-          <div className="erc721-entry-note">
-            <strong>Have an ERC721TL 1 of 1 collection?</strong>
-            <p>If your owner deployed an ERC721TL collection through The Lab on Ethereum Mainnet, inspect its actual address and reported roles here. Minting and auctions are not enabled yet.</p>
-            <a className="button secondary compact" href="/erc721">
-              Inspect ERC721TL (read-only) <ArrowUpRight size={15}/>
-            </a>
-          </div>
+
         </section>
         <section className="reference-panel nota-profile-feature" aria-labelledby="nota-feature-heading">
           <div className="section-top">

@@ -106,6 +106,8 @@ If a wallet confirms but the app still shows PUBLISHING/SUBMITTED, go to **Trans
 
 ## 9. 1 of 1 creation and TLAuctionHouse auctions — preparation only
 
+**New Phase-B preparation (no on-chain writes):** An Ethereum ERC721TL v4.1.2 owner/admin can open **Tokens & Editions → Prepare an original NFT** in the read-only 721 workspace, upload JPG/PNG/WebP artwork, pin validated metadata JSON to immutable public IPFS, set a recipient and run an authenticated **Simulate ERC721TL mint (read-only)**. The simulation verifies the currently observed implementation/runtime candidate, supply lock and owner/admin role, and calls `simulateContract` at a pinned block. It does **not** sign, mint, allocate Token IDs, transfer ETH or modify the contract. Versions other than v4.1.2 are not enabled for this dry-run. Metadata and artwork pinned to IPFS are public; only pin them intentionally.
+
 **Mainnet-first deployment workflow:** The collection owner creates an ERC721TL contract
 through The Lab on **Ethereum Mainnet (chain ID 1)** and grants another wallet
 **ADMIN_ROLE**. The owner retains ownership. The ENDHONESA web app must manage

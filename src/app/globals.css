@@ -2177,3 +2177,18 @@ th { color: #c1c1c8; }
 .erc721-diagnostic dd{min-width:0;margin:0;overflow-wrap:anywhere;font-size:12px}
 .erc721-diagnostic .mono{word-break:break-word}
 @media(max-width:760px){.erc721-diagnostic{padding:14px}.erc721-diagnostic dl{grid-template-columns:1fr;gap:5px}.erc721-diagnostic dd{margin-bottom:9px}}
+
+/* ERC721 dedicated read-only workspace; shared visual language with ERC1155. */
+.erc721-overview-hero{display:grid;grid-template-columns:minmax(0,2fr) minmax(160px,1fr);
+  gap:24px;border:1px solid var(--line);background:var(--surface-raised,var(--panel));
+  border-radius:12px;margin:16px 0 24px;padding:24px}
+.erc721-overview-hero h2{margin:8px 0;font-size:clamp(24px,3.2vw,42px)}
+.erc721-overview-hero p{font-size:13px;line-height:1.7;color:var(--muted)}
+.erc721-overview-hero strong{display:block;font-size:clamp(32px,4vw,52px);line-height:1.2}
+.erc721-empty-state{padding:36px 22px;background:var(--surface-raised,#1b1b1d);
+  border:1px solid var(--line);border-radius:12px;margin:18px 0}
+.erc721-empty-state strong{font-size:18px}
+.erc721-empty-state p{max-width:670px;font-size:13px;line-height:1.7}
+.erc721-coming{display:grid;gap:14px}
+.erc721-coming p{max-width:920px;line-height:1.75}
+@media(max-width:720px){.erc721-overview-hero{grid-template-columns:1fr;padding:18px}}

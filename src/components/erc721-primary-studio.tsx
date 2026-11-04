@@ -3,6 +3,7 @@ import {useState} from 'react';
 import {Layers3,Eye,FilePenLine,ShieldAlert} from 'lucide-react';
 import {Erc721MarketStatus} from './erc721-market-status';
 import {Notice} from './shell';
+import {Artwork} from './safe-media';
 
 type Step='edit'|'preview'|'review';
 export function Erc721PrimaryStudio({chainId,contract,authorized}:{
@@ -91,6 +92,7 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
           </div>
         </div>
         <aside className="erc721-preview-panel">
+          {artwork&&<Artwork uri={artwork} alt={title||'Mint campaign cover preview'}/>}
           <Layers3 size={23}/><span className="eyebrow">CAMPAIGN DRAFT</span>
           <h3>{title||'Untitled collection drop'}</h3>
           <p>{description||'Campaign description will appear here.'}</p>
@@ -99,6 +101,7 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
         </aside>
       </div>}
       {step==='preview'&&<div className="erc721-preview-panel">
+        {artwork&&<Artwork uri={artwork} alt={title||'Campaign image'}/>}
         <span className="eyebrow">UNPUBLISHED · INTERNAL PREVIEW</span>
         <h2>{title||'Untitled primary mint campaign'}</h2>
         <p>{description||'No campaign description yet.'}</p>

@@ -76,9 +76,13 @@ describe('Unified navigation layout and ERC721 write isolation',()=>{
   it('shows contextual 721 workspace but does not silently enable creator or auction writes',()=>{
     const studio=readFileSync('src/components/erc721-workspace.tsx','utf8');
     const api=readFileSync('src/app/api/route.ts','utf8');
-    expect(studio).toContain("'Tokens & Editions','Mint Pages','Auctions'");
+    expect(studio).toContain("'Artworks & Tokens','Mint Pages','Auctions'");
+    expect(studio).toContain('Erc721PrimaryStudio');
+    expect(studio).toContain('Erc721AuctionStudio');
+    expect(studio).toContain('Erc721Settings');
+    expect(studio).toContain('Erc721Activity');
     expect(studio).toContain("api('inspect_erc721'");
-    expect(studio).toContain('ownerOf(tokenId)');
+    expect(readFileSync('src/components/erc721-auction-studio.tsx','utf8')).toContain("api('scan_erc721'");
     expect(studio).toContain('READ-ONLY');
     expect(api).toContain("op === 'detect_collection'");
     expect(api).not.toContain("op === 'prepare_erc721_mint'");

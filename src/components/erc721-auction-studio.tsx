@@ -6,6 +6,7 @@ import {api,short} from '@/lib/api-client';
 import {reviewAuctionProposalLocally} from '@/lib/auction-planning';
 import {Erc721MarketStatus} from './erc721-market-status';
 import {Loading,Notice} from './shell';
+import {Artwork} from './safe-media';
 
 type Ownership={tokenId:string;owner:string;observedBlock:string};
 const listingTypes=[
@@ -21,6 +22,7 @@ export function Erc721AuctionStudio({chainId,contract,wallet}:{
   const [tokenId,setTokenId]=useState('');
   const [ownership,setOwnership]=useState<Ownership>();
   const [ownerError,setOwnerError]=useState('');
+  const [tokenMetadata,setTokenMetadata]=useState<any>();
   const [checking,setChecking]=useState(false);
   const [listingType,setListingType]=useState<string>('RESERVE_AUCTION');
   const [payoutReceiver,setPayoutReceiver]=useState(wallet||'');
@@ -30,11 +32,11 @@ export function Erc721AuctionStudio({chainId,contract,wallet}:{
   const [proposal,setProposal]=useState<ReturnType<typeof reviewAuctionProposalLocally>>();
   const [proposalError,setProposalError]=useState('');
   useEffect(()=>{
-    setOwnership(undefined);setProposal(undefined);setPayoutReceiver(wallet||'');
+    setOwnership(undefined);setProposal(undefined);setTokenMetadata(undefined);setPayoutReceiver(wallet||'');
   },[wallet,contract,chainId]);
   function clearReview(){setProposal(undefined);setProposalError('');}
   async function lookupOwnership(){
-    setChecking(true);setOwnerError('');setOwnership(undefined);clearReview();
+    setChecking(true);setOwnerError('');setOwnership(undefined);setTokenMetadata(undefined);clearReview();
     try {
       if(!/^[1-9][0-9]*$/.test(tokenId)||Number(tokenId)>100000000)
         throw Error('Enter an existing Token ID between 1 and 100000000.');
@@ -43,6 +45,10 @@ export function Erc721AuctionStudio({chainId,contract,wallet}:{
       if(row?.status!=='OWNED'||!row.owner)
         throw Error('NFT ownership not verified. It may be missing, burned, or unavailable.');
       setOwnership({tokenId,owner:row.owner,observedBlock:String(out.observedBlock)});
+      if(row.tokenUri){
+        try{setTokenMetadata(await api('metadata',{uri:row.tokenUri}));}
+        catch{/* Ownership remains authoritative even if media cannot be resolved. */}
+      }
     }catch(e){setOwnerError(e instanceof Error?e.message:'Ownership lookup failed');}
     finally{setChecking(false);}
   }
@@ -100,7 +106,7 @@ export function Erc721AuctionStudio({chainId,contract,wallet}:{
       <div className="form-grid">
         <label>Existing NFT Token ID
           <input inputMode="numeric" value={tokenId} placeholder="e.g. 1"
-            onChange={e=>{setTokenId(e.target.value);setOwnership(undefined);clearReview();}}/>
+            onChange={e=>{setTokenId(e.target.value);setOwnership(undefined);setTokenMetadata(undefined);clearReview();}}/>
         </label>
         <div className="erc721-lookup-control">
           <button type="button" className="button secondary" onClick={()=>void lookupOwnership()}
@@ -112,6 +118,13 @@ export function Erc721AuctionStudio({chainId,contract,wallet}:{
       {checking&&<Loading label="Reading ownerOf() at one Ethereum block…"/>}
       {ownerError&&<Notice type="error">{ownerError}</Notice>}
       {ownership&&<div className="erc721-diagnostic">
+        {tokenMetadata&&<div className="erc721-token-observation">
+          <Artwork uri={tokenMetadata.image} alt={tokenMetadata.name||'NFT artwork'}/>
+          <div><span className="eyebrow">EXISTING ERC721 NFT</span>
+            <h3>{tokenMetadata.name||'Token #'+ownership.tokenId}</h3>
+            <p>{tokenMetadata.description||'No description in resolved metadata.'}</p>
+          </div>
+        </div>}
         <h3>Ownership observation</h3>
         <dl><dt>Token ID</dt><dd>{ownership.tokenId}</dd>
           <dt>Current owner</dt><dd className="mono">{ownership.owner}</dd>

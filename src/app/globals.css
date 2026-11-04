@@ -2192,3 +2192,64 @@ th { color: #c1c1c8; }
 .erc721-coming{display:grid;gap:14px}
 .erc721-coming p{max-width:920px;line-height:1.75}
 @media(max-width:720px){.erc721-overview-hero{grid-template-columns:1fr;padding:18px}}
+
+
+/* GO#|O ERC721 Approach A: shared GO1 spatial language, independent safe workflows.
+   None of these presentation classes grants signing or API write capability. */
+.erc721-workflow{display:grid;gap:20px;min-width:0}
+.erc721-workflow>.panel{min-width:0}
+.erc721-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0 24px}
+.erc721-metrics>div{border:1px solid var(--line);border-radius:10px;padding:17px;min-width:0;
+  display:flex;flex-direction:column;gap:9px;background:var(--surface-raised,var(--panel))}
+.erc721-metrics small{font-size:11px;color:var(--muted)}
+.erc721-metrics strong{font-size:18px;line-height:1.3;overflow-wrap:anywhere}
+.erc721-steps{grid-template-columns:repeat(3,minmax(0,1fr))}
+.erc721-steps button{display:flex;align-items:center;gap:8px;text-align:left;cursor:pointer;
+  border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--muted);
+  padding:12px;font:inherit;font-size:12px;min-width:0}
+.erc721-steps button:hover,.erc721-steps button:focus-visible{border-color:#8ca769}
+.erc721-steps button.active{border-color:#8ca769;background:rgba(130,160,90,.11);color:var(--ink)}
+.erc721-editor-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(260px,1fr);gap:20px}
+.erc721-editor-grid label,.erc721-workflow label{min-width:0}
+.erc721-preview-panel{min-width:0;display:flex;flex-direction:column;align-items:flex-start;
+  gap:14px;border:1px solid var(--line);border-radius:12px;padding:24px;
+  background:var(--surface-raised,var(--panel));overflow-wrap:anywhere}
+.erc721-preview-panel h2,.erc721-preview-panel h3{margin:4px 0 0;line-height:1.25}
+.erc721-preview-panel p{line-height:1.7;color:var(--muted);margin:0}
+.erc721-preview-panel small{color:var(--muted);overflow-wrap:anywhere}
+.erc721-preview-panel dl,.erc721-review dl{width:100%;margin:8px 0}
+.erc721-review{border:1px solid var(--line);padding:23px;border-radius:10px}
+.erc721-review p{line-height:1.7;color:var(--muted)}
+.erc721-detail-row{display:grid;grid-template-columns:minmax(130px,1fr) minmax(0,2fr);
+  border-top:1px solid var(--line);gap:12px;padding:12px 0}
+.erc721-detail-row dt{font-size:12px;color:var(--muted)}
+.erc721-detail-row dd{margin:0;overflow-wrap:anywhere;font-size:12px}
+.erc721-lookup-control{display:flex;align-items:end;padding-bottom:2px}
+.erc721-facts{display:grid;grid-template-columns:minmax(155px,1fr) minmax(0,2fr);
+  gap:14px;margin:24px 0}
+.erc721-facts dt{font-size:12px;color:var(--muted)}
+.erc721-facts dd{margin:0;min-width:0;font-size:12px;overflow-wrap:anywhere}
+.erc721-facts dd .mono{overflow-wrap:anywhere}
+.erc721-workflow .erc721-market-status{margin-top:12px}
+.erc721-filters{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+.erc721-filters .active{border-color:#8ca769;background:rgba(130,160,90,.11)}
+.erc721-activity-table{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.erc721-activity-head{display:grid;grid-template-columns:1fr 1.4fr 1.5fr .8fr;gap:12px;
+  color:var(--muted);font-size:11px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.erc721-empty-ledger{display:flex;flex-direction:column;gap:12px;align-items:center;
+  text-align:center;padding:48px 23px}
+.erc721-empty-ledger p{max-width:530px;line-height:1.7;color:var(--muted);margin:0}
+.erc721-empty-ledger strong{font-size:13px}
+.erc721-workflow .tag{white-space:normal}
+@media(max-width:920px){
+  .erc721-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .erc721-editor-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .erc721-metrics,.erc721-steps{grid-template-columns:1fr}
+  .erc721-preview-panel,.erc721-review{padding:16px}
+  .erc721-detail-row,.erc721-facts{grid-template-columns:1fr;gap:6px}
+  .erc721-facts dd{margin-bottom:7px}
+  .erc721-activity-head{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .erc721-activity-head span:nth-child(n+3){display:none}
+}

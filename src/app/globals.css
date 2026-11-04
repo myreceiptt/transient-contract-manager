@@ -2253,3 +2253,13 @@ th { color: #c1c1c8; }
   .erc721-activity-head{grid-template-columns:repeat(2,minmax(0,1fr))}
   .erc721-activity-head span:nth-child(n+3){display:none}
 }
+
+/* Artwork presentation on ERC721 primary mint and single-token auction previews. */
+.erc721-preview-panel>.artwork{width:100%;min-height:180px;aspect-ratio:16/9;
+  border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.erc721-token-observation{display:grid;grid-template-columns:minmax(130px,220px) minmax(0,1fr);
+  gap:18px;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--line)}
+.erc721-token-observation>.artwork{width:100%;aspect-ratio:1;border-radius:8px;overflow:hidden}
+.erc721-token-observation p{font-size:12px;line-height:1.65}
+.erc721-token-observation h3{margin:8px 0}
+@media(max-width:650px){.erc721-token-observation{grid-template-columns:1fr}}

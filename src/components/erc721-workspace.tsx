@@ -2,16 +2,19 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ExternalLink, RefreshCw, ShieldCheck, Gavel, Layers3 } from 'lucide-react';
+import { ArrowLeft, ExternalLink, RefreshCw, ShieldCheck } from 'lucide-react';
 import { useConnection } from './providers';
 import { Erc721Inspector } from './erc721-inspector';
 import { Erc721CreateDraftStudio } from './erc721-create-draft-studio';
-import { Erc721MarketStatus } from './erc721-market-status';
+import { Erc721PrimaryStudio } from './erc721-primary-studio';
+import { Erc721AuctionStudio } from './erc721-auction-studio';
+import { Erc721Settings } from './erc721-settings-dashboard';
+import { Erc721Activity } from './erc721-activity';
 import { api, short } from '@/lib/api-client';
 import { getChain, explorer } from '@/lib/chains';
 import { Loading, Notice } from './shell';
 
-const tabs=['Overview','Tokens & Editions','Mint Pages','Auctions','Collection Settings','Transactions'] as const;
+const tabs=['Overview','Artworks & Tokens','Mint Pages','Auctions','Collection Settings','Transactions'] as const;
 type Tab=typeof tabs[number];
 export function Erc721Workspace(){
   const params=useSearchParams();
@@ -20,6 +23,8 @@ export function Erc721Workspace(){
   const {address}=useConnection();
   const [info,setInfo]=useState<any>();
   const [tab,setTab]=useState<Tab>('Overview');
+  const [visited,setVisited]=useState<Tab[]>(['Overview']);
+  function navigate(next:Tab){setTab(next);setVisited(prev=>prev.includes(next)?prev:[...prev,next]);}
   const [error,setError]=useState('');
   const [busy,setBusy]=useState(false);
   async function refresh(){
@@ -64,7 +69,7 @@ export function Erc721Workspace(){
       </Notice>
       <div className="tabs" role="tablist" aria-label="ERC721 collection sections">
         {tabs.map(t=><button key={t} role="tab" className={tab===t?'active':''}
-          aria-selected={tab===t} onClick={()=>setTab(t)}>{t}</button>)}
+          aria-selected={tab===t} onClick={()=>navigate(t)}>{t}</button>)}
       </div>
       {tab==='Overview'&&<>
         <section className="panel">
@@ -77,6 +82,12 @@ export function Erc721Workspace(){
               <strong>{info.totalSupply}</strong>
               <p>{info.totalSupplyMeaning==='MINTED_TOKEN_ID_COUNTER_INCLUDES_BURNED'
                 ?'Minted ID counter, includes burned tokens':'Current unburned NFTs'}</p></div>
+          </div>
+          <div className="erc721-metrics">
+            <div><small>Collection standard</small><strong>ERC-721</strong></div>
+            <div><small>Token supply</small><strong>{info.totalSupply}</strong></div>
+            <div><small>Wallet permission</small><strong>{String(role).toUpperCase()}</strong></div>
+            <div><small>Sale & auction signing</small><strong>Disabled</strong></div>
           </div>
           <dl>
             <dt>Contract</dt><dd className="mono">{info.contract}</dd>
@@ -95,62 +106,41 @@ export function Erc721Workspace(){
           <p>Inspection and ownership lookups are available. Creator minting
             requires a verified codehash, version-specific ABI, owner/admin
             simulation, explicit wallet review and confirmed on-chain results.
-            The Tokens &amp; Editions studio can now pin unique metadata and
+            The Artworks &amp; Tokens studio can now pin unique metadata and
             run a transaction-free mint simulation. Actual minting remains disabled.</p>
-          <button className="button secondary" onClick={()=>setTab('Tokens & Editions')}>
+          <button className="button secondary" onClick={()=>navigate('Artworks & Tokens')}>
             View 1 of 1 NFTs
           </button>
         </section>
       </>}
-      {tab==='Tokens & Editions'&&<>
-        <Suspense fallback={<Loading/>}>
-          <Erc721Inspector mode="workspace"/>
-        </Suspense>
-        {isAdmin&&<Erc721CreateDraftStudio
-          key={info.contract+'-'+String(info.inspectedWallet)}
-          chainId={chainId} contract={info.contract} owner={info.owner} role={role}/>}
-      </>}
-      {tab==='Mint Pages'&&<section className="panel erc721-coming">
-        <div className="section-top"><h2>Primary Mint Pages · TLStacks721</h2><Layers3 size={20}/></div>
-        <p>A TLStacks721 drop configures sales at the <strong>collection level</strong>,
-          not separately for each existing Token ID. New unique ERC-721 tokens are
-          minted only when authorized collector purchases are confirmed.</p>
-        <Notice>Configuration, wallet approval, collector payment and closeDrop
-          remain unavailable until the exact TLStacks721 runtime and creator
-          mint permission are independently verified.</Notice>
-        <Erc721MarketStatus chainId={chainId} contract={contract} view="stacks"/>
-      </section>}
-      {tab==='Auctions'&&<section className="panel erc721-coming">
-        <div className="section-top"><h2>Secondary Auctions · TLAuctionHouse</h2><Gavel size={20}/></div>
-        <p>Auction permissions follow <strong>ownerOf(tokenId)</strong>, not the
-          creator&apos;s ADMIN_ROLE. A seller must own an already-minted NFT,
-          approve the verified AuctionHouse and explicitly accept ERC-721 escrow.</p>
-        <Notice>Listing, bidding, buy now, delisting and settlement are still
-          disabled. No asset transfer or ETH payment is initiated here.</Notice>
-        <Erc721MarketStatus chainId={chainId} contract={contract} view="auction"/>
-      </section>}
-      {tab==='Collection Settings'&&<section className="panel">
-        <div className="section-top"><h2>Collection Settings</h2>
-          <span className="tag">READ-ONLY</span></div>
-        <dl>
-          <dt>Contract standard</dt><dd>ERC721TL v{info.version}</dd>
-          <dt>Contract owner</dt><dd className="mono">{info.owner}</dd>
-          <dt>Admin wallets</dt><dd>{info.admins.length
-            ?info.admins.map((a:string)=><div className="mono" key={a}>{a}</div>)
-            :'No additional admins'}</dd>
-          <dt>Your role</dt><dd>{role.toUpperCase()}</dd>
-          <dt>Runtime authorization</dt><dd>Not yet approved for signing</dd>
-        </dl>
-        <p className="fineprint">{isAdmin?'Your wallet holds creator/admin authority on chain. This does not itself authorize an unverified adapter to write.':
-          'Collection creator operations require on-chain owner or ADMIN_ROLE authority.'}</p>
-      </section>}
-      {tab==='Transactions'&&<section className="panel erc721-coming">
-        <h2>ERC-721 transaction history</h2>
-        <p>Versioned transaction intents, confirmations, replacement detection
-          and auction settlement reconciliation will be added with the verified
-          ERC-721 write adapter. No transaction has been submitted by this workspace.</p>
-        <Notice>The existing ERC-1155 transaction ledger remains separate and unchanged.</Notice>
-      </section>}
+      {visited.includes('Artworks & Tokens')&&
+        <div className="erc721-workflow" style={{display:tab==='Artworks & Tokens'?'grid':'none'}}>
+          <section className="panel creator-studio-banner">
+            <span className="eyebrow">1 OF 1 ARTWORK STUDIO</span>
+            <h2>Where every original begins.</h2>
+            <p>Discover individual on-chain ERC721 tokens and prepare new original artworks.
+              An artwork draft is not an NFT. A Token ID exists only after an independently
+              confirmed on-chain mint.</p>
+          </section>
+          <Suspense fallback={<Loading/>}>
+            <Erc721Inspector mode="workspace"/>
+          </Suspense>
+          {isAdmin&&<Erc721CreateDraftStudio
+            key={info.contract+'-'+String(info.inspectedWallet)}
+            chainId={chainId} contract={info.contract} owner={info.owner} role={role}/>}
+        </div>}
+      {visited.includes('Mint Pages')&&<div style={{display:tab==='Mint Pages'?'block':'none'}}>
+        <Erc721PrimaryStudio key={chainId+info.contract} chainId={chainId}
+          contract={info.contract} authorized={isAdmin}/>
+      </div>}
+      {visited.includes('Auctions')&&<div style={{display:tab==='Auctions'?'block':'none'}}>
+        <Erc721AuctionStudio key={chainId+info.contract+String(address)} chainId={chainId}
+          contract={info.contract} wallet={address}/>
+      </div>}
+      {tab==='Collection Settings'&&
+        <Erc721Settings info={info} chainId={chainId} contract={info.contract}/>}
+      {tab==='Transactions'&&
+        <Erc721Activity chainId={chainId} contract={info.contract}/>}
     </>}
   </>;
 }

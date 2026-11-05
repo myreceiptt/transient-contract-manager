@@ -1,5 +1,7 @@
 import { previewErc721Mint, assertErc721DraftAuthor } from '@/server/erc721-mint-preview';
 import { readErc721MarketStatus } from '@/server/erc721-market-observer';
+import {erc721DraftKind,erc721DraftAvailability,listErc721Drafts,getErc721Draft,
+ createErc721Draft,saveErc721Draft,archiveErc721Draft} from '@/server/erc721-drafts';
 import { detectCollection } from '@/server/collection-router';
 import { inspectErc721Candidate,scanErc721Candidates,diagnoseErc721Candidate } from '@/server/erc721-probe';
 import { readCollectionProfile,saveCollectionProfile,pinCollectionProfile } from '@/server/collection-profile';
@@ -83,6 +85,8 @@ export async function POST(req: NextRequest) {
         .extend({ wallet: addressSchema.optional(), tokenId: positive.optional() })
         .parse(p);
       result = await inspect(args.chainId, args.contract, args.wallet, BigInt(args.tokenId || '1'));
+    } else if (op === 'erc721_draft_status') {
+      result=erc721DraftAvailability();
     } else if (op === 'inspect_erc721') {
       const a=erc721Identity.extend({wallet:addressSchema.optional()}).parse(p);
       result=await inspectErc721Candidate(a.chainId,a.contract,a.wallet);
@@ -135,6 +139,28 @@ export async function POST(req: NextRequest) {
       release = acquireSlot(req, budget);
       await rateLimit(req, budget, s.wallet);
       if (op === 'session') result = s;
+      else if (op === 'erc721_draft_list') {
+        const a=identity.extend({kind:erc721DraftKind}).parse(p);
+        result=await listErc721Drafts(a.kind,a.chainId,a.contract,s);
+      }
+      else if (op === 'erc721_draft_get') {
+        const a=identity.extend({kind:erc721DraftKind,id:idSchema}).parse(p);
+        result=await getErc721Draft(a.kind,a.chainId,a.contract,a.id,s);
+      }
+      else if (op === 'erc721_draft_create') {
+        const a=identity.extend({kind:erc721DraftKind}).parse(p);
+        result=await createErc721Draft(a.kind,a.chainId,a.contract,p.data,s);
+      }
+      else if (op === 'erc721_draft_save') {
+        const a=identity.extend({kind:erc721DraftKind,id:idSchema,
+          expectedVersion:z.number().int().positive()}).parse(p);
+        result=await saveErc721Draft(a.kind,a.chainId,a.contract,a.id,a.expectedVersion,p.data,s);
+      }
+      else if (op === 'erc721_draft_archive') {
+        const a=identity.extend({kind:erc721DraftKind,id:idSchema,
+          expectedVersion:z.number().int().positive()}).parse(p);
+        result=await archiveErc721Draft(a.kind,a.chainId,a.contract,a.id,a.expectedVersion,s);
+      }
       else if (op === 'collection_profile_write') {
          const a=identity.parse(p);
          requireSessionChain(s,a.chainId);

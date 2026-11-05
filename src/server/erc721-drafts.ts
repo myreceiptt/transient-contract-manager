@@ -110,6 +110,9 @@ export async function saveErc721Draft(kind:Erc721DraftKind,chainId:number,contra
 export async function archiveErc721Draft(kind:Erc721DraftKind,chainId:number,contract:string,
  id:string,expectedVersion:number,s:Session){
   draftStorageEnabled();
+  if(kind==='MINT_PAGE')
+    throw new AppError('MINT_PAGE_CANONICAL',
+      'The one collection-wide primary Mint Page draft has a permanent identity. Edit it instead of archiving.',409);
   const allowed=await scope(kind,chainId,contract,s,'archive');
   return command('erc721_draft',{action:'archive',kind,chainId,contract:contract.toLowerCase(),
     id,expectedVersion,...allowed});

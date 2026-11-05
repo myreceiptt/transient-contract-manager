@@ -4,6 +4,7 @@ import {Layers3,Eye,FilePenLine,ShieldAlert} from 'lucide-react';
 import {Erc721MarketStatus} from './erc721-market-status';
 import {Notice} from './shell';
 import {Artwork} from './safe-media';
+import {useErc721Drafts,type SavedErc721Draft} from './erc721-draft-storage';
 
 type Step='edit'|'preview'|'review';
 export function Erc721PrimaryStudio({chainId,contract,authorized}:{
@@ -20,6 +21,20 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
   const [start,setStart]=useState('');
   const [end,setEnd]=useState('');
   const [revision,setRevision]=useState(0);
+  const storage=useErc721Drafts('MINT_PAGE',chainId,contract,authorized);
+  function useSaved(row:SavedErc721Draft){
+    storage.setActive(row);const d=row.draft;
+    setTitle(String(d.title||''));setDescription(String(d.description||''));
+    setArtwork(String(d.artwork||''));setPrice(String(d.price||''));
+    setCurrency(String(d.currency||'ETH'));setPayout(String(d.payout||''));
+    setMaxPerWallet(String(d.maxPerWallet||''));setStart(String(d.start||''));
+    setEnd(String(d.end||''));setRevision(row.version);setStep('edit');
+  }
+  function data(){return {title,description,artwork,price,currency,payout,maxPerWallet,start,end};}
+  async function saveDraft(){await storage.save(data());}
+  function newDraft(){storage.setActive(null);setTitle('');setDescription('');setArtwork('');
+    setPrice('');setCurrency('ETH');setPayout('');setMaxPerWallet('');
+    setStart('');setEnd('');setRevision(0);setStep('edit');}
   function change(setter:(value:string)=>void,value:string){setter(value);setRevision(v=>v+1);setStep('edit');}
   const fields=[
     ['Payment currency',currency],['Price per NFT',price?price+' '+currency:'Not specified'],
@@ -38,16 +53,35 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
       <div className="section-top"><div><h2>Primary Mint Pages</h2>
         <p>One collection-level drop identity. Multiple draft revisions here
           do not create multiple independent on-chain drops.</p></div>
-        <span className="tag">SESSION PREVIEW ONLY</span>
+        <span className="tag">{storage.enabled?"PRIVATE APP DRAFT":"SESSION PREVIEW ONLY"}</span>
       </div>
       <div className="erc721-metrics">
         <div><small>Campaign identity</small><strong>{title||'Untitled draft'}</strong></div>
         <div><small>Local draft revision</small><strong>{revision}</strong></div>
         <div><small>Publish status</small><strong>Not published</strong></div>
       </div>
-      <Notice>Not saved to a server. Leaving or reloading this page discards the
-        current form. There is no collector-facing page, drop configuration, approval,
-        payment, or mint transaction in this release.</Notice>
+      <Notice>{storage.statusNote} There is no collector-facing page, configured sale,
+        approval, payment, or mint transaction in this release.</Notice>
+      <div className="erc721-draft-storage">
+        <div className="button-row">
+          <button type="button" className="button secondary" disabled={!authorized||!storage.enabled||storage.busy}
+            onClick={async()=>{
+              await storage.load();
+            }}>Load Mint Page draft</button>
+          <button type="button" className="button secondary" disabled={!authorized||storage.busy}
+            onClick={newDraft}>Clear editor</button>
+          <button type="button" className="button" disabled={!authorized||!storage.enabled||storage.busy}
+            onClick={()=>void saveDraft()}>Save Mint Page draft</button>
+        </div>
+        {storage.records.length>0&&<div className="erc721-saved-index">
+          {storage.records.map(row=><button type="button" className="button secondary compact"
+            key={row.id} onClick={()=>useSaved(row)}>
+            {String(row.draft.title||'Collection primary Mint Page')} · Revision {row.version}
+          </button>)}
+        </div>}
+        {storage.error&&<Notice type="error">{storage.error}</Notice>}
+        {storage.message&&<Notice type="success">{storage.message}</Notice>}
+      </div>
     </section>
     <section className="panel">
       <div className="section-top"><h2>Campaign preparation</h2>

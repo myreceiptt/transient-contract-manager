@@ -7,6 +7,7 @@ vi.mock('../src/server/erc721-probe',()=>({
 vi.mock('../src/server/db',()=>({command:mocked.command}));
 import {archiveErc721Draft,createErc721Draft,erc721DraftAvailability,
   listErc721Drafts,parseErc721Draft,saveErc721Draft} from '../src/server/erc721-drafts';
+import {operationBudget} from '../src/server/abuse';
 
 const collection='0x'+'1'.repeat(40);
 const admin='0x'+'2'.repeat(40);
@@ -27,6 +28,13 @@ beforeEach(()=>{
 afterEach(()=>vi.unstubAllEnvs());
 
 describe('ERC721 server-only draft permissions',()=>{
+ it('classifies all new APIs under explicit bounded rate limit buckets',()=>{
+   expect(operationBudget('erc721_transfers')).toBe('inventory');
+   expect(operationBudget('erc721_royalties')).toBe('public');
+   expect(operationBudget('erc721_draft_status')).toBe('public');
+   for(const op of ['erc721_draft_list','erc721_draft_get','erc721_draft_create',
+     'erc721_draft_save','erc721_draft_archive'])expect(operationBudget(op)).toBe('workspace');
+ });
  it('is disabled by default unless the schema was independently enabled',async()=>{
    vi.stubEnv('ERC721_DRAFTS_ENABLED','false');
    expect(erc721DraftAvailability().enabled).toBe(false);
@@ -76,6 +84,11 @@ describe('ERC721 server-only draft permissions',()=>{
     'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',1,sampleAuction,session(collector)))
      .rejects.toMatchObject({code:'SELLER_NOT_OWNER'});
    expect(mocked.command).not.toHaveBeenCalled();
+ });
+ it('forbids archiving the one permanent collection-wide Mint Page identity',async()=>{
+   await expect(archiveErc721Draft('MINT_PAGE',1,collection,
+     'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',1,session(admin)))
+     .rejects.toMatchObject({code:'MINT_PAGE_CANONICAL'});
  });
  it('passes optimistic version precondition to the database and archives without execution',async()=>{
    await saveErc721Draft('ARTWORK',1,collection,'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',

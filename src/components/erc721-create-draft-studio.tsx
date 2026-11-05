@@ -1,5 +1,5 @@
 'use client';
-import {useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {useErc721Drafts,type SavedErc721Draft} from './erc721-draft-storage';
 import {isAddress} from 'viem';
 import {api} from '@/lib/api-client';
@@ -7,7 +7,7 @@ import {useSession} from './providers';
 import {Artwork} from './safe-media';
 import {Notice} from './shell';
 import {nftMetadataSchema} from '@/lib/nft-metadata';
-import {uploadOriginalArtwork,formatArtworkSize} from '@/lib/direct-ipfs-upload';
+import {uploadOriginalArtwork,formatArtworkSize,checkArtwork} from '@/lib/direct-ipfs-upload';
 
 type Props={chainId:number;contract:string;owner:string;role:string};
 export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
@@ -22,11 +22,20 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
   const [busy,setBusy]=useState('');
   const [progress,setProgress]=useState<number>();
   const [fileName,setFileName]=useState('');
+  // A local blob URL is display-only. Never store it in Supabase or metadata JSON.
+  const [localPreview,setLocalPreview]=useState('');
+  const localPreviewRef=useRef('');
+  useEffect(()=>()=>{if(localPreviewRef.current) URL.revokeObjectURL(localPreviewRef.current);},[]);
+  function clearLocalPreview(){
+    if(localPreviewRef.current) URL.revokeObjectURL(localPreviewRef.current);
+    localPreviewRef.current='';setLocalPreview('');setFileName('');setProgress(undefined);
+  }
   const [error,setError]=useState('');
   const [note,setNote]=useState('');
   const admin=role==='owner'||role==='admin';
   const storage=useErc721Drafts('ARTWORK',chainId,contract,admin);
   function useSaved(row:SavedErc721Draft){
+    clearLocalPreview();
     storage.setActive(row);
     setName(String(row.draft.title||''));setDescription(String(row.draft.description||''));
     setImage(String(row.draft.image||''));setExternalUrl(String(row.draft.externalUrl||''));
@@ -35,6 +44,7 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
     setError('');
   }
   function clearDraft(){
+    clearLocalPreview();
     storage.setActive(null);setName('');setDescription('');setImage('');
     setExternalUrl('');setPinned('');setRecipient(owner);setSimulation(undefined);
     setNote('New unsaved artwork draft.');setError('');
@@ -54,11 +64,20 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
   }
   async function upload(file?:File){
     if(!file)return;
-    setFileName(file.name);setProgress(undefined);
+    try{checkArtwork(file);}
+    catch(e){setError(e instanceof Error?e.message:'Unsupported artwork file.');return;}
+    // Selecting a new file invalidates any previously saved image/metadata URI.
+    // If the IPFS upload fails, the file remains local and will not appear in a saved draft.
+    clearLocalPreview();
+    const localUrl=URL.createObjectURL(file);
+    localPreviewRef.current=localUrl;
+    setLocalPreview(localUrl);setFileName(file.name);setProgress(undefined);
+    setImage('');setPinned('');setSimulation(undefined);setError('');setNote('');
     await task('upload',async()=>{
       const result=await uploadOriginalArtwork({
         file,kind:'artwork',chainId,contract,standard:'ERC721TL',onProgress:setProgress,
       });
+      clearLocalPreview();
       change(setImage,result.uri);
       setNote('Original image uploaded to public IPFS. Pin metadata JSON separately; no NFT was minted.');
     });
@@ -138,13 +157,16 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
         </label>
         <label>Artwork IPFS URI
           <input value={image} disabled={!admin||!!busy} spellCheck={false}
-            placeholder="ipfs://..." onChange={e=>change(setImage,e.target.value)}/>
+            placeholder="ipfs://..." onChange={e=>{clearLocalPreview();change(setImage,e.target.value);}}/>
         </label>
         <label>Or upload original artwork
           <input type="file" disabled={!admin||!!busy}
             accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
             onChange={e=>void upload(e.target.files?.[0])}/>
           {fileName&&<small>{fileName}{progress===undefined?'':(' · '+progress+'%')}</small>}
+          {localPreview&&<small role="status">Local preview only. This file is NOT saved to the
+            draft, database, or IPFS. Fix the upload and obtain an IPFS URI before expecting
+            the image to reappear after reloading.</small>}
           <small>JPG/PNG/WebP, up to {formatArtworkSize(100*1024*1024)}.
             Original pixels retained on public IPFS.</small>
         </label>
@@ -154,7 +176,10 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
         </label>
       </div>
       <div className="metadata-preview">
-        <Artwork uri={image} alt={name||'Preview of original NFT'}/>
+        {localPreview?<img className="artwork" src={localPreview}
+          alt={name||'Locally selected original artwork'}/>:
+          <Artwork uri={image} alt={name||'Preview of original NFT'}/>}
+        {localPreview&&<small className="fineprint">Temporary browser preview — IPFS upload incomplete</small>}
         <h3>{name||'Untitled original'}</h3>
         <p>{description||'Your NFT description will appear here.'}</p>
       </div>
@@ -178,6 +203,9 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
         {busy==='simulate'?'Simulating on Ethereum…':'Simulate ERC721TL mint (read-only)'}
       </button>
     </div>}
+    {localPreview&&<Notice>Only the text and URI fields are included when you save
+      an Artwork draft. The selected local image is not stored in your draft.
+      After fixing the IPFS configuration, select the file again and upload it.</Notice>}
     {error&&<Notice type="error">{error}</Notice>}
     {note&&<Notice>{note}</Notice>}
     {simulation&&<section className="erc721-diagnostic">

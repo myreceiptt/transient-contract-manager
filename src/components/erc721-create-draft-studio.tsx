@@ -1,5 +1,6 @@
 'use client';
 import {useState} from 'react';
+import {useErc721Drafts,type SavedErc721Draft} from './erc721-draft-storage';
 import {isAddress} from 'viem';
 import {api} from '@/lib/api-client';
 import {useSession} from './providers';
@@ -24,6 +25,23 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
   const [error,setError]=useState('');
   const [note,setNote]=useState('');
   const admin=role==='owner'||role==='admin';
+  const storage=useErc721Drafts('ARTWORK',chainId,contract,admin);
+  function useSaved(row:SavedErc721Draft){
+    storage.setActive(row);
+    setName(String(row.draft.title||''));setDescription(String(row.draft.description||''));
+    setImage(String(row.draft.image||''));setExternalUrl(String(row.draft.externalUrl||''));
+    setPinned(String(row.draft.metadataUri||''));setRecipient(String(row.draft.recipient||owner));
+    setSimulation(undefined);setNote('Loaded saved artwork draft revision '+row.version+'.');
+    setError('');
+  }
+  function clearDraft(){
+    storage.setActive(null);setName('');setDescription('');setImage('');
+    setExternalUrl('');setPinned('');setRecipient(owner);setSimulation(undefined);
+    setNote('New unsaved artwork draft.');setError('');
+  }
+  async function saveDraft(){
+    await storage.save({title:name,description,image,externalUrl,metadataUri:pinned,recipient});
+  }
   function change(setter:(v:string)=>void,value:string){
     setter(value);setPinned('');setSimulation(undefined);setNote('');setError('');
   }
@@ -77,6 +95,37 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
       Simulation does not reserve a Token ID or change ownership.</p>
     {!admin&&<Notice>Connect a wallet with on-chain owner or ADMIN_ROLE permission
       to pin creator metadata or simulate minting. This does not grant contract-write access.</Notice>}
+    <div className="erc721-draft-storage panel">
+      <div className="section-top"><div><h3>Saved artwork drafts</h3>
+        <p>Versioned off-chain preparation. Artwork drafts never reserve Token IDs.</p></div>
+        <span className="tag">{storage.enabled?'SERVER DRAFTS':'PERSISTENCE STAGED'}</span>
+      </div>
+      <p className="fineprint">{storage.statusNote}</p>
+      <div className="button-row">
+        <button type="button" className="button secondary" disabled={!admin||!storage.enabled||storage.busy}
+          onClick={()=>void storage.load()}>Load saved artworks</button>
+        <button type="button" className="button secondary" disabled={!admin||storage.busy}
+          onClick={clearDraft}>New artwork draft</button>
+        <button type="button" className="button" disabled={!admin||!storage.enabled||storage.busy}
+          onClick={()=>void saveDraft()}>{storage.busy?'Saving…':'Save artwork draft'}</button>
+      </div>
+      {storage.records.length>0&&<label>Saved versions
+        <select value={storage.active?.id||''} onChange={e=>{
+          const row=storage.records.find(r=>r.id===e.target.value);if(row)useSaved(row);
+        }}>
+          <option value="">Choose a saved artwork</option>
+          {storage.records.map(row=><option key={row.id} value={row.id}>
+            {String(row.draft.title||'Untitled')} · rev {row.version}
+          </option>)}
+        </select>
+      </label>}
+      {storage.active&&<button type="button" className="button secondary compact"
+        disabled={!storage.enabled||storage.busy} onClick={()=>void storage.archive(storage.active!)}>
+        Archive selected draft
+      </button>}
+      {storage.error&&<Notice type="error">{storage.error}</Notice>}
+      {storage.message&&<Notice type="success">{storage.message}</Notice>}
+    </div>
     <div className="form-grid">
       <div className="metadata-form">
         <label>NFT title

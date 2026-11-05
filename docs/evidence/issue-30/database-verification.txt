@@ -1,0 +1,8 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> transient-contract-manager@0.1.0 db:verify
+> node --import tsx scripts/verify-migration.ts
+
+PASS migration with supabase defaults: rollback, RLS, grants, RPC, sequence, chain isolation, unpublished privacy, version conflict
+PASS migration with broad defaults: rollback, RLS, grants, RPC, sequence, chain isolation, unpublished privacy, version conflict
+PASS migration with restricted defaults: rollback, RLS, grants, RPC, sequence, chain isolation, unpublished privacy, version conflict

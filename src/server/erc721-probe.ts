@@ -2,6 +2,7 @@ import { getAddress, keccak256, parseAbi, type Address } from 'viem';
 import { AppError, serializable } from '../lib/domain';
 import { ADMIN_ROLE } from '../lib/chains';
 import { client, exactChain } from './chain';
+import { erc721Creator } from '../lib/erc721-creator';
 
 /**
  * READ-ONLY ERC721TL 3.6.0 / 4.1.2 candidate inspector.
@@ -85,6 +86,9 @@ export async function inspectErc721Candidate(chainId:number,contract:Address,wal
   return serializable({
     chainId,contract,standard:'ERC721',version,implementation,
     proxy:!!clone,implementationCodeHash:keccak256(implementationCode),
+    creatorMintRuntimeVerified: chainId === 1 && !!clone && version === erc721Creator.version &&
+      implementation.toLowerCase() === erc721Creator.implementation &&
+      keccak256(implementationCode) === erc721Creator.runtimeHash,
     runtimeVerification:'ABI_COMPATIBLE_UNVERIFIED_RUNTIME' as Erc721CandidateState,
     transactionSigningEnabled:false,
     name,symbol,owner,admins,totalSupply:supply,

@@ -110,7 +110,7 @@ export default function Guide() {
                 <td>{protocol.capability}</td>
                 <td><strong>{protocol.level === 'verified-live-adapter'
                     ? 'Supported: verified adapter'
-                    : 'Not supported: research / preparation'}</strong></td>
+                    : protocol.level === 'verified-gated-creator' ? 'Verified creator mint · exact transaction approval required' : 'Not supported: research / preparation'}</strong></td>
               </tr>
             ))}</tbody>
           </table>
@@ -150,9 +150,9 @@ export default function Guide() {
             version and implementation validation.</li>
           <li>Choose <strong>Open collection</strong>. Verified ERC1155TL contracts
             open the existing management workspace. Recognized ERC721TL v3.6.0
-            and v4.1.2 contracts open the dedicated <strong>read-only</strong>
-            collection workspace until their signing adapters are independently
-            verified. Existing NFT ownership never moves between contracts.</li>
+            and v4.1.2 contracts open the dedicated collection workspace.
+            Exact-runtime v4.1.2 creator mint reviews require separate transaction approval;
+            v3.6.0 remains read-only. Existing NFT ownership never moves between contracts.</li>
           <li>Under <strong>Contract Checker</strong>, inspect 1 of 1 collections
             using the first ERC721TL form or Editions using the second ERC1155TL
             form. Results and on-chain permissions are shown separately.</li>
@@ -678,31 +678,29 @@ export default function Guide() {
           verified execution allowlist. It provides <strong>no</strong>
           minting, permissions, transfers or auction transaction controls.
           The supported ERC1155TL manager remains separate.</p>
-        <h3>Phase B preparation: metadata and simulated mint</h3>
-        <p>For an ERC721TL v4.1.2 collection opened through the universal
-          homepage, the <strong>Tokens &amp; Editions</strong> tab includes
-          a restricted <strong>Prepare an original NFT</strong> studio
-          for wallets with verified owner or ADMIN_ROLE. You may upload original
-          artwork, pin a validated NFT JSON to IPFS, choose its future recipient
-          and run a <strong>read-only Ethereum Mainnet mint simulation</strong>.
-          IPFS files become public and immutable when pinned; simulation itself
-          does not create or reserve any NFT, charge gas or sign a transaction.
-          A dry-run requires the exact observed official implementation
-          candidate, matching codehash, current caller authority and unlocked
-          supply. Actual minting remains disabled until an independently
-          verified write adapter and wallet review are deployed.</p>
-        <h3>A. 1 of 1 NFT creation (planned ERC721TL v3.6.0 / v4.1.2)</h3>
+        <h3>Creator mint: ERC721TL v4.1.2 on Ethereum</h3>
+        <p>The exact canonical clone and implementation runtime are independently compiled and
+          verified for the isolated creator mint flow. The general GO1 write switch does not
+          enable ERC721 signing. An operator approval binds one wallet, collection, calldata,
+          nonce, expiry and maximum network fee.</p>
         <ol className="guide-steps">
-          <li>Allowlist ERC721TL only after reproducible runtime/ABI,
-            clone implementation, chain and role verification.</li>
-          <li>Use a separate ERC-721 inventory with <code>ownerOf</code>
-            and <code>tokenURI</code>, plus <code>Transfer</code> events.
-            Do not use ERC-1155 <code>balanceOf(owner,id)</code> or
-            Token ID type-count assumptions.</li>
-          <li>Prepare artwork and JSON metadata; allow owner/admin
-            to create an ERC-721 Token ID with the verified mint function,
-            followed by simulation, wallet review and finalized receipt.</li>
+          <li>Connect the current owner or ADMIN_ROLE wallet. Open <strong>Artworks &amp; Tokens</strong>
+            and load the existing artwork draft. Previously pinned artwork and JSON can be reused.</li>
+          <li>Select the recipient and <strong>Review creator mint</strong>. The review verifies
+            raw JSON CID integrity, role, unlocked supply, zero rendering override, EOA recipient,
+            wallet nonce and available ETH for gas. No NFT is created by this step.</li>
+          <li>Review the exact collection, recipient and metadata. Obtain explicit approval
+            for this transaction. Signing remains disabled until that approval is configured.</li>
+          <li>Prepare a fresh review if the old review expired. After approval, confirm the
+            details and choose <strong>Confirm creator mint in wallet</strong>. The wallet
+            displays the transaction; nothing is submitted automatically.</li>
+          <li>Use <strong>Check mint receipt</strong>. A finalized matching Transfer event
+            determines the Token ID; ownerOf and tokenURI are verified at the mint block.</li>
+          <li>If interrupted, use <strong>Transactions → Application reviews → Load my mint reviews</strong>.
+            Recover a matching hash or a replacement. Do not mint again to resolve a pending receipt.</li>
         </ol>
+        <p>This single-NFT flow does not enable batch minting, custom renderers, ERC721TL v3.6.0,
+          TLStacks721 purchases, or auctions. Contract recipients require a separately reviewed flow.</p>
         <h3>B. Auctions are sales of already-minted NFTs</h3>
         <p>Transient Labs&apos; <code>TLAuctionHouse</code> is separate
           from <code>TLStacks721</code>. Its official deployment registry
@@ -787,7 +785,7 @@ export default function Guide() {
         <p>It does not reproduce all of The Lab. It supports the verified
           ERC1155TL creator adapter and TLStacks1155 fixed-price drop flow,
           not every Transient Labs contract, every drop style or private
-          The Lab page feature. <strong>ERC721TL, TLStacks721,
+          The Lab page feature. ERC721TL v4.1.2 creator minting has its own exact-transaction approval gate. <strong>TLStacks721,
           TLAuctionHouse, ERC7160TL, ERC7160TLEditions and TRACE are
           not supported at runtime</strong>. It does not automatically
           manage ownership transfers, role revocations, arbitrary mint

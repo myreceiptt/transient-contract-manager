@@ -4,6 +4,7 @@ import {ArrowUpRight,History,LockKeyhole,RefreshCw} from 'lucide-react';
 import {api,short} from '@/lib/api-client';
 import {Loading,Notice} from './shell';
 import {explorer,txExplorer} from '@/lib/chains';
+import {Erc721MintLedger} from './erc721-mint-review';
 
 const filters=['All activity','NFT transfers','Primary mint','Auctions','Application reviews'] as const;
 type Filter=typeof filters[number];
@@ -47,15 +48,16 @@ export function Erc721Activity({chainId,contract}:{chainId:number;contract:strin
       <div className="section-top"><div><h2>Transactions & activity</h2>
         <p>Bounded, confirmed-block Transfer logs are available on demand.
           Complete on-chain indexing, sale settlement reconciliation and application
-          review records are still separate unfinished capabilities.</p></div>
+          creator reviews are tracked separately from sale and auction indexing.</p></div>
         <span className="tag">READ-ONLY</span>
       </div>
       <div className="erc721-metrics">
-        <div><small>App-submitted ERC721 writes</small><strong>Disabled</strong></div>
+        <div><small>Creator mint signing</small><strong>Per-transaction approval</strong></div>
         <div><small>Transfer event coverage</small>
           <strong>{lastRead?'Bounded scan':'Not indexed'}</strong></div>
         <div><small>Auction settlements</small><strong>Not indexed</strong></div>
       </div>
+      {filter==='Application reviews'&&<Erc721MintLedger key={chainId+contract} chainId={chainId} contract={contract}/>}
       <div className="erc721-filters" role="group" aria-label="Activity type">
         {filters.map(value=><button key={value} type="button"
           className={'button secondary compact'+(filter===value?' active':'')}
@@ -76,7 +78,7 @@ export function Erc721Activity({chainId,contract}:{chainId:number;contract:strin
           lastRead.completeCollectionHistory?' Inspected from genesis within this bounded result set.':
           ' Earlier chain activity may exist outside these windows.'}
       </p>}
-      <div className="erc721-activity-table" role="region" aria-label="ERC721 transaction activity">
+      {filter!=='Application reviews'&&<div className="erc721-activity-table" role="region" aria-label="ERC721 transaction activity">
         <div className="erc721-activity-head">
           <span>Block</span><span>Action / Token</span><span>Wallet / Hash</span><span>Status</span>
         </div>
@@ -91,16 +93,15 @@ export function Erc721Activity({chainId,contract}:{chainId:number;contract:strin
               {short(event.transactionHash)} <ArrowUpRight size={13}/></a></div>
             <span className="tag">On-chain log</span>
           </div>):<div className="erc721-empty-ledger">
-            {filter==='Application reviews'?<LockKeyhole size={22}/>:<History size={22}/>}
-            <strong>{filter==='Application reviews'?'No ERC721 transaction review ledger connected':
-              canShowTransfers?
+            <History size={22}/>
+            <strong>{canShowTransfers?
                 requested?'No Transfer events found in the inspected window':'Read the latest window to inspect confirmed Transfer events':
                 'No indexed '+filter.toLowerCase()+' available'}</strong>
             <p>This is an indexing/implementation limitation, <strong>not evidence that
               no on-chain activity has ever occurred</strong>. Prepared metadata or
               local auction proposals are not blockchain transactions.</p>
           </div>}
-      </div>
+      </div>}
       <Notice>No transaction is automatically retried or submitted. Transfer logs
         do not establish current ownership without a fresh ownerOf() read, and they
         do not include TLStacks721 sale configuration or AuctionHouse settlement.

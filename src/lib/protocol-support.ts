@@ -5,7 +5,7 @@
  *
  * Adding a candidate here cannot enable 721, 7160 or auction transactions.
  */
-export type SupportLevel='verified-live-adapter'|'research-only';
+export type SupportLevel='verified-live-adapter'|'verified-gated-creator'|'research-only';
 export type ProtocolFamily='creator'|'sale'|'auction';
 
 export const protocolSupport = [
@@ -38,8 +38,8 @@ export const protocolSupport = [
     name:'ERC721TL',
     version:'4.1.2',
     family:'creator',
-    level:'research-only',
-    capability:'ERC-721 unique Token IDs, mint one-of-one artworks and read per-token ownership',
+    level:'verified-gated-creator',
+    capability:'Exact-runtime creator mint review and receipt recovery; signing requires approval for the exact call and nonce',
   },
   {
     key:'tlstacks721',

@@ -1,6 +1,6 @@
 # Transient Contract Manager — Creator Guide and Contract Compatibility
 
-Last reviewed: 2 November 2026. This is an independent product operated by ENDHONESA, **not** Transient Labs / The Lab. The in-app [Guide & network status](https://transient.endhonesa.com/guide) is the interactive companion to this handbook.
+Last reviewed: 6 November 2026 (Asia/Jakarta). This is an independent product operated by ENDHONESA, **not** Transient Labs / The Lab. The in-app [Guide & network status](https://transient.endhonesa.com/guide) is the interactive companion to this handbook.
 
 ## 1. Exactly which smart contracts work?
 
@@ -17,7 +17,8 @@ The exact Solidity runtime implementation and Stacks bytecode are checked on eac
 
 | Contract family | Why it matters | State |
 |---|---|---|
-| ERC721TL **3.6.0 and 4.1.2 read-only** | Unique ERC-721 Token IDs, 1 of 1 artworks and ownerOf/tokenURI | Read-only inspection available; **transactions not enabled** |
+| ERC721TL **3.6.0** | Unique ERC-721 Token IDs and ownership | Read-only |
+| ERC721TL **4.1.2 Ethereum** | Creator mint of one NFT | Exact-runtime review and receipt recovery available; **explicit approval for each exact transaction required** |
 | TLStacks721 | Minting new ERC-721s through a Stacks drop | Planned as a separate integration, **not enabled** |
 | TLAuctionHouse **2.6.1 candidate** | Escrowed auctions and Buy Now for existing ERC-721 tokens | Research and typed preparation only, **no listing/bid/settle actions** |
 | ERC7160TL | ERC-721 with multiple metadata choices | Unsupported |
@@ -34,7 +35,7 @@ Pinned creator implementation: `0x079e23352721084561fb241593d16a4e6f548a97`. Pin
 
 1. Open **Collections → Open a collection** and select its actual chain.
 2. Paste an existing **ERC1155TL or ERC721TL creator collection contract address**, not an owner wallet, shared Stacks deployment or AuctionHouse contract.
-3. Select **Open collection**. The server detects ERC-721 versus ERC-1155 using ERC-165 and verifies the relevant version/implementation. **ERC1155TL** opens the existing verified management workspace. **ERC721TL 3.6.0 or 4.1.2** opens its dedicated **read-only** collection workspace; no mint or auction transaction is available until runtime verification is complete.
+3. Select **Open collection**. The server detects ERC-721 versus ERC-1155 using ERC-165 and verifies the relevant version/implementation. **ERC1155TL** opens the existing verified management workspace. **ERC721TL 3.6.0 or 4.1.2** opens its dedicated collection workspace. v4.1.2 creator mint reviews use a separate approval gate; v3.6.0 and auction operations remain read-only.
 4. Connect an injected EVM wallet on the same chain. Read-only inspection needs no wallet signature; editing requires the contract owner or an on-chain ADMIN_ROLE wallet.
 5. Complete the app's gasless SIWE sign-in when prompted. This is not an approval of a contract transaction. The server rechecks owner/admin authority for changes.
 6. Keep enough native network currency for any explicitly signed blockchain operation; IPFS service availability and fees are distinct from gas.
@@ -148,3 +149,11 @@ Full technical plan: [1 of 1 Auction Integration Readiness](AUCTION_1OF1_READINE
 - **API and private keys:** never share a seed phrase, signing key or secret credential with the app or support. This application does not need them.
 
 The source of truth for live contract eligibility is **the application's verified adapter + an on-chain read**, not a screenshot, promotional description, or this planning document.
+
+## ERC721TL v4.1.2 creator mint and recovery
+
+Load an existing saved artwork under **Artworks & Tokens**. Keep its pinned JSON URI and choose the NFT recipient. **Review creator mint** verifies the exact implementation, role, supply lock, absence of a rendering override, raw JSON CID digest, EOA recipient, nonce and gas balance. It creates a private review, not an NFT.
+
+Signing remains disabled until the operator records explicit user approval for that exact transaction. After approval, obtain a fresh review if the five-minute review has expired, check its details, and confirm in the wallet. The application never submits automatically. It verifies the finalized Transfer mint event, ownerOf and tokenURI before declaring success.
+
+For an interrupted submission, use **Transactions → Application reviews → Load my mint reviews**. Attach the existing hash or reconcile a repriced/cancelled transaction. Do not mint again to recover a pending receipt. Creator minting does not publish a TLStacks721 sale or create an AuctionHouse listing.

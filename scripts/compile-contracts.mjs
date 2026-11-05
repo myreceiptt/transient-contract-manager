@@ -5,6 +5,13 @@ import creatorCompiler from 'solc';
 import stacksCompiler from 'solc-stacks';
 const specs = [
   {
+    name: 'ERC721TL',
+    source: 'src/erc-721/ERC721TL.sol',
+    input: 'erc721',
+    compiler: creatorCompiler,
+    hash: '0x3ef32f426fbb9aadd50d894e5c9a8cfea059f7c02106e692e871508da62b05f4',
+  },
+  {
     name: 'ERC1155TL',
     source: 'src/erc-1155/ERC1155TL.sol',
     input: 'go1',

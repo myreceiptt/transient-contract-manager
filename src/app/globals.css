@@ -2358,3 +2358,8 @@ th { color: #c1c1c8; }
   .erc721-safety-gate{grid-template-columns:18px minmax(0,1fr);gap:9px}
   .erc721-safety-gate>span:last-child{grid-column:2}
 }
+.erc721-creator-review .artwork{width:100%;max-height:240px;object-fit:contain}
+.erc721-creator-review .review-data{grid-template-columns:minmax(120px,1fr) minmax(0,2fr)}
+.erc721-creator-review .review-data dd{min-width:0;overflow-wrap:anywhere;word-break:normal}
+.erc721-creator-review pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
+@media(max-width:600px){.erc721-creator-review .review-data{grid-template-columns:minmax(0,1fr)}.erc721-creator-review .review-data dd{margin-bottom:12px}.erc721-creator-review .button-row .button{width:100%}}

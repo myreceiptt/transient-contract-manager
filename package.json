@@ -16,7 +16,8 @@
     "db:verify": "node --import tsx scripts/verify-migration.ts",
     "test:http": "node --import tsx scripts/http-smoke.ts",
     "test:preview": "node --import tsx scripts/preview-security-smoke.ts",
-    "format": "prettier --write src scripts tests README.md docs/*.md .github/workflows/*.yml *.json"
+    "format": "prettier --write src scripts tests README.md docs/*.md .github/workflows/*.yml *.json",
+    "test:erc721": "vitest run --config vitest.erc721.config.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "0.3.16",

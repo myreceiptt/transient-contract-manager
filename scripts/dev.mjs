@@ -6,7 +6,7 @@ try {
 }
 const env = { ...process.env };
 if (env.SITES_MANAGED_LINUX_CONTAINER === '1') {
-  env.APP_ORIGIN = 'http://terminal.local:4173';
+  env.APP_ORIGIN = 'http://127.0.0.1:4173';
   env.NEXT_PUBLIC_APP_ORIGIN = env.APP_ORIGIN;
   env.NODE_USE_ENV_PROXY = '1';
 }

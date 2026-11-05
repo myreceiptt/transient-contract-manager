@@ -1,0 +1,47 @@
+{
+  "mode": "LOCAL_EXACT_CONTRACTS",
+  "forkBlock": null,
+  "chainId": 31337,
+  "mainnetWrites": false,
+  "ipfsTransport": "fixed digest-checked fixture",
+  "receipts": [
+    {
+      "status": "success",
+      "gasUsed": "207752",
+      "tokenId": "1",
+      "tokenURI": "ipfs://bafkreieoudnyfj37ix52t5my5mpqki6idppsiwqpbxhbj4p2lgm2vir52e",
+      "blockHash": "0xb64fd8701c1c875f4942b326a85538e8045f1e46bab9c770f4f1a33102a94163",
+      "collection": "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
+      "blockNumber": "4",
+      "ownerAtMint": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "metadataSha256": "8ea0db82a77f45fba9f598eb1f0523c81bdf245a0f0dce14f1fa5999aaa23dd1",
+      "transactionHash": "0x27eb38b6e0beac465ba7e71c8a0a7f41d37c0fca917a4883182e2e5d0135a8b9"
+    },
+    {
+      "status": "success",
+      "gasUsed": "188459",
+      "tokenId": "2",
+      "tokenURI": "ipfs://bafkreieoudnyfj37ix52t5my5mpqki6idppsiwqpbxhbj4p2lgm2vir52e",
+      "blockHash": "0xe310bf377696b6f2f469b55a1885f708b23884b229ec3270a9df3326a18b45ca",
+      "collection": "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
+      "blockNumber": "6",
+      "ownerAtMint": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "metadataSha256": "8ea0db82a77f45fba9f598eb1f0523c81bdf245a0f0dce14f1fa5999aaa23dd1",
+      "transactionHash": "0x8a886f8d4225df41700f4a49b9861d94252a0357e7295d005bca3921914d123d"
+    }
+  ],
+  "contract": "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
+  "initialAttestation": {
+    "chainId": 31337,
+    "contract": "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
+    "implementation": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "runtimeHash": "0x3ef32f426fbb9aadd50d894e5c9a8cfea059f7c02106e692e871508da62b05f4",
+    "sourceCommit": "a2ef226db2e6df9d07e002c7c11ddab17c1df3f5",
+    "block": "3",
+    "blockHash": "0x50d85442d47ab021ae0f8df9dd6f05108dfa2ffa3702f6ec9f6b555304119f22",
+    "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "supplyLocked": false,
+    "renderingContract": "0x0000000000000000000000000000000000000000",
+    "role": "owner"
+  }
+}

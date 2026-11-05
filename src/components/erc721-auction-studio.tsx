@@ -7,6 +7,7 @@ import {reviewAuctionProposalLocally} from '@/lib/auction-planning';
 import {Erc721MarketStatus} from './erc721-market-status';
 import {Loading,Notice} from './shell';
 import {Artwork} from './safe-media';
+import {useErc721Drafts,type SavedErc721Draft} from './erc721-draft-storage';
 
 type Ownership={tokenId:string;owner:string;observedBlock:string};
 const listingTypes=[
@@ -31,6 +32,23 @@ export function Erc721AuctionStudio({chainId,contract,wallet}:{
   const [durationHours,setDurationHours]=useState('24');
   const [proposal,setProposal]=useState<ReturnType<typeof reviewAuctionProposalLocally>>();
   const [proposalError,setProposalError]=useState('');
+  const storage=useErc721Drafts('AUCTION',chainId,contract,!!wallet);
+  function useSaved(row:SavedErc721Draft){
+    storage.setActive(row);const d=row.draft;
+    setTokenId(String(d.tokenId||''));
+    setListingType(String(d.listingType||'RESERVE_AUCTION'));
+    setPayoutReceiver(String(d.payoutReceiver||wallet||''));
+    setReserveEth(String(d.reserveEth||''));setBuyNowEth(String(d.buyNowEth||''));
+    setDurationHours(String(d.durationHours||'24'));
+    setOwnership(undefined);setTokenMetadata(undefined);clearReview();
+  }
+  async function saveDraft(){
+    if(!hasOwner){setProposalError('Check the current NFT owner before saving a listing draft.');return;}
+    await storage.save({tokenId,listingType,payoutReceiver,reserveEth,buyNowEth,durationHours});
+  }
+  function newDraft(){storage.setActive(null);setTokenId('');setOwnership(undefined);
+    setListingType('RESERVE_AUCTION');setPayoutReceiver(wallet||'');
+    setReserveEth('');setBuyNowEth('');setDurationHours('24');setTokenMetadata(undefined);clearReview();}
   useEffect(()=>{
     setOwnership(undefined);setProposal(undefined);setTokenMetadata(undefined);setPayoutReceiver(wallet||'');
   },[wallet,contract,chainId]);
@@ -97,8 +115,30 @@ export function Erc721AuctionStudio({chainId,contract,wallet}:{
     <section className="panel">
       <div className="section-top"><div><h2>Prepare an NFT auction</h2>
         <p>Review an illustrative listing plan locally. This does not send a transaction,
-          create an approval, custody a token, or persist a draft.</p></div>
+          create an approval, custody a token, or execute a blockchain transaction.</p></div>
         <span className="tag">LOCAL REVIEW ONLY</span>
+      </div>
+      <div className="erc721-draft-storage">
+        <p className="fineprint">{storage.statusNote} Saved auction drafts belong to the seller wallet,
+          never to the collection administrator merely because of ADMIN_ROLE.</p>
+        <div className="button-row">
+          <button type="button" className="button secondary" disabled={!wallet||!storage.enabled||storage.busy}
+            onClick={()=>void storage.load()}>Load my auction drafts</button>
+          <button type="button" className="button secondary" onClick={newDraft}>New listing draft</button>
+          <button type="button" className="button" disabled={!storage.enabled||!hasOwner||storage.busy}
+            onClick={()=>void saveDraft()}>Save listing draft</button>
+        </div>
+        {storage.records.length>0&&<div className="erc721-saved-index">
+          {storage.records.map(row=><button key={row.id} type="button"
+            className="button secondary compact" onClick={()=>useSaved(row)}>
+            NFT #{String(row.draft.tokenId)} · {String(row.draft.listingType)} · Rev {row.version}
+          </button>)}
+        </div>}
+        {storage.active&&<button type="button" className="button secondary compact"
+          disabled={storage.busy||!storage.enabled}
+          onClick={()=>void storage.archive(storage.active!)}>Archive saved listing draft</button>}
+        {storage.error&&<Notice type="error">{storage.error}</Notice>}
+        {storage.message&&<Notice type="success">{storage.message}</Notice>}
       </div>
       <Notice>ERC721 approval and AuctionHouse escrow are major asset movements.
         No approval or listing action is enabled until the exact protocol runtime,
@@ -106,7 +146,7 @@ export function Erc721AuctionStudio({chainId,contract,wallet}:{
       <div className="form-grid">
         <label>Existing NFT Token ID
           <input inputMode="numeric" value={tokenId} placeholder="e.g. 1"
-            onChange={e=>{setTokenId(e.target.value);setOwnership(undefined);setTokenMetadata(undefined);clearReview();}}/>
+            onChange={e=>{setTokenId(e.target.value);setOwnership(undefined);setTokenMetadata(undefined);storage.setActive(null);clearReview();}}/>
         </label>
         <div className="erc721-lookup-control">
           <button type="button" className="button secondary" onClick={()=>void lookupOwnership()}

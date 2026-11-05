@@ -45,7 +45,7 @@ describe('GO#|O screenshot 15–18 acceptance: Mint Page cover & readable review
     expect(studio).toContain('collection-wide primary mint campaign');
     expect(studio).toContain('Publish transaction disabled');
     expect(studio).toContain('Mint unavailable · Draft only');
-    expect(studio).toContain('does not configure TLStacks721');
+    expect(studio).toContain('do not configure TLStacks721');
     expect(api).not.toContain("op === 'submit_erc721_mint'");
     expect(api).not.toContain("op === 'configure_erc721_drop'");
   });

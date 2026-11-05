@@ -20,7 +20,7 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
   const [maxPerWallet,setMaxPerWallet]=useState('');
   const [start,setStart]=useState('');
   const [end,setEnd]=useState('');
-  const [revision,setRevision]=useState(0);
+  const [unsavedEdits,setUnsavedEdits]=useState(0);
   const storage=useErc721Drafts('MINT_PAGE',chainId,contract,authorized);
   function useSaved(row:SavedErc721Draft){
     storage.setActive(row);const d=row.draft;
@@ -28,14 +28,14 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
     setArtwork(String(d.artwork||''));setPrice(String(d.price||''));
     setCurrency(String(d.currency||'ETH'));setPayout(String(d.payout||''));
     setMaxPerWallet(String(d.maxPerWallet||''));setStart(String(d.start||''));
-    setEnd(String(d.end||''));setRevision(row.version);setStep('edit');
+    setEnd(String(d.end||''));setUnsavedEdits(0);setStep('edit');
   }
   function data(){return {title,description,artwork,price,currency,payout,maxPerWallet,start,end};}
-  async function saveDraft(){await storage.save(data());}
+  async function saveDraft(){const saved=await storage.save(data());if(saved)setUnsavedEdits(0);}
   function newDraft(){storage.setActive(null);setTitle('');setDescription('');setArtwork('');
     setPrice('');setCurrency('ETH');setPayout('');setMaxPerWallet('');
-    setStart('');setEnd('');setRevision(0);setStep('edit');}
-  function change(setter:(value:string)=>void,value:string){setter(value);setRevision(v=>v+1);setStep('edit');}
+    setStart('');setEnd('');setUnsavedEdits(0);setStep('edit');}
+  function change(setter:(value:string)=>void,value:string){setter(value);setUnsavedEdits(v=>v+1);setStep('edit');}
   const fields=[
     ['Payment currency',currency],['Price per NFT',price?price+' '+currency:'Not specified'],
     ['Payout receiver',payout||'Not specified'],['Per-wallet limit',maxPerWallet||'Not specified'],
@@ -57,7 +57,9 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
       </div>
       <div className="erc721-metrics">
         <div><small>Campaign identity</small><strong>{title||'Untitled draft'}</strong></div>
-        <div><small>Local draft revision</small><strong>{revision}</strong></div>
+        <div><small>Saved draft revision</small>
+          <strong>{storage.active?storage.active.version:'Not saved yet'}</strong></div>
+        <div><small>Unsaved field changes</small><strong>{unsavedEdits}</strong></div>
         <div><small>Publish status</small><strong>Not published</strong></div>
       </div>
       <Notice>{storage.statusNote} There is no collector-facing page, configured sale,

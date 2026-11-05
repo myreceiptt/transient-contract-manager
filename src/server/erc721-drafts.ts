@@ -1,6 +1,6 @@
 import {randomUUID} from 'node:crypto';
 import {z} from 'zod';
-import {AppError,addressSchema,chainSchema,positive,safeUrl} from '../lib/domain';
+import {AppError,addressSchema,positive,safeUrl} from '../lib/domain';
 import {inspectErc721Candidate,scanErc721Candidates} from './erc721-probe';
 import {command} from './db';
 import {requireSessionChain,type Session} from './auth';
@@ -96,7 +96,7 @@ export async function createErc721Draft(kind:Erc721DraftKind,chainId:number,cont
   const data=parseErc721Draft(kind,raw);
   const allowed=await scope(kind,chainId,contract,s,'create',data);
   const identity=kind==='MINT_PAGE'?'collection':
-    kind==='AUCTION'?data.tokenId+':'+s.wallet.toLowerCase():randomUUID();
+    kind==='AUCTION'?(data as {tokenId:string}).tokenId+':'+s.wallet.toLowerCase():randomUUID();
   return command('erc721_draft',{action:'create',kind,chainId,contract:contract.toLowerCase(),identity,data,...allowed});
 }
 export async function saveErc721Draft(kind:Erc721DraftKind,chainId:number,contract:string,

@@ -162,7 +162,11 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
         <label>Or upload original artwork
           <input type="file" disabled={!admin||!!busy}
             accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
-            onChange={e=>void upload(e.target.files?.[0])}/>
+            onChange={e=>{
+              const file=e.target.files?.[0];
+              e.target.value=''; // Allow selecting the same image again after a failed upload.
+              void upload(file);
+            }}/>
           {fileName&&<small>{fileName}{progress===undefined?'':(' · '+progress+'%')}</small>}
           {localPreview&&<small role="status">Local preview only. This file is NOT saved to the
             draft, database, or IPFS. Fix the upload and obtain an IPFS URI before expecting

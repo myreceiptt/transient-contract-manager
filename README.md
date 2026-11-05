@@ -1,6 +1,6 @@
 # Transient Contract Manager by ENDHONESA
 
-Independent Next.js application for existing **verified ERC1155TL v4.1.2** collections and **TLStacks1155 v2.3.1 fixed-price drops** on Ethereum, Robinhood Chain, Base, and Shape. It does not use The Lab's private APIs or database. ERC721TL / TLAuctionHouse auctions are **research-only, not executable in this release**.
+Independent Next.js application for existing **verified ERC1155TL v4.1.2** collections and **TLStacks1155 v2.3.1 fixed-price drops** on Ethereum, Robinhood Chain, Base, and Shape. It does not use The Lab's private APIs or database. ERC721TL v4.1.2 has an isolated creator-mint review/receipt flow, locked until explicit approval for the exact transaction. TLAuctionHouse auctions remain research-only.
 
 **Production:** [transient.endhonesa.com](https://transient.endhonesa.com). Contract and transaction operations are gated by exact verified bytecode, owner/admin authority, a wallet review and the operator's `MAINNET_WRITES_ENABLED` switch; not all production-chain transactions have been acceptance-tested with real assets. The original [Implementation Report](docs/IMPLEMENTATION_REPORT.md) is a historical snapshot rather than a current deployment statement.
 
@@ -20,7 +20,8 @@ Independent Next.js application for existing **verified ERC1155TL v4.1.2** colle
 | --- | --- |
 | ERC1155TL v4.1.2 (creator) | **Supported** — exact verified runtime |
 | TLStacks1155 v2.3.1 fixed-price drops | **Supported** — exact verified runtime |
-| ERC721TL v3.6.0 / v4.1.2 1 of 1 | **Read-only inspector** — pinned official source versions; no verified wallet-write runtime adapter |
+| ERC721TL v3.6.0 | Read-only inspector |
+| ERC721TL v4.1.2 on Ethereum | **Exact-runtime creator mint review + receipt** — signing requires explicit per-transaction approval |
 | TLStacks721 | **Planned** — not an auction house |
 | TLAuctionHouse v2.6.1 | **Research-only** — no listings, bids, refunds or settlement from this app |
 | ERC7160TL / ERC7160TLEditions / TRACE | **Unsupported** |
@@ -32,14 +33,14 @@ contract, as it already does for ERC1155TL. Testnet deployment is optional,
 not an onboarding dependency. Automated Anvil/fork testing is internal safety
 verification. No creator NFT is redeployed or reassigned to this app.
 
-The homepage now uses one universal address form and a fail-closed ERC-165/version detector: **verified ERC1155TL** opens `/manage`; **recognized ERC721TL** opens `/manage-721` (read-only). Contract Checker has two dedicated forms. A **read-only ERC721TL Compatibility Inspector** is also available at `/erc721` for v3.6.0 and v4.1.2 interface/owner/tokenURI research. For v3.6.0, `totalSupply()` includes burned Token IDs; v4.1.2 subtracts burns. Its source runtime is **not yet approved**; its result cannot authorize mint, listing, bid or settlement.
+The homepage now uses one universal address form and a fail-closed ERC-165/version detector: **verified ERC1155TL** opens `/manage`; **recognized ERC721TL** opens `/manage-721` (read-only). Contract Checker has two dedicated forms. A **read-only ERC721TL Compatibility Inspector** is also available at `/erc721` for v3.6.0 and v4.1.2 interface/owner/tokenURI research. For v3.6.0, `totalSupply()` includes burned Token IDs; v4.1.2 subtracts burns. The inspector itself cannot authorize a transaction. The separate v4.1.2 creator adapter independently checks the exact clone/runtime before any mint review.
 The separate [1 of 1 and AuctionHouse readiness plan](docs/AUCTION_1OF1_READINESS.md)
 describes required ERC721TL runtime verification, escrowed NFT listing, bidder funds, refunds, fee and settlement checks.
 Neither planning documents nor `src/lib/auction-planning.ts` enable a transaction.
 
 ## ERC721TL mainnet draft preparation
 
-An owner/admin of a recognized **ERC721TL v4.1.2** collection can prepare artwork and metadata IPFS pins through the new 1 of 1 studio and run a **transaction-free** `mint(address,string)` dry-run. This preview requires official creator implementation address + observed codehash + admin role + unlocked supply and is **not** a writer runtime allowlist. There is no ERC721 mint/sign endpoint yet. The existing ERC1155 upload and writes remain unchanged.
+An owner/admin of a recognized **ERC721TL v4.1.2** collection can prepare artwork and metadata IPFS pins through the new 1 of 1 studio and run a **transaction-free** `mint(address,string)` dry-run. This preview requires official creator implementation address + observed codehash + admin role + unlocked supply and is **not** a writer runtime allowlist. The separate creator review adds exact-runtime attestation, raw JSON CID integrity, gas/balance checks, one-call approval, persisted review/hash recovery and verified final receipts. The existing ERC1155 upload and writes remain unchanged. See [Issue #30 execution and evidence](docs/ISSUE_30_CREATOR_MINT.md).
 
 ## Local read-only workspace
 

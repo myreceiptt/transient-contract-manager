@@ -242,19 +242,34 @@ export function useConnection() {
   const { address, chainId } = useWalletSession();
   return { address, chainId };
 }
-export function useWalletClient() {
-  const { address, provider, chainId } = useWalletSession();
-  const data = useMemo(() => !address || !provider ? undefined : {
-    chain: chainId ? allowedChain(chainId) : undefined,
-    sendTransaction: async (tx: { account?: Address; chain?: unknown; to: Address; data?: Hex; value?: bigint }) => {
+
+export async function sendWalletTransaction(provider: EthereumProvider, address: Address, chainId: number | undefined, tx: { account?: Address; chain?: unknown; to: Address; data?: Hex; value?: bigint;
+      nonce?: number; gas?: bigint; maxFeePerGas?: bigint; maxPriorityFeePerGas?: bigint }) {
+      // Recheck the live provider after async server preflight; a wallet may have switched meanwhile.
+      const [activeAccounts, activeChain] = await Promise.all([
+        provider.request({ method: 'eth_accounts' }), provider.request({ method: 'eth_chainId' }),
+      ]);
+      if (!Array.isArray(activeAccounts) || String(activeAccounts[0]).toLowerCase() !== address.toLowerCase() ||
+          requireChainId(activeChain) !== chainId || (tx.account && tx.account.toLowerCase() !== address.toLowerCase()))
+        throw new Error('Wallet account or network changed. Review the transaction again.');
       const hash = await provider.request({ method: 'eth_sendTransaction', params: [{
         from: address, to: tx.to, data: tx.data, value: toHex(tx.value ?? 0n),
+        ...(tx.nonce === undefined ? {} : { nonce: toHex(tx.nonce) }),
+        ...(tx.gas === undefined ? {} : { gas: toHex(tx.gas) }),
+        ...(tx.maxFeePerGas === undefined ? {} : { maxFeePerGas: toHex(tx.maxFeePerGas) }),
+        ...(tx.maxPriorityFeePerGas === undefined ? {} : { maxPriorityFeePerGas: toHex(tx.maxPriorityFeePerGas) }),
       }] });
       if (typeof hash !== 'string' || !/^0x[0-9a-fA-F]{64}$/.test(hash)) {
         throw new Error('Wallet returned an invalid transaction hash');
       }
       return hash as Hex;
-    },
+}
+
+export function useWalletClient() {
+  const { address, provider, chainId } = useWalletSession();
+  const data = useMemo(() => !address || !provider ? undefined : {
+    chain: chainId ? allowedChain(chainId) : undefined,
+    sendTransaction: (tx: Parameters<typeof sendWalletTransaction>[3]) => sendWalletTransaction(provider, address, chainId, tx),
   }, [address, provider, chainId]);
   return { data };
 }

@@ -37,6 +37,10 @@ export function operationBudget(op: string): Budget {
   if (['challenge', 'login', 'logout'].includes(op)) return 'auth';
   if (op === 'inventory' || op === 'mint_inventory' || op === 'scan_erc721' || op === 'erc721_transfers') return 'inventory';
   if (op === 'metadata') return 'metadata';
+  if (op === 'attest_erc721_creator') return 'public';
+  if (['prepare_erc721_mint','preflight_erc721_mint','attach_erc721_mint',
+    'confirm_erc721_mint','cancel_erc721_mint'].includes(op)) return 'transaction';
+  if (['history_erc721_mint','intent_erc721_mint'].includes(op)) return 'workspace';
   if (['detect_collection', 'inspect', 'currency', 'balance', 'public', 'public_collectors','collection_profile_read','inspect_erc721','diagnose_erc721','read_erc721_market','erc721_royalties','erc721_draft_status'].includes(op)) return 'public';
   if (
     [

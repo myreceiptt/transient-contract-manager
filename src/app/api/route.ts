@@ -1,4 +1,6 @@
 import { previewErc721Mint, assertErc721DraftAuthor } from '@/server/erc721-mint-preview';
+import { attestCreator, prepareCreatorMint, getCreatorMint, preflightCreatorMint,
+  attachCreatorMint, confirmCreatorMint, cancelCreatorMint, creatorMintHistory } from '@/server/erc721-creator-mint';
 import { readErc721MarketStatus } from '@/server/erc721-market-observer';
 import {readErc721Transfers} from '@/server/erc721-activity';
 import {readErc721Royalties} from '@/server/erc721-royalty-observer';
@@ -87,6 +89,9 @@ export async function POST(req: NextRequest) {
         .extend({ wallet: addressSchema.optional(), tokenId: positive.optional() })
         .parse(p);
       result = await inspect(args.chainId, args.contract, args.wallet, BigInt(args.tokenId || '1'));
+    } else if (op === 'attest_erc721_creator') {
+      const a=identity.extend({wallet:addressSchema.optional()}).parse(p);
+      result=await attestCreator(a.chainId,a.contract,a.wallet);
     } else if (op === 'erc721_draft_status') {
       result=erc721DraftAvailability();
     } else if (op === 'inspect_erc721') {
@@ -150,6 +155,21 @@ export async function POST(req: NextRequest) {
       release = acquireSlot(req, budget);
       await rateLimit(req, budget, s.wallet);
       if (op === 'session') result = s;
+      else if (op === 'prepare_erc721_mint') {
+        const a=identity.parse(p);
+        result=await prepareCreatorMint(a.chainId,a.contract,{recipient:p.recipient,uri:p.uri},s);
+      }
+      else if (op === 'history_erc721_mint') {
+        const a=identity.parse(p);
+        result=await creatorMintHistory(a.chainId,a.contract,s);
+      }
+      else if (op === 'intent_erc721_mint') result=await getCreatorMint(idSchema.parse(p.id),s);
+      else if (op === 'preflight_erc721_mint') result=await preflightCreatorMint(idSchema.parse(p.id),s);
+      else if (op === 'attach_erc721_mint') result=await attachCreatorMint(idSchema.parse(p.id),
+        z.string().regex(/^0x[0-9a-fA-F]{64}$/).parse(p.txHash) as `0x${string}`,s);
+      else if (op === 'confirm_erc721_mint') result=await confirmCreatorMint(idSchema.parse(p.id),s);
+      else if (op === 'cancel_erc721_mint') result=await cancelCreatorMint(idSchema.parse(p.id),
+        z.string().regex(/^0x[0-9a-fA-F]{64}$/).parse(p.txHash) as `0x${string}`,s);
       else if (op === 'erc721_draft_list') {
         const a=identity.extend({kind:erc721DraftKind}).parse(p);
         result=await listErc721Drafts(a.kind,a.chainId,a.contract,s);

@@ -63,9 +63,10 @@ export function Erc721Workspace(){
         </div>
       </div>
       <Notice>
-        ERC721TL v{info.version} is compatible with the official read-only source
-        baseline. Exact deployment runtime is not yet verified for signing.
-        Create NFT, Mint Pages and Auctions cannot execute transactions from this workspace.
+        {info.creatorMintRuntimeVerified
+          ? 'ERC721TL v4.1.2 creator mint runtime verified. Prepare an artwork, review its mint, and obtain explicit approval for that exact transaction before signing.'
+          : `ERC721TL v${info.version} is available for read-only inspection. This deployment is not verified for creator mint signing.`}
+        {' '}Mint Page publication and auctions remain disabled.
       </Notice>
       <div className="tabs" role="tablist" aria-label="ERC721 collection sections">
         {tabs.map(t=><button key={t} role="tab" className={tab===t?'active':''}
@@ -103,11 +104,10 @@ export function Erc721Workspace(){
         </section>
         <section className="panel">
           <div className="section-top"><h2>Workspace readiness</h2><ShieldCheck size={19}/></div>
-          <p>Inspection and ownership lookups are available. Creator minting
-            requires a verified codehash, version-specific ABI, owner/admin
-            simulation, explicit wallet review and confirmed on-chain results.
-            The Artworks &amp; Tokens studio can now pin unique metadata and
-            run a transaction-free mint simulation. Actual minting remains disabled.</p>
+          <p>Use Artworks &amp; Tokens to load a saved artwork and review its creator mint.
+            Each review checks the runtime, current wallet permission, supply lock, exact IPFS
+            metadata, recipient and network fee. Signing requires approval for that exact
+            transaction. A confirmed mint records its Token ID, owner and tokenURI.</p>
           <button className="button secondary" onClick={()=>navigate('Artworks & Tokens')}>
             View 1 of 1 NFTs
           </button>

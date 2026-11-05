@@ -85,7 +85,8 @@ describe('Unified navigation layout and ERC721 write isolation',()=>{
     expect(readFileSync('src/components/erc721-auction-studio.tsx','utf8')).toContain("api('scan_erc721'");
     expect(studio).toContain('READ-ONLY');
     expect(api).toContain("op === 'detect_collection'");
-    expect(api).not.toContain("op === 'prepare_erc721_mint'");
+    expect(api).toContain("op === 'prepare_erc721_mint'");
+    expect(api).toContain("@/server/erc721-creator-mint");
     expect(api).not.toContain("op === 'prepare_auction_list'");
     expect(api).not.toContain("op === 'submit_auction_bid'");
     expect(readFileSync('src/server/collection-router.ts','utf8')).not.toContain('writeContract');

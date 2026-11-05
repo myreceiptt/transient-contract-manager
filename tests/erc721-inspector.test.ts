@@ -135,7 +135,8 @@ describe('ERC721TL v3.6.0 and v4.1.2 read-only research path',()=>{
    expect(path).toContain("op === 'inspect_erc721'");
    expect(path).toContain("op === 'diagnose_erc721'");
    expect(path).toContain("op === 'scan_erc721'");
-   expect(path).not.toContain("op === 'prepare_erc721_mint'");
+   expect(path).toContain("op === 'prepare_erc721_mint'");
+    expect(path).toContain("@/server/erc721-creator-mint");
    expect(path).not.toContain("op === 'create_auction'");
    expect(impl).not.toContain('writeContract');
    expect(impl).not.toContain('simulateContract');

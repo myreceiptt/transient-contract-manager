@@ -8,6 +8,7 @@ import {Artwork} from './safe-media';
 import {Notice} from './shell';
 import {nftMetadataSchema} from '@/lib/nft-metadata';
 import {uploadOriginalArtwork,formatArtworkSize,checkArtwork} from '@/lib/direct-ipfs-upload';
+import {Erc721MintReview,Erc721MintLedger} from './erc721-mint-review';
 
 type Props={chainId:number;contract:string;owner:string;role:string};
 export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
@@ -19,6 +20,7 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
   const [recipient,setRecipient]=useState(owner);
   const [pinned,setPinned]=useState('');
   const [simulation,setSimulation]=useState<any>();
+  const [mintReview,setMintReview]=useState<any>();
   const [busy,setBusy]=useState('');
   const [progress,setProgress]=useState<number>();
   const [fileName,setFileName]=useState('');
@@ -34,6 +36,7 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
   const [note,setNote]=useState('');
   const admin=role==='owner'||role==='admin';
   const storage=useErc721Drafts('ARTWORK',chainId,contract,admin);
+  const locked=!!busy||storage.busy||!!mintReview;
   function useSaved(row:SavedErc721Draft){
     clearLocalPreview();
     storage.setActive(row);
@@ -103,15 +106,20 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
       setNote('Read-only simulation completed. No transaction or Token ID has been created.');
     });
   }
+  async function reviewMint(){
+    await task('review',async()=>{
+      setMintReview(await api('prepare_erc721_mint',{chainId,contract,recipient,uri:pinned}));
+    });
+  }
   return <section className="panel nft-metadata-studio erc721-draft-studio">
     <div className="section-top">
-      <div><span className="eyebrow">CREATE 1 OF 1 · PHASE B PREPARATION</span>
+      <div><span className="eyebrow">CREATE 1 OF 1 · CREATOR MINT</span>
         <h2>Prepare an original NFT</h2></div>
-      <span className="tag">NO ON-CHAIN WRITES</span>
+      <span className="tag">EXPLICIT APPROVAL REQUIRED</span>
     </div>
-    <p>Prepare unique ERC-721 artwork and immutable IPFS metadata, then test the
-      owner/admin mint call as a dry-run. <strong>There is no Mint or Sign button yet.</strong>
-      Simulation does not reserve a Token ID or change ownership.</p>
+    <p>Prepare unique artwork and immutable IPFS metadata, then review one creator mint.
+      The review checks the exact runtime, current owner/admin permission, metadata integrity
+      and network fee. Wallet signing remains locked until this exact transaction is approved.</p>
     {!admin&&<Notice>Connect a wallet with on-chain owner or ADMIN_ROLE permission
       to pin creator metadata or simulate minting. This does not grant contract-write access.</Notice>}
     <div className="erc721-draft-storage panel">
@@ -121,15 +129,15 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
       </div>
       <p className="fineprint">{storage.statusNote}</p>
       <div className="button-row">
-        <button type="button" className="button secondary" disabled={!admin||!storage.enabled||storage.busy}
+        <button type="button" className="button secondary" disabled={!admin||!storage.enabled||locked}
           onClick={()=>void storage.load()}>Load saved artworks</button>
-        <button type="button" className="button secondary" disabled={!admin||storage.busy}
+        <button type="button" className="button secondary" disabled={!admin||locked}
           onClick={clearDraft}>New artwork draft</button>
-        <button type="button" className="button" disabled={!admin||!storage.enabled||storage.busy}
+        <button type="button" className="button" disabled={!admin||!storage.enabled||locked}
           onClick={()=>void saveDraft()}>{storage.busy?'Saving…':'Save artwork draft'}</button>
       </div>
       {storage.records.length>0&&<label>Saved versions
-        <select value={storage.active?.id||''} onChange={e=>{
+        <select disabled={locked} value={storage.active?.id||''} onChange={e=>{
           const row=storage.records.find(r=>r.id===e.target.value);if(row)useSaved(row);
         }}>
           <option value="">Choose a saved artwork</option>
@@ -139,7 +147,7 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
         </select>
       </label>}
       {storage.active&&<button type="button" className="button secondary compact"
-        disabled={!storage.enabled||storage.busy} onClick={()=>void storage.archive(storage.active!)}>
+        disabled={!storage.enabled||locked} onClick={()=>void storage.archive(storage.active!)}>
         Archive selected draft
       </button>}
       {storage.error&&<Notice type="error">{storage.error}</Notice>}
@@ -148,19 +156,19 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
     <div className="form-grid">
       <div className="metadata-form">
         <label>NFT title
-          <input value={name} maxLength={160} disabled={!admin||!!busy}
+          <input value={name} maxLength={160} disabled={!admin||locked}
             onChange={e=>change(setName,e.target.value)} placeholder="Original artwork title" />
         </label>
         <label>Description
-          <textarea value={description} rows={4} maxLength={6000} disabled={!admin||!!busy}
+          <textarea value={description} rows={4} maxLength={6000} disabled={!admin||locked}
             onChange={e=>change(setDescription,e.target.value)}/>
         </label>
         <label>Artwork IPFS URI
-          <input value={image} disabled={!admin||!!busy} spellCheck={false}
+          <input value={image} disabled={!admin||locked} spellCheck={false}
             placeholder="ipfs://..." onChange={e=>{clearLocalPreview();change(setImage,e.target.value);}}/>
         </label>
         <label>Or upload original artwork
-          <input type="file" disabled={!admin||!!busy}
+          <input type="file" disabled={!admin||locked}
             accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
             onChange={e=>{
               const file=e.target.files?.[0];
@@ -175,7 +183,7 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
             Original pixels retained on public IPFS.</small>
         </label>
         <label>External URL (optional)
-          <input value={externalUrl} disabled={!admin||!!busy} maxLength={2048}
+          <input value={externalUrl} disabled={!admin||locked} maxLength={2048}
             placeholder="https://..." onChange={e=>change(setExternalUrl,e.target.value)}/>
         </label>
       </div>
@@ -189,7 +197,7 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
       </div>
     </div>
     <div className="button-row">
-      <button type="button" className="button secondary" disabled={!admin||!!busy}
+      <button type="button" className="button secondary" disabled={!admin||locked}
         onClick={()=>void pinMetadata()}>
         {busy==='pin'?'Pinning immutable JSON…':'Pin metadata JSON to IPFS'}
       </button>
@@ -198,13 +206,16 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
       <strong>Immutable NFT metadata URI</strong>
       <code>{pinned}</code>
       <div className="form-grid"><label>Recipient wallet
-        <input value={recipient} disabled={!admin||!!busy}
+        <input value={recipient} disabled={!admin||locked}
           onChange={e=>{setRecipient(e.target.value);setSimulation(undefined);}}/>
         <small>ERC721TL mints a unique Token ID directly to this recipient.</small>
       </label></div>
       <button className="button secondary" type="button" onClick={()=>void runSimulation()}
-        disabled={!admin||!!busy}>
+        disabled={!admin||locked}>
         {busy==='simulate'?'Simulating on Ethereum…':'Simulate ERC721TL mint (read-only)'}
+      </button>
+      <button className="button" type="button" onClick={()=>void reviewMint()} disabled={!admin||locked}>
+        {busy==='review'?'Checking creator mint…':'Review creator mint'}
       </button>
     </div>}
     {localPreview&&<Notice>Only the text and URI fields are included when you save
@@ -223,5 +234,8 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
       </dl>
       <Notice>{simulation.warning}</Notice>
     </section>}
+    <Erc721MintLedger chainId={chainId} contract={contract}/>
+    {mintReview&&<Erc721MintReview key={mintReview.id} intent={mintReview}
+      onClose={()=>setMintReview(undefined)} onConfirmed={()=>setNote('Mint confirmed. The verified Token ID and tokenURI are recorded in your creator mint review.')}/>}
   </section>;
 }

@@ -1,0 +1,47 @@
+{
+  "mode": "PINNED_MAINNET_FORK",
+  "forkBlock": 26350623,
+  "chainId": 31337,
+  "mainnetWrites": false,
+  "ipfsTransport": "fixed digest-checked fixture",
+  "receipts": [
+    {
+      "status": "success",
+      "gasUsed": "207752",
+      "tokenId": "1",
+      "tokenURI": "ipfs://bafkreieoudnyfj37ix52t5my5mpqki6idppsiwqpbxhbj4p2lgm2vir52e",
+      "blockHash": "0x9357e526c61ca0bd7929d842d34475545288959348ce756e44db91e63d4ff5db",
+      "collection": "0x99b8ae3c16559b80424a45c92dd530d50d970a46",
+      "blockNumber": "26350625",
+      "ownerAtMint": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "metadataSha256": "8ea0db82a77f45fba9f598eb1f0523c81bdf245a0f0dce14f1fa5999aaa23dd1",
+      "transactionHash": "0x024129ea18a4f2743ca2ba93afb531e3cfed3ca30be92611ac78b2f5802b5952"
+    },
+    {
+      "status": "success",
+      "gasUsed": "188459",
+      "tokenId": "2",
+      "tokenURI": "ipfs://bafkreieoudnyfj37ix52t5my5mpqki6idppsiwqpbxhbj4p2lgm2vir52e",
+      "blockHash": "0x92ae96d1e2268e88acaacb8750c6ef4149facb53dec155c1ab53bd838f3bc596",
+      "collection": "0x99b8ae3c16559b80424a45c92dd530d50d970a46",
+      "blockNumber": "26350627",
+      "ownerAtMint": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "metadataSha256": "8ea0db82a77f45fba9f598eb1f0523c81bdf245a0f0dce14f1fa5999aaa23dd1",
+      "transactionHash": "0x494bcf3f7090e09adddc92ace41e169ec8c8f56cddb3bbf4bf20913782e8ce42"
+    }
+  ],
+  "contract": "0x99B8AE3C16559B80424a45C92Dd530d50d970a46",
+  "initialAttestation": {
+    "chainId": 31337,
+    "contract": "0x99B8AE3C16559B80424a45C92Dd530d50d970a46",
+    "implementation": "0xEA573D90cFD624bed1344a7a7eb44785ae1AD540",
+    "runtimeHash": "0x3ef32f426fbb9aadd50d894e5c9a8cfea059f7c02106e692e871508da62b05f4",
+    "sourceCommit": "a2ef226db2e6df9d07e002c7c11ddab17c1df3f5",
+    "block": "26350624",
+    "blockHash": "0xed8fd6f7cf2718c444a2468076189e9dbedf04fd75401e2bec763a8aafc41815",
+    "owner": "0xbeE916aBC292D4EfF57702fABbA1AAC4d4046036",
+    "supplyLocked": false,
+    "renderingContract": "0x0000000000000000000000000000000000000000",
+    "role": "owner"
+  }
+}

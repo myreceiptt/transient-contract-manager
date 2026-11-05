@@ -31,7 +31,7 @@ export function useErc721Drafts(kind:Kind,chainId:number,contract:string,canMana
       if(alive){setEnabled(false);setStatusNote('Draft storage availability could not be verified.');}
     });
     return()=>{alive=false;};
-  },[chainId,contract,kind]);
+  },[chainId,contract,kind,canManage]);
   const load=useCallback(async()=>{
     if(!canManage||!enabled)return;
     setBusy(true);setError('');setMessage('');

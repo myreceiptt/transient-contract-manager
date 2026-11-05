@@ -1,7 +1,8 @@
 'use client';
 import {useState} from 'react';
 import {ArrowLeft,ArrowUpRight,ImagePlus,ShieldCheck,Users,Percent,Link2,ScanLine} from 'lucide-react';
-import {Notice} from './shell';
+import {Notice,Loading} from './shell';
+import {api,short} from '@/lib/api-client';
 import {Erc721MarketStatus} from './erc721-market-status';
 import {explorer} from '@/lib/chains';
 
@@ -19,6 +20,18 @@ export function Erc721Settings({info,chainId,contract}:{
   info:any;chainId:number;contract:string;
 }){
   const [panel,setPanel]=useState<Panel>('dashboard');
+  const [royaltyToken,setRoyaltyToken]=useState('');
+  const [royaltyResult,setRoyaltyResult]=useState<any>();
+  const [royaltyBusy,setRoyaltyBusy]=useState(false);
+  const [royaltyError,setRoyaltyError]=useState('');
+  async function readRoyalties(){
+    setRoyaltyBusy(true);setRoyaltyError('');setRoyaltyResult(undefined);
+    try{
+      const p:any={chainId,contract};if(royaltyToken)p.tokenId=royaltyToken;
+      setRoyaltyResult(await api('erc721_royalties',p));
+    }catch(e){setRoyaltyError(e instanceof Error?e.message:'Royalty read failed.');}
+    finally{setRoyaltyBusy(false);}
+  }
   const role=info.walletRole||'not-connected';
   return <div className="creator-settings erc721-workflow">
     <section className="panel creator-studio-banner">
@@ -41,7 +54,7 @@ export function Erc721Settings({info,chainId,contract}:{
         <small>{c.id==='profile'?'Not configured by ERC721 adapter':
           c.id==='identity'?'Verified read-only snapshot':
           c.id==='access'?'Connected role: '+String(role).toUpperCase():
-          c.id==='royalties'?'Read adapter pending':
+          c.id==='royalties'?'On-chain read available for v4.1.2':
           c.id==='minters'?'Candidate protocol read available':'Runtime not approved for signing'}</small>
         <span className="creator-settings-card-link">Open <ArrowUpRight size={14}/></span>
       </button>)}
@@ -91,14 +104,50 @@ export function Erc721Settings({info,chainId,contract}:{
     </section>}
     {panel==='royalties'&&<section className="panel">
       <h2>Collection Royalties</h2>
-      <Notice>Royalty recipient, basis points and token-level overrides have not
-        been read using an independently verified ERC721 royalty adapter.
-        No default rate is assumed.</Notice>
+      <p>ERC721TL v4.1.2 supports a default royalty recipient and percentage,
+        plus token-specific overrides. The read-only adapter uses its pinned
+        source ABI at a single Ethereum block. Marketplace payment enforcement
+        and any future update transaction remain separate.</p>
       <div className="erc721-metrics">
-        <div><small>Current collection royalty</small><strong>Not verified</strong></div>
-        <div><small>Token overrides</small><strong>Not indexed</strong></div>
+        <div><small>Default royalty</small><strong>{royaltyResult?
+          Number(royaltyResult.defaultRoyalty.basisPoints)/100+'%':'Not verified'}</strong></div>
+        <div><small>Default recipient</small><strong>{royaltyResult?
+          short(royaltyResult.defaultRoyalty.recipient):'Not verified'}</strong></div>
+        <div><small>Token override / effective royalty</small>
+          <strong>{royaltyResult?.token?
+            Number(royaltyResult.token.effectiveBasisPoints)/100+'%':'Not checked'}</strong></div>
       </div>
-      <button className="button secondary" disabled>Modify royalties disabled</button>
+      <label>Existing Token ID (optional; inspect its effective royalty)
+        <input value={royaltyToken} inputMode="numeric"
+          onChange={e=>{setRoyaltyToken(e.target.value);setRoyaltyResult(undefined);}}
+          placeholder="Leave blank for default collection royalty"/>
+      </label>
+      <div className="button-row">
+        <button type="button" className="button secondary" disabled={royaltyBusy||
+          (!!royaltyToken&&!/^[1-9][0-9]*$/.test(royaltyToken))}
+          onClick={()=>void readRoyalties()}>Read on-chain royalty</button>
+        <button type="button" className="button secondary" disabled>Modify royalties disabled</button>
+      </div>
+      {royaltyBusy&&<Loading label="Reading ERC2981 settings on-chain…"/>}
+      {royaltyError&&<Notice type="error">{royaltyError}</Notice>}
+      {royaltyResult&&<div className="erc721-diagnostic">
+        <h3>Observed royalty facts</h3>
+        <dl>
+          <dt>Read block</dt><dd>{royaltyResult.observedBlock}</dd>
+          <dt>Collection default recipient</dt>
+          <dd className="mono">{royaltyResult.defaultRoyalty.recipient}</dd>
+          <dt>Collection default basis points</dt>
+          <dd>{royaltyResult.defaultRoyalty.basisPoints} / 10000</dd>
+          {royaltyResult.token&&<>
+            <dt>Token ID</dt><dd>{royaltyResult.token.tokenId}</dd>
+            <dt>Effective recipient</dt>
+            <dd className="mono">{royaltyResult.token.receiver}</dd>
+            <dt>Effective rate basis points</dt>
+            <dd>{royaltyResult.token.effectiveBasisPoints} / 10000</dd>
+          </>}
+        </dl>
+        <Notice>{royaltyResult.note}</Notice>
+      </div>}
     </section>}
     {panel==='minters'&&<section className="panel">
       <h2>Stacks Mint Permission</h2>

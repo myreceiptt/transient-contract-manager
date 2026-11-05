@@ -229,6 +229,8 @@ export async function command(op: string, p: Record<string, unknown> = {}): Prom
       );
     if (msg.includes('SLUG_RESERVED'))
       throw new AppError('SLUG_RESERVED','This URL was used by another published Mint Page and is permanently reserved.',409);
+    if (op==='erc721_draft' && msg.includes('duplicate key'))
+      throw new AppError('DRAFT_EXISTS','A draft already exists for this identity. Load the saved draft and update its version.',409);
     if (msg.includes('duplicate key'))
       throw new AppError('CONFLICT', 'This NFT already has a canonical Mint Page, or the slug is reserved. Open or restore its existing page.', 409);
     if (['PENDING_TRANSACTION','DROP_MUST_BE_CLOSED','RELEASED_DRAFT_CANNOT_RESTORE','ALREADY_ARCHIVED'].some(k=>msg.includes(k)))

@@ -51,3 +51,24 @@ Build the full six-area GO#|O experience **now** while keeping all ERC721TL, TLS
 **Still outstanding:** durable authorized ERC721 draft persistence, complete collection token and Transfer indexer, live independent royalties/minter queries, exact runtime allowlist on all target networks, real collector-facing TLStacks721 page, seller listing and escrow transaction adapter, and accurate ERC721 receipt history.
 
 A passing CI test does **not** prove hosted wallet behavior. A browser / mobile and SIWE / persistence acceptance pass is still required before merging or releasing.
+
+
+## 5 November 2026 — implementation continuation (staged)
+
+- Added a separate ERC721 RLS-protected draft storage migration `20261105110000_erc721_workspace_drafts.sql`. It is **in source only** and has not been applied to a remote database.
+- Typed, SIWE+CSRF authenticated CRUD endpoints for ARTWORK, MINT_PAGE, and AUCTION drafts, with optimistic revision numbers. All collection draft operations check the user's current on-chain owner/admin role. Auction creation and update independently check current `ownerOf(tokenId)` against the session wallet. Auction drafts are private per seller; creator ADMIN_ROLE is not seller authority.
+- Mint Page draft has identity `collection`, never a fabricated per-Token-ID sale. A database uniqueness constraint prevents duplicate canonical collection-drop drafts.
+- UI load/save/archive controls are provided for artwork, Mint Page, and seller auction drafts, but **disabled** until `ERC721_DRAFTS_ENABLED=true` after migration acceptance. Local editor previews remain available.
+- Added a bounded Ethereum read-only ERC721 Transfer event reader (1,000 blocks per manual request, at most 100 displayed events, explicit truncation warning). This does **not** reconstruct complete collection history, full owner index, royalties, payments, or auction settlements.
+- No changes to the GO1 ERC1155TL tables, migration history, admin transaction adapter, existing public mint pages, or token inventory code.
+
+### Preconditions to activate private draft persistence
+
+1. Review the isolated schema and PostgreSQL permissions and compare the exact pending SQL with current database migration history.
+2. Approve applying **only** migration `20261105110000_erc721_workspace_drafts.sql` to the isolated Preview Supabase project, with verified rollback/backup plan and RLS postchecks. Do not apply it to Production without a separate decision.
+3. After successful migration verification, set `ERC721_DRAFTS_ENABLED=true` for Preview only; verify wallet admin versus non-admin and seller ownership restrictions with authenticated API tests.
+4. Keep `MAINNET_WRITES_ENABLED=false` for Preview. Public mint transactions, ERC721 direct mint, approvals, bids, and AuctionHouse escrow/settlement remain blocked.
+
+### Known outstanding capabilities
+
+A full authenticated collector-facing TLStacks721 page is not implemented. On-chain royalty reads require version-pinned ABI and read semantics. Event history remains a bounded scan rather than a durable block index. Draft revision history is retained server-side; a read-only revision viewer is future work. Preview real-wallet/browser acceptance should be rerun after persistence is enabled.

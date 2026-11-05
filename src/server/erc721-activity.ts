@@ -41,7 +41,7 @@ export async function readErc721Transfers(chainId:number,contract:Address,before
   }));
   return serializable({chainId,contract,observedBlock:String(observedBlock),
     window:{from:String(fromBlock),to:String(toBlock)},
-    nextBeforeBlock:fromBlock===0n?null:String(fromBlock-1n),
+    nextBeforeBlock:logs.length>limit||fromBlock===0n?null:String(fromBlock-1n),
     capped:logs.length>limit,events:recent,
     completeCollectionHistory:fromBlock===0n&&! (logs.length>limit),
     note:'Block-scoped Transfer events only. A limited window is not a complete ownership or auction history. '+

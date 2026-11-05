@@ -130,7 +130,7 @@ export function Erc721Workspace(){
             chainId={chainId} contract={info.contract} owner={info.owner} role={role}/>}
         </div>}
       {visited.includes('Mint Pages')&&<div style={{display:tab==='Mint Pages'?'block':'none'}}>
-        <Erc721PrimaryStudio key={chainId+info.contract} chainId={chainId}
+        <Erc721PrimaryStudio key={chainId+info.contract+String(address)} chainId={chainId}
           contract={info.contract} authorized={isAdmin}/>
       </div>}
       {visited.includes('Auctions')&&<div style={{display:tab==='Auctions'?'block':'none'}}>

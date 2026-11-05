@@ -12,13 +12,14 @@ import type {SavedErc721Draft} from './erc721-draft-storage';
 type Props={
   chainId:number;contract:string;authorized:boolean;
   uri:string;onChange:(uri:string)=>void;
+  onUploadingChange?:(uploading:boolean)=>void;
 };
 
 /** Mirrors GO1's authenticated direct-to-Pinata original-file upload.
  * Existing ARTWORK drafts can also supply the cover without a second upload.
  * Local blob URLs and File instances are NEVER persisted as mint-page data.
  */
-export function Erc721MintCoverPicker({chainId,contract,authorized,uri,onChange}:Props){
+export function Erc721MintCoverPicker({chainId,contract,authorized,uri,onChange,onUploadingChange}:Props){
   const {ensureSession}=useSession();
   const [uploading,setUploading]=useState(false);
   const [loadingArtworks,setLoadingArtworks]=useState(false);
@@ -55,7 +56,7 @@ export function Erc721MintCoverPicker({chainId,contract,authorized,uri,onChange}
     setFileName(file.name);setProgress(undefined);setError('');setNotice('');
     // Avoid accidentally persisting the previous CID as if the new file was uploaded.
     onChange('');
-    setUploading(true);
+    setUploading(true);onUploadingChange?.(true);
     try{
       await ensureSession(chainId);
       const result=await uploadOriginalArtwork({
@@ -67,7 +68,7 @@ export function Erc721MintCoverPicker({chainId,contract,authorized,uri,onChange}
         '. Save the Mint Page draft to persist this reference.');
     }catch(e){
       setError(e instanceof Error?e.message:'IPFS upload failed');
-    }finally{setUploading(false);}
+    }finally{setUploading(false);onUploadingChange?.(false);}
   }
   async function loadArtworks(){
     if(!authorized||loadingArtworks)return;

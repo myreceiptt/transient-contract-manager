@@ -5,12 +5,13 @@ import assert from 'node:assert/strict';
 
 // Production build, loopback HTTP transport, synthetic canonical HTTPS Host.
 // No database credentials, wallet, external RPC or deployed resource is used.
-const host = 'preview-security.example',
+const host = 'preview-security-example.vercel.app',
   port = 13031;
 const env: NodeJS.ProcessEnv = {
   ...process.env,
   NODE_ENV: 'production',
-  APP_ORIGIN: `https://${host}`,
+  APP_ORIGIN: 'https://transient.endhonesa.com',
+  VERCEL_URL: host,
   VERCEL: '1',
   VERCEL_ENV: 'preview',
   SUPABASE_URL: '',

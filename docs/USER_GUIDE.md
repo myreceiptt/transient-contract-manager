@@ -17,7 +17,7 @@ The exact Solidity runtime implementation and Stacks bytecode are checked on eac
 
 | Contract family | Why it matters | State |
 |---|---|---|
-| ERC721TL **4.1.2 candidate** | Unique ERC-721 Token IDs, 1 of 1 artworks and ownerOf/tokenURI | Planned, **not verified as a supported runtime** |
+| ERC721TL **3.6.0 and 4.1.2 read-only** | Unique ERC-721 Token IDs, 1 of 1 artworks and ownerOf/tokenURI | Read-only inspection available; **transactions not enabled** |
 | TLStacks721 | Minting new ERC-721s through a Stacks drop | Planned as a separate integration, **not enabled** |
 | TLAuctionHouse **2.6.1 candidate** | Escrowed auctions and Buy Now for existing ERC-721 tokens | Research and typed preparation only, **no listing/bid/settle actions** |
 | ERC7160TL | ERC-721 with multiple metadata choices | Unsupported |
@@ -33,13 +33,13 @@ Pinned creator implementation: `0x079e23352721084561fb241593d16a4e6f548a97`. Pin
 ## 2. Enter a collection and authenticate
 
 1. Open **Collections → Open a collection** and select its actual chain.
-2. Paste the **ERC1155TL creator collection contract address**, not an owner wallet, Stacks contract or auction contract.
-3. Select **Start managing**. The server verifies chain ID, creator bytecode, implementation version and required ERC-1155 interface. Unsupported contracts are rejected.
+2. Paste an existing **ERC1155TL or ERC721TL creator collection contract address**, not an owner wallet, shared Stacks deployment or AuctionHouse contract.
+3. Select **Open collection**. The server detects ERC-721 versus ERC-1155 using ERC-165 and verifies the relevant version/implementation. **ERC1155TL** opens the existing verified management workspace. **ERC721TL 3.6.0 or 4.1.2** opens its dedicated **read-only** collection workspace; no mint or auction transaction is available until runtime verification is complete.
 4. Connect an injected EVM wallet on the same chain. Read-only inspection needs no wallet signature; editing requires the contract owner or an on-chain ADMIN_ROLE wallet.
 5. Complete the app's gasless SIWE sign-in when prompted. This is not an approval of a contract transaction. The server rechecks owner/admin authority for changes.
 6. Keep enough native network currency for any explicitly signed blockchain operation; IPFS service availability and fees are distinct from gas.
 
-## 3. Understand the five workspace tabs
+## 3. Understand the collection workspaces
 
 - **Overview:** verified name, symbol, owner/admin, token type count, contract adapter, and the optional **app-managed Collection Profile** visual.
 - **Tokens & Editions:** **Where every edition begins.** NFT-card catalogue with **Create Token**, **Create Batch**, and contextual **Manage Token** (metadata, mint/airdrop, royalty, current ownership balance).
@@ -47,7 +47,7 @@ Pinned creator implementation: `0x079e23352721084561fb241593d16a4e6f548a97`. Pin
 - **Collection Settings:** **The foundation of every edition.** Cards for **Collection Profile**, **Collection Identity**, **Ownership & Access** (read-only), **Collection Royalties**, **Stacks Mint Permission**, and **Advanced On-chain Information**.
 - **Transactions:** saved transaction reviews, tx hashes, replacement/cancellation handling and finality confirmation.
 
-The tabs share verified collection identity, but **saving an off-chain document is not the same as signing an on-chain transaction**.
+The tabs share verified collection identity, but **saving an off-chain document is not the same as signing an on-chain transaction**. ERC721TL uses a separate workspace with **Overview, Tokens & Editions, Mint Pages, Auctions, Collection Settings and Transactions**. Its 1 of 1 inventory is currently read-only: Mint Pages and Auctions explain pending authorizations without enabling signatures. The **Contract Checker** provides two vertically stacked forms: **01 — 1 of 1 Collection (ERC721TL)** and **02 — Editions Collection (ERC1155TL)**.
 
 ## 4. Create and manage ERC-1155 token editions
 
@@ -105,6 +105,26 @@ Public Mint Pages show **Your Editions** via ERC-1155 `balanceOf`; the **Activit
 If a wallet confirms but the app still shows PUBLISHING/SUBMITTED, go to **Transactions → Load history → Check confirmation** for the existing hash. If replaced, choose **Verify same action** or **Verify cancellation / changed action**. Do not resubmit automatically.
 
 ## 9. 1 of 1 creation and TLAuctionHouse auctions — preparation only
+
+**New Phase-B preparation (no on-chain writes):** An Ethereum ERC721TL v4.1.2 owner/admin can open **Tokens & Editions → Prepare an original NFT** in the read-only 721 workspace, upload JPG/PNG/WebP artwork, pin validated metadata JSON to immutable public IPFS, set a recipient and run an authenticated **Simulate ERC721TL mint (read-only)**. The simulation verifies the currently observed implementation/runtime candidate, supply lock and owner/admin role, and calls `simulateContract` at a pinned block. It does **not** sign, mint, allocate Token IDs, transfer ETH or modify the contract. Versions other than v4.1.2 are not enabled for this dry-run. Metadata and artwork pinned to IPFS are public; only pin them intentionally.
+
+**Mainnet-first deployment workflow:** The collection owner creates an ERC721TL contract
+through The Lab on **Ethereum Mainnet (chain ID 1)** and grants another wallet
+**ADMIN_ROLE**. The owner retains ownership. The ENDHONESA web app must manage
+this **existing** contract as an admin, similar to ERC1155TL GO1. The admin wallet
+is verified on-chain and never assumes collection ownership. The owner/admin
+may later configure TLStacks721 as a separate **approved minting contract**
+for collection-wide primary sales; a collector with `ownerOf(tokenId)` may
+later create a TLAuctionHouse listing for the **NFT they actually own**.
+
+A disposable local test chain may validate behavior before risking ETH, but
+a Base Sepolia collection deployment is **not a prerequisite**. ERC721TL
+transactions cannot be enabled merely because a candidate contract reports
+VERSION 3.6.0 or 4.1.2; its bytecode, roles, permissions and sale contracts must be
+verified. User-facing mainnet actions require simulation, explicit signatures,
+receipts and readback. No secret keys are ever requested.
+
+The universal homepage opens recognized ERC721TL collections in `/manage-721`, and a **read-only ERC721TL Compatibility Inspector** remains available at `/erc721` and within Contract Checker. It checks the official v3.6.0 and v4.1.2 VERSION baselines, ERC-165/ERC-721 interface, and allows bounded 12-Token-ID windows for `ownerOf` and `tokenURI` reads. Source v3.6.0 uses `totalSupply()` as a minted-ID counter (including burns), while v4.1.2 subtracts burned tokens. Both remain **runtime-unverified for transactions**. It deliberately reports **RUNTIME UNVERIFIED** until the exact deployed implementation's codehash is independently pinned. It does not authorize mint, transfer, listing, bidding or settlement.
 
 **None of these actions can yet be performed in this app.** The future ERC-721 track requires its own allowlisted creator adapter and auction runtime.
 

@@ -20,15 +20,26 @@ Independent Next.js application for existing **verified ERC1155TL v4.1.2** colle
 | --- | --- |
 | ERC1155TL v4.1.2 (creator) | **Supported** — exact verified runtime |
 | TLStacks1155 v2.3.1 fixed-price drops | **Supported** — exact verified runtime |
-| ERC721TL v4.1.2 1 of 1 | **Planned** — no supported runtime adapter |
+| ERC721TL v3.6.0 / v4.1.2 1 of 1 | **Read-only inspector** — pinned official source versions; no verified wallet-write runtime adapter |
 | TLStacks721 | **Planned** — not an auction house |
 | TLAuctionHouse v2.6.1 | **Research-only** — no listings, bids, refunds or settlement from this app |
 | ERC7160TL / ERC7160TLEditions / TRACE | **Unsupported** |
 
-The supported matrix and workflows are documented in the [current Creator Guide](docs/USER_GUIDE.md).
+The supported matrix and workflows are documented in the [current Creator Guide](docs/USER_GUIDE.md).\n**ERC-721 project's first operational target is Ethereum Mainnet (chain 1).**
+The legitimate owner deploys a 1-of-1 ERC721TL collection through Transient Lab;
+a distinct user wallet receives ADMIN_ROLE. The app will manage that existing
+contract, as it already does for ERC1155TL. Testnet deployment is optional,
+not an onboarding dependency. Automated Anvil/fork testing is internal safety
+verification. No creator NFT is redeployed or reassigned to this app.
+
+The homepage now uses one universal address form and a fail-closed ERC-165/version detector: **verified ERC1155TL** opens `/manage`; **recognized ERC721TL** opens `/manage-721` (read-only). Contract Checker has two dedicated forms. A **read-only ERC721TL Compatibility Inspector** is also available at `/erc721` for v3.6.0 and v4.1.2 interface/owner/tokenURI research. For v3.6.0, `totalSupply()` includes burned Token IDs; v4.1.2 subtracts burns. Its source runtime is **not yet approved**; its result cannot authorize mint, listing, bid or settlement.
 The separate [1 of 1 and AuctionHouse readiness plan](docs/AUCTION_1OF1_READINESS.md)
 describes required ERC721TL runtime verification, escrowed NFT listing, bidder funds, refunds, fee and settlement checks.
 Neither planning documents nor `src/lib/auction-planning.ts` enable a transaction.
+
+## ERC721TL mainnet draft preparation
+
+An owner/admin of a recognized **ERC721TL v4.1.2** collection can prepare artwork and metadata IPFS pins through the new 1 of 1 studio and run a **transaction-free** `mint(address,string)` dry-run. This preview requires official creator implementation address + observed codehash + admin role + unlocked supply and is **not** a writer runtime allowlist. There is no ERC721 mint/sign endpoint yet. The existing ERC1155 upload and writes remain unchanged.
 
 ## Local read-only workspace
 

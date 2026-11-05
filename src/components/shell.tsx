@@ -26,7 +26,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </Link>
         <div className="sidebar-label">YOUR WORKSPACE</div>
         <nav>
-          <Link href="/" className={path === '/' || path === '/manage' ? 'active' : ''}>
+          <Link href="/" className={path === '/' || path === '/manage' || path === '/manage-721' ? 'active' : ''}>
             <LayoutDashboard size={18} />
             Collections
           </Link>
@@ -68,7 +68,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
               ? 'Public mint'
               : path === '/checker'
                 ? 'Contract Checker'
-                : path === '/manage'
+                : path === '/manage' || path === '/manage-721'
                   ? 'Collection management'
                   : path === '/guide'
                     ? 'Guide'

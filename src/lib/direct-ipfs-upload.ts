@@ -21,6 +21,7 @@ export async function uploadOriginalArtwork(args: {
   kind: 'artwork' | 'banner';
   chainId: number;
   contract: string;
+  standard?: 'ERC1155TL'|'ERC721TL';
   onProgress?: (percent: number) => void;
 }): Promise<{ cid: string; uri: string }> {
   checkArtwork(args.file);
@@ -45,6 +46,7 @@ export async function uploadOriginalArtwork(args: {
     headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
     body: JSON.stringify({
       chainId: args.chainId, contract: args.contract,
+      standard: args.standard ?? 'ERC1155TL',
       kind: args.kind, mime: args.file.type, size: args.file.size,
     }),
   });

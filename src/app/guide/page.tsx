@@ -143,12 +143,19 @@ export default function Guide() {
           <li>On <Link href="/">Collections</Link>, open <strong>Open a collection</strong>.</li>
           <li>Choose the network where your NFT collection actually exists: Ethereum,
             Robinhood Chain, Base or Shape.</li>
-          <li>Paste your <strong>collection contract address</strong> into the field. Use the
-            ERC-1155 collection address, <em>not</em> your wallet address and <em>not</em>
-            the shared TLStacks1155 contract address.</li>
-          <li>Click <strong>Start managing</strong>. The app reads the collection and verifies
-            the bytecode, version and ERC-1155 interface. Your existing NFT and transactions
-            remain on their original chain.</li>
+          <li>Paste your <strong>collection contract address</strong> into the universal
+            form, not a wallet, TLStacks721/TLStacks1155 or AuctionHouse address.
+            The app automatically distinguishes ERC721TL (1 of 1) from ERC1155TL
+            (Editions) using read-only ERC-165 checks followed by the appropriate
+            version and implementation validation.</li>
+          <li>Choose <strong>Open collection</strong>. Verified ERC1155TL contracts
+            open the existing management workspace. Recognized ERC721TL v3.6.0
+            and v4.1.2 contracts open the dedicated <strong>read-only</strong>
+            collection workspace until their signing adapters are independently
+            verified. Existing NFT ownership never moves between contracts.</li>
+          <li>Under <strong>Contract Checker</strong>, inspect 1 of 1 collections
+            using the first ERC721TL form or Editions using the second ERC1155TL
+            form. Results and on-chain permissions are shown separately.</li>
           <li>Use the top-right <strong>Connect wallet</strong> control to choose your browser
             wallet. Switch the wallet to the same network as your collection.</li>
           <li>When you first save or prepare a privileged operation, sign the app&apos;s
@@ -635,7 +642,56 @@ export default function Guide() {
           currently enabled. Creating an ERC-721 NFT, listing an existing
           ERC-721 NFT and minting a new ERC-721 through Stacks are
           <strong> three distinct operations</strong>.</p>
-        <h3>A. 1 of 1 NFT creation (planned ERC721TL v4.1.2)</h3>
+        <h3>Owner-deployed ERC721TL on Ethereum Mainnet</h3>
+        <p><strong>Canonical user workflow:</strong> the legitimate collection owner
+          deploys an ERC721TL contract directly through Transient Lab on
+          <strong> Ethereum Mainnet (chain ID 1)</strong>, then grants the user&apos;s
+          separate wallet <code>ADMIN_ROLE</code> (or includes it at creation).
+          The owner retains collection ownership. Our independent application
+          opens the <em>existing</em> contract by address; it neither redeploys
+          it nor transfers its ownership. Anvil/forked testing is for internal
+          safety checks only: <strong>no user testnet deployment is required</strong>.</p>
+        <h3>Phase A: ERC721TL read-only Collection Workspace</h3>
+        <p>A single <strong>Open collection</strong> form now routes each supported
+          standard to its own workspace. ERC-721 uses familiar tabs:
+          Overview, Tokens &amp; Editions, Mint Pages, Auctions,
+          Collection Settings and Transactions. The latter sales and
+          administration tabs remain read-only until their exact runtime
+          is approved. Two separate read-only forms are also available on
+          <a href="/checker"> Contract Checker</a>.</p>
+        <p>Use the <a href="/erc721">ERC721TL Compatibility Inspector</a> to
+          read collection name, symbol, creator owner/admin wallets, supply
+          and explicit Token ID windows (up to 12 IDs). For each existing
+          token it reads <code>ownerOf</code> and <code>tokenURI</code>
+          at one observed block. Burned or unknown Token IDs are not
+          treated as zero holdings. The inspector recognizes the pinned
+          official <strong>3.6.0</strong> and <strong>4.1.2</strong>
+          source interface baselines for read-only purposes.</p>
+        <p><strong>Supply meaning differs by version:</strong>
+          ERC721TL 3.6.0 <code>totalSupply()</code> returns the minted Token ID
+          counter (including burned IDs), while v4.1.2 subtracts burned
+          tokens. Neither is an auction listing or a configured sale supply.</p>
+        <p>This inspector currently verifies the <strong>public interface
+          and reported VERSION only</strong>. It explicitly displays
+          <strong> RUNTIME UNVERIFIED</strong>; neither the candidate
+          interface nor its observed codehash is yet a pinned, independently
+          verified execution allowlist. It provides <strong>no</strong>
+          minting, permissions, transfers or auction transaction controls.
+          The supported ERC1155TL manager remains separate.</p>
+        <h3>Phase B preparation: metadata and simulated mint</h3>
+        <p>For an ERC721TL v4.1.2 collection opened through the universal
+          homepage, the <strong>Tokens &amp; Editions</strong> tab includes
+          a restricted <strong>Prepare an original NFT</strong> studio
+          for wallets with verified owner or ADMIN_ROLE. You may upload original
+          artwork, pin a validated NFT JSON to IPFS, choose its future recipient
+          and run a <strong>read-only Ethereum Mainnet mint simulation</strong>.
+          IPFS files become public and immutable when pinned; simulation itself
+          does not create or reserve any NFT, charge gas or sign a transaction.
+          A dry-run requires the exact observed official implementation
+          candidate, matching codehash, current caller authority and unlocked
+          supply. Actual minting remains disabled until an independently
+          verified write adapter and wallet review are deployed.</p>
+        <h3>A. 1 of 1 NFT creation (planned ERC721TL v3.6.0 / v4.1.2)</h3>
         <ol className="guide-steps">
           <li>Allowlist ERC721TL only after reproducible runtime/ABI,
             clone implementation, chain and role verification.</li>

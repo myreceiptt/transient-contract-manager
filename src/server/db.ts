@@ -160,6 +160,7 @@ export async function localDb() {
       await db.exec(await readFile('supabase/migrations/20261030150000_published_page_slug_aliases.sql', 'utf8'));
       await db.exec(await readFile('supabase/migrations/20261031140000_nft_collector_intelligence.sql', 'utf8'));
       await db.exec(await readFile('supabase/migrations/20261101110000_collection_profile_versioned.sql','utf8'));
+      await db.exec(await readFile('supabase/migrations/20261105110000_erc721_workspace_drafts.sql','utf8'));
       return db;
     })();
   return localPromise;
@@ -169,7 +170,9 @@ export async function command(op: string, p: Record<string, unknown> = {}): Prom
     const dbRemote = await remoteDb();
     if (dbRemote) {
       const db = dbRemote;
-      const { data, error } = op.startsWith('collection_profile_')
+      const { data, error } = op === 'erc721_draft'
+        ? await db.rpc('tcm_erc721_draft_op',{p})
+        : op.startsWith('collection_profile_')
         ? await db.rpc('tcm_collection_profile_op',{p})
         : op.startsWith('nft_index_')
         ? await db.rpc('tcm_'+op,{p})
@@ -185,7 +188,9 @@ export async function command(op: string, p: Record<string, unknown> = {}): Prom
     }
     const db = await localDb();
     const r = await db.query<{ result: unknown }>(
-      op.startsWith('collection_profile_')
+      op === 'erc721_draft'
+        ? 'select public.tcm_erc721_draft_op($1::jsonb) as result'
+        : op.startsWith('collection_profile_')
         ? 'select public.tcm_collection_profile_op($1::jsonb) as result'
         : op.startsWith('nft_index_')
         ? 'select public.tcm_'+op+'($1::jsonb) as result'
@@ -196,7 +201,7 @@ export async function command(op: string, p: Record<string, unknown> = {}): Prom
         : op === 'page_lifecycle'
           ? 'select public.tcm_page_lifecycle($1::jsonb) as result'
           : 'select public.tcm_command($1,$2::jsonb) as result',
-      (op.startsWith('collection_profile_') || op.startsWith('nft_index_') ||
+      (op === 'erc721_draft' || op.startsWith('collection_profile_') || op.startsWith('nft_index_') ||
         ['page_reidentify','page_lifecycle','page_slug_edit'].includes(op)) ? [JSON.stringify(p)] : [op, JSON.stringify(p)],
     );
     return r.rows[0]?.result;
@@ -205,6 +210,15 @@ export async function command(op: string, p: Record<string, unknown> = {}): Prom
     const msg = e instanceof Error ? e.message : String((e as any)?.message ?? e);
     if (msg.includes('SLUG_EDIT_REQUIRES_PUBLISHED_PAGE') || msg.includes('PENDING_TRANSACTION'))
       throw new AppError('SLUG_EDIT_BLOCKED','The Mint Page cannot change its public URL in its current state.',409);
+    if (msg.includes('INVALID_DRAFT_SCOPE') || msg.includes('INVALID_DRAFT') ||
+        msg.includes('MINT_SCOPE') || msg.includes('AUCTION_IDENTITY'))
+      throw new AppError('DRAFT_INVALID','Invalid ERC721 draft identity or payload',400);
+    if (msg.includes('AUCTION_PRIVATE') || msg.includes('ADMIN_REQUIRED'))
+      throw new AppError('DRAFT_FORBIDDEN','Insufficient permission for this draft',403);
+    if (msg.includes('DRAFT_ARCHIVED'))
+      throw new AppError('DRAFT_ARCHIVED','This draft is archived and cannot be edited.',409);
+    if (msg.includes('NOT_FOUND'))
+      throw new AppError('DRAFT_NOT_FOUND','Draft not found in this workspace.',404);
     if (msg.includes('PROFILE_VERSION_CONFLICT'))
       throw new AppError('PROFILE_VERSION_CONFLICT','Collection profile was changed in another session. Reload before saving.',409);
     if (msg.includes('VERSION_CONFLICT'))
@@ -215,6 +229,8 @@ export async function command(op: string, p: Record<string, unknown> = {}): Prom
       );
     if (msg.includes('SLUG_RESERVED'))
       throw new AppError('SLUG_RESERVED','This URL was used by another published Mint Page and is permanently reserved.',409);
+    if (op==='erc721_draft' && msg.includes('duplicate key'))
+      throw new AppError('DRAFT_EXISTS','A draft already exists for this identity. Load the saved draft and update its version.',409);
     if (msg.includes('duplicate key'))
       throw new AppError('CONFLICT', 'This NFT already has a canonical Mint Page, or the slug is reserved. Open or restore its existing page.', 409);
     if (['PENDING_TRANSACTION','DROP_MUST_BE_CLOSED','RELEASED_DRAFT_CANNOT_RESTORE','ALREADY_ARCHIVED'].some(k=>msg.includes(k)))

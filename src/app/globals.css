@@ -2148,3 +2148,118 @@ th { color: #c1c1c8; }
  .creator-steps{grid-template-columns:repeat(2,minmax(0,1fr))}
  .creator-profile-banner{height:145px}
 }
+
+/* ERC721TL Phase-A read-only inspector. No auction controls or signing. */
+.erc721-inspector{display:grid;gap:20px;min-width:0}
+.erc721-inspector .page-heading{margin-bottom:2px}
+.erc721-inspector .panel{min-width:0}
+.erc721-inspector dl dd{overflow-wrap:anywhere}
+.erc721-inspector dl dd .mono{display:inline-block;max-width:100%;overflow-wrap:anywhere}
+.erc721-inspector .token-grid{margin:22px 0}
+.erc721-candidate-card{display:flex;flex-direction:column;min-width:0}
+.erc721-candidate-card>.artwork{aspect-ratio:1;object-fit:cover}
+.erc721-candidate-body{display:flex;flex-direction:column;gap:10px;padding:16px}
+.erc721-candidate-body h3{margin:0}
+.erc721-candidate-body p{margin:0;font-size:12px;line-height:1.6}
+.erc721-candidate-body details{overflow-wrap:anywhere}
+.erc721-entry-note{border-top:1px solid var(--line);margin-top:20px;padding-top:20px;display:grid;gap:9px}
+.erc721-entry-note strong{font-size:13px}
+.erc721-entry-note p{font-size:12px;margin:0;line-height:1.65}
+.erc721-entry-note .button{justify-self:start}
+@media (max-width:720px){.erc721-candidate-body{padding:13px}}
+
+/* Read-only diagnostic for Ethereum ERC721 variants. Never a write authorization. */
+.erc721-diagnostic{border:1px solid var(--line);border-radius:10px;padding:20px;margin-top:18px;overflow-wrap:anywhere}
+.erc721-diagnostic h3{margin:0 0 12px}
+.erc721-diagnostic p,.erc721-diagnostic li{font-size:13px;line-height:1.65}
+.erc721-diagnostic dl{display:grid;grid-template-columns:minmax(145px,1fr) minmax(0,2fr);gap:10px 15px;margin:20px 0}
+.erc721-diagnostic dt{color:var(--muted);font-size:12px}
+.erc721-diagnostic dd{min-width:0;margin:0;overflow-wrap:anywhere;font-size:12px}
+.erc721-diagnostic .mono{word-break:break-word}
+@media(max-width:760px){.erc721-diagnostic{padding:14px}.erc721-diagnostic dl{grid-template-columns:1fr;gap:5px}.erc721-diagnostic dd{margin-bottom:9px}}
+
+/* ERC721 dedicated read-only workspace; shared visual language with ERC1155. */
+.erc721-overview-hero{display:grid;grid-template-columns:minmax(0,2fr) minmax(160px,1fr);
+  gap:24px;border:1px solid var(--line);background:var(--surface-raised,var(--panel));
+  border-radius:12px;margin:16px 0 24px;padding:24px}
+.erc721-overview-hero h2{margin:8px 0;font-size:clamp(24px,3.2vw,42px)}
+.erc721-overview-hero p{font-size:13px;line-height:1.7;color:var(--muted)}
+.erc721-overview-hero strong{display:block;font-size:clamp(32px,4vw,52px);line-height:1.2}
+.erc721-empty-state{padding:36px 22px;background:var(--surface-raised,#1b1b1d);
+  border:1px solid var(--line);border-radius:12px;margin:18px 0}
+.erc721-empty-state strong{font-size:18px}
+.erc721-empty-state p{max-width:670px;font-size:13px;line-height:1.7}
+.erc721-coming{display:grid;gap:14px}
+.erc721-coming p{max-width:920px;line-height:1.75}
+@media(max-width:720px){.erc721-overview-hero{grid-template-columns:1fr;padding:18px}}
+
+
+/* GO#|O ERC721 Approach A: shared GO1 spatial language, independent safe workflows.
+   None of these presentation classes grants signing or API write capability. */
+.erc721-workflow{display:grid;gap:20px;min-width:0}
+.erc721-workflow>.panel{min-width:0}
+.erc721-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0 24px}
+.erc721-metrics>div{border:1px solid var(--line);border-radius:10px;padding:17px;min-width:0;
+  display:flex;flex-direction:column;gap:9px;background:var(--surface-raised,var(--panel))}
+.erc721-metrics small{font-size:11px;color:var(--muted)}
+.erc721-metrics strong{font-size:18px;line-height:1.3;overflow-wrap:anywhere}
+.erc721-steps{grid-template-columns:repeat(3,minmax(0,1fr))}
+.erc721-steps button{display:flex;align-items:center;gap:8px;text-align:left;cursor:pointer;
+  border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--muted);
+  padding:12px;font:inherit;font-size:12px;min-width:0}
+.erc721-steps button:hover,.erc721-steps button:focus-visible{border-color:#8ca769}
+.erc721-steps button.active{border-color:#8ca769;background:rgba(130,160,90,.11);color:var(--ink)}
+.erc721-editor-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(260px,1fr);gap:20px}
+.erc721-editor-grid label,.erc721-workflow label{min-width:0}
+.erc721-preview-panel{min-width:0;display:flex;flex-direction:column;align-items:flex-start;
+  gap:14px;border:1px solid var(--line);border-radius:12px;padding:24px;
+  background:var(--surface-raised,var(--panel));overflow-wrap:anywhere}
+.erc721-preview-panel h2,.erc721-preview-panel h3{margin:4px 0 0;line-height:1.25}
+.erc721-preview-panel p{line-height:1.7;color:var(--muted);margin:0}
+.erc721-preview-panel small{color:var(--muted);overflow-wrap:anywhere}
+.erc721-preview-panel dl,.erc721-review dl{width:100%;margin:8px 0}
+.erc721-review{border:1px solid var(--line);padding:23px;border-radius:10px}
+.erc721-review p{line-height:1.7;color:var(--muted)}
+.erc721-detail-row{display:grid;grid-template-columns:minmax(130px,1fr) minmax(0,2fr);
+  border-top:1px solid var(--line);gap:12px;padding:12px 0}
+.erc721-detail-row dt{font-size:12px;color:var(--muted)}
+.erc721-detail-row dd{margin:0;overflow-wrap:anywhere;font-size:12px}
+.erc721-lookup-control{display:flex;align-items:end;padding-bottom:2px}
+.erc721-facts{display:grid;grid-template-columns:minmax(155px,1fr) minmax(0,2fr);
+  gap:14px;margin:24px 0}
+.erc721-facts dt{font-size:12px;color:var(--muted)}
+.erc721-facts dd{margin:0;min-width:0;font-size:12px;overflow-wrap:anywhere}
+.erc721-facts dd .mono{overflow-wrap:anywhere}
+.erc721-workflow .erc721-market-status{margin-top:12px}
+.erc721-filters{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+.erc721-filters .active{border-color:#8ca769;background:rgba(130,160,90,.11)}
+.erc721-activity-table{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.erc721-activity-head{display:grid;grid-template-columns:1fr 1.4fr 1.5fr .8fr;gap:12px;
+  color:var(--muted);font-size:11px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.erc721-empty-ledger{display:flex;flex-direction:column;gap:12px;align-items:center;
+  text-align:center;padding:48px 23px}
+.erc721-empty-ledger p{max-width:530px;line-height:1.7;color:var(--muted);margin:0}
+.erc721-empty-ledger strong{font-size:13px}
+.erc721-workflow .tag{white-space:normal}
+@media(max-width:920px){
+  .erc721-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .erc721-editor-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .erc721-metrics,.erc721-steps{grid-template-columns:1fr}
+  .erc721-preview-panel,.erc721-review{padding:16px}
+  .erc721-detail-row,.erc721-facts{grid-template-columns:1fr;gap:6px}
+  .erc721-facts dd{margin-bottom:7px}
+  .erc721-activity-head{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .erc721-activity-head span:nth-child(n+3){display:none}
+}
+
+/* Artwork presentation on ERC721 primary mint and single-token auction previews. */
+.erc721-preview-panel>.artwork{width:100%;min-height:180px;aspect-ratio:16/9;
+  border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.erc721-token-observation{display:grid;grid-template-columns:minmax(130px,220px) minmax(0,1fr);
+  gap:18px;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--line)}
+.erc721-token-observation>.artwork{width:100%;aspect-ratio:1;border-radius:8px;overflow:hidden}
+.erc721-token-observation p{font-size:12px;line-height:1.65}
+.erc721-token-observation h3{margin:8px 0}
+@media(max-width:650px){.erc721-token-observation{grid-template-columns:1fr}}

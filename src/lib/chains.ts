@@ -1,5 +1,5 @@
 import { defineChain, type Address } from 'viem';
-import { mainnet, base, shape } from 'viem/chains';
+import { mainnet, base, shape, baseSepolia } from 'viem/chains';
 export const robinhood = defineChain({
   id: 4663,
   name: 'Robinhood Chain',
@@ -15,6 +15,8 @@ export const localChain = defineChain({
   testnet: true,
 });
 export const targetChains = [mainnet, robinhood, base, shape] as const;
+/** ERC721 Phase-A read-only target; not a verified sale or signing network. */
+export const erc721CandidateChains=[...targetChains,baseSepolia] as const;
 export const GO1 = '0x5807e66182a38788a3854853225a2b6d8e0480f2' as Address;
 export const STACKS = '0x32953d7ae37b05075b88c34e800ae80c1cb1b794' as Address;
 export const CREATOR_IMPLEMENTATION = '0x079e23352721084561fb241593d16a4e6f548a97' as Address;
@@ -25,7 +27,7 @@ export const CREATOR_CODE_HASH =
 export const STACKS_CODE_HASH =
   '0x02e6dcd7e74c8a3337cd56868fc5eacd8e0f4cd24fb8975934d47605d46053b7';
 export function getChain(id: number) {
-  const c = [...targetChains, localChain].find((c) => c.id === id);
+  const c = [...erc721CandidateChains, localChain].find((c) => c.id === id);
   if (!c) throw new Error('Unsupported chain');
   return c;
 }

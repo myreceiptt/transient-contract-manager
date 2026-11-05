@@ -25,6 +25,7 @@ const rpcKeys: Record<number, string> = {
   1: 'ETHEREUM_RPC_URL',
   4663: 'ROBINHOOD_RPC_URL',
   8453: 'BASE_RPC_URL',
+  84532: 'BASE_SEPOLIA_RPC_URL',
   360: 'SHAPE_RPC_URL',
   31337: 'LOCAL_RPC_URL',
 };
@@ -32,6 +33,7 @@ const rpcDefaults: Record<number, string> = {
   1: 'https://ethereum-rpc.publicnode.com',
   4663: 'https://rpc.mainnet.chain.robinhood.com',
   8453: 'https://mainnet.base.org',
+  84532: 'https://sepolia.base.org',
   360: 'https://mainnet.shape.network',
   31337: 'http://127.0.0.1:8545',
 };

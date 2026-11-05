@@ -1,3 +1,11 @@
+import { previewErc721Mint, assertErc721DraftAuthor } from '@/server/erc721-mint-preview';
+import { readErc721MarketStatus } from '@/server/erc721-market-observer';
+import {readErc721Transfers} from '@/server/erc721-activity';
+import {readErc721Royalties} from '@/server/erc721-royalty-observer';
+import {erc721DraftKind,erc721DraftAvailability,listErc721Drafts,getErc721Draft,
+ createErc721Draft,saveErc721Draft,archiveErc721Draft} from '@/server/erc721-drafts';
+import { detectCollection } from '@/server/collection-router';
+import { inspectErc721Candidate,scanErc721Candidates,diagnoseErc721Candidate } from '@/server/erc721-probe';
 import { readCollectionProfile,saveCollectionProfile,pinCollectionProfile } from '@/server/collection-profile';
 import { publicCollectorData } from '@/server/collector-intelligence';
 import { NextRequest, NextResponse } from 'next/server';
@@ -40,6 +48,10 @@ import {
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 const identity = z.object({ chainId: chainSchema, contract: addressSchema });
+const erc721Identity = z.object({
+  chainId:z.union([chainSchema,z.literal(84532)]),
+  contract:addressSchema
+});
 const idSchema = z.string().uuid();
 const pagination = z.object({
   limit: z.number().int().min(1).max(25).default(25),
@@ -67,11 +79,41 @@ export async function POST(req: NextRequest) {
     if (op === 'login') return await login(req, p);
     if (op === 'logout') return await logout(req);
     let result: unknown;
-    if (op === 'inspect') {
+    if (op === 'detect_collection') {
+      const a=identity.extend({wallet:addressSchema.optional()}).parse(p);
+      result=await detectCollection(a.chainId,a.contract,a.wallet);
+    } else if (op === 'inspect') {
       const args = identity
         .extend({ wallet: addressSchema.optional(), tokenId: positive.optional() })
         .parse(p);
       result = await inspect(args.chainId, args.contract, args.wallet, BigInt(args.tokenId || '1'));
+    } else if (op === 'erc721_draft_status') {
+      result=erc721DraftAvailability();
+    } else if (op === 'inspect_erc721') {
+      const a=erc721Identity.extend({wallet:addressSchema.optional()}).parse(p);
+      result=await inspectErc721Candidate(a.chainId,a.contract,a.wallet);
+    } else if (op === 'erc721_royalties') {
+      const a=erc721Identity.extend({tokenId:positive.optional()}).parse(p);
+      result=await readErc721Royalties(a.chainId,a.contract,
+        a.tokenId===undefined?undefined:BigInt(a.tokenId));
+    } else if (op === 'erc721_transfers') {
+      const a=erc721Identity.extend({beforeBlock:positive.optional(),tokenId:positive.optional()}).parse(p);
+      result=await readErc721Transfers(a.chainId,a.contract,
+        a.beforeBlock===undefined?undefined:BigInt(a.beforeBlock),
+        a.tokenId===undefined?undefined:BigInt(a.tokenId));
+    } else if (op === 'read_erc721_market') {
+      const a=erc721Identity.extend({tokenId:positive.optional()}).parse(p);
+      result=await readErc721MarketStatus(a.chainId,a.contract,
+        a.tokenId===undefined?undefined:BigInt(a.tokenId));
+    } else if (op === 'diagnose_erc721') {
+      const a=erc721Identity.parse(p);
+      result=await diagnoseErc721Candidate(a.chainId,a.contract);
+    } else if (op === 'scan_erc721') {
+      const a=erc721Identity.extend({
+        start:z.number().int().min(1).max(100000000).default(1),
+        count:z.number().int().min(1).max(12).default(12)
+      }).parse(p);
+      result=await scanErc721Candidates(a.chainId,a.contract,a.start,a.count);
     } else if (op === 'collection_profile_read') {
       const a=identity.parse(p);
       result=await readCollectionProfile(a.chainId,a.contract);
@@ -108,6 +150,28 @@ export async function POST(req: NextRequest) {
       release = acquireSlot(req, budget);
       await rateLimit(req, budget, s.wallet);
       if (op === 'session') result = s;
+      else if (op === 'erc721_draft_list') {
+        const a=identity.extend({kind:erc721DraftKind}).parse(p);
+        result=await listErc721Drafts(a.kind,a.chainId,a.contract,s);
+      }
+      else if (op === 'erc721_draft_get') {
+        const a=identity.extend({kind:erc721DraftKind,id:idSchema}).parse(p);
+        result=await getErc721Draft(a.kind,a.chainId,a.contract,a.id,s);
+      }
+      else if (op === 'erc721_draft_create') {
+        const a=identity.extend({kind:erc721DraftKind}).parse(p);
+        result=await createErc721Draft(a.kind,a.chainId,a.contract,p.data,s);
+      }
+      else if (op === 'erc721_draft_save') {
+        const a=identity.extend({kind:erc721DraftKind,id:idSchema,
+          expectedVersion:z.number().int().positive()}).parse(p);
+        result=await saveErc721Draft(a.kind,a.chainId,a.contract,a.id,a.expectedVersion,p.data,s);
+      }
+      else if (op === 'erc721_draft_archive') {
+        const a=identity.extend({kind:erc721DraftKind,id:idSchema,
+          expectedVersion:z.number().int().positive()}).parse(p);
+        result=await archiveErc721Draft(a.kind,a.chainId,a.contract,a.id,a.expectedVersion,s);
+      }
       else if (op === 'collection_profile_write') {
          const a=identity.parse(p);
          requireSessionChain(s,a.chainId);
@@ -118,6 +182,20 @@ export async function POST(req: NextRequest) {
          const a=identity.parse(p);
          requireSessionChain(s,a.chainId);
          result=await pinCollectionProfile(a.chainId,a.contract,p.data,s,req.signal);
+       }
+       else if (op === 'preview_erc721_mint') {
+         const args=identity.extend({
+           recipient:addressSchema,
+           uri:z.string().min(46).max(2048),
+         }).parse(p);
+         requireSessionChain(s,args.chainId);
+         result=await previewErc721Mint(args.chainId,args.contract,s.wallet,args.recipient,args.uri);
+       }
+       else if (op === 'metadata_pin_erc721') {
+         const args=identity.parse(p);
+         requireSessionChain(s,args.chainId);
+         await assertErc721DraftAuthor(args.chainId,args.contract,s.wallet);
+         result=await pinTokenMetadata(p.metadata,req.signal);
        }
        else if (op === 'metadata_pin') {
         const args = identity.parse(p);

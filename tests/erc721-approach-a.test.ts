@@ -19,7 +19,8 @@ describe('GO#|O Approach A — complete read-only workspace',()=>{
     const studio=src('src/components/erc721-primary-studio.tsx');
     expect(studio).toContain('collection-wide primary mint campaign');
     expect(studio).toContain('SESSION PREVIEW ONLY');
-    expect(studio).toContain('Not saved to a server');
+    expect(studio).toContain('SESSION PREVIEW ONLY');
+    expect(studio).toContain('Load Mint Page draft');
     expect(studio).toContain('Publish transaction disabled');
     expect(studio).not.toContain("api('prepare_mint'");
     expect(studio).not.toContain('writeContract');

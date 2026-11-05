@@ -35,9 +35,9 @@ export function requestIdentity(req: Request) {
 
 export function operationBudget(op: string): Budget {
   if (['challenge', 'login', 'logout'].includes(op)) return 'auth';
-  if (op === 'inventory' || op === 'mint_inventory' || op === 'scan_erc721') return 'inventory';
+  if (op === 'inventory' || op === 'mint_inventory' || op === 'scan_erc721' || op === 'erc721_transfers') return 'inventory';
   if (op === 'metadata') return 'metadata';
-  if (['detect_collection', 'inspect', 'currency', 'balance', 'public', 'public_collectors','collection_profile_read','inspect_erc721','diagnose_erc721','read_erc721_market'].includes(op)) return 'public';
+  if (['detect_collection', 'inspect', 'currency', 'balance', 'public', 'public_collectors','collection_profile_read','inspect_erc721','diagnose_erc721','read_erc721_market','erc721_draft_status'].includes(op)) return 'public';
   if (
     [
       'preview_erc721_mint',
@@ -56,6 +56,11 @@ export function operationBudget(op: string): Budget {
     return 'transaction';
   if (
     [
+      'erc721_draft_list',
+      'erc721_draft_get',
+      'erc721_draft_create',
+      'erc721_draft_save',
+      'erc721_draft_archive',
       'metadata_pin_erc721',
       'session',
       'pages',

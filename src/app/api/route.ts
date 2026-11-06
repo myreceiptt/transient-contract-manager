@@ -3,6 +3,7 @@ import { attestCreator, prepareCreatorMint, getCreatorMint, preflightCreatorMint
   attachCreatorMint, confirmCreatorMint, cancelCreatorMint, creatorMintHistory } from '@/server/erc721-creator-mint';
 import { readErc721MarketStatus } from '@/server/erc721-market-observer';
 import {readGo721SaleReadiness} from '@/server/erc721-sale-readiness';
+import {downloadGo721MetadataArchive} from '@/server/erc721-metadata-archive';
 import {readErc721Transfers} from '@/server/erc721-activity';
 import {readErc721Royalties} from '@/server/erc721-royalty-observer';
 import {erc721DraftKind,erc721DraftAvailability,listErc721Drafts,getErc721Draft,
@@ -164,6 +165,11 @@ export async function POST(req: NextRequest) {
         const a=identity.parse(p);
         requireSessionChain(s,a.chainId);
         result=await readGo721SaleReadiness(a.chainId,a.contract,s.wallet);
+      }
+      else if (op === 'download_erc721_metadata_archive') {
+        const a=identity.parse(p);
+        requireSessionChain(s,a.chainId);
+        result=await downloadGo721MetadataArchive(a.chainId,a.contract,s);
       }
       else if (op === 'history_erc721_mint') {
         const a=identity.parse(p);

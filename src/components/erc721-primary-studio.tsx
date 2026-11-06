@@ -24,6 +24,8 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
   const [maxPerWallet,setMaxPerWallet]=useState('');
   const [start,setStart]=useState('');
   const [end,setEnd]=useState('');
+  const [presaleMetadataBaseUri,setPresaleMetadataBaseUri]=useState('');
+  const [publicMetadataBaseUri,setPublicMetadataBaseUri]=useState('');
   const [unsavedEdits,setUnsavedEdits]=useState(0);
   const [coverUploading,setCoverUploading]=useState(false);
   const storage=useErc721Drafts('MINT_PAGE',chainId,contract,authorized);
@@ -46,20 +48,28 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
     setArtwork(String(d.artwork||''));setPrice(String(d.price||''));
     setCurrency(String(d.currency||'ETH'));setPayout(String(d.payout||''));
     setMaxPerWallet(String(d.maxPerWallet||''));setStart(String(d.start||''));
-    setEnd(String(d.end||''));setUnsavedEdits(0);setStep('edit');
+    setEnd(String(d.end||''));
+    setPresaleMetadataBaseUri(String(d.presaleMetadataBaseUri||''));
+    setPublicMetadataBaseUri(String(d.publicMetadataBaseUri||''));
+    setUnsavedEdits(0);setStep('edit');
   }
-  function data(){return {title,description,artwork,price,currency,payout,maxPerWallet,start,end};}
+  function data(){return {title,description,artwork,price,currency,payout,maxPerWallet,start,end,
+    ...(presaleMetadataBaseUri?{presaleMetadataBaseUri}:{}),
+    ...(publicMetadataBaseUri?{publicMetadataBaseUri}:{})};}
   async function saveDraft(){if(coverUploading)return;
     const saved=await storage.save(data());if(saved)setUnsavedEdits(0);}
   function newDraft(){if(coverUploading)return;
     storage.setActive(null);setTitle('');setDescription('');setArtwork('');
     setPrice('');setCurrency('ETH');setPayout('');setMaxPerWallet('');
-    setStart('');setEnd('');setUnsavedEdits(0);setStep('edit');}
+    setStart('');setEnd('');setPresaleMetadataBaseUri('');setPublicMetadataBaseUri('');
+    setUnsavedEdits(0);setStep('edit');}
   function change(setter:(value:string)=>void,value:string){setter(value);setUnsavedEdits(v=>v+1);setStep('edit');}
   const fields=[
     ['Payment currency',currency],['Price per NFT',price?price+' '+currency:'Not specified'],
     ['Payout receiver',payout||'Not specified'],['Per-wallet limit',maxPerWallet||'Not specified'],
     ['Proposed start',start||'Not specified'],['Proposed end',end||'Not specified'],
+    ['Presale metadata folder',presaleMetadataBaseUri||'Not pinned'],
+    ['Public metadata folder',publicMetadataBaseUri||'Not pinned'],
   ];
   return <div className="erc721-workflow">
     <section className="panel creator-studio-banner">

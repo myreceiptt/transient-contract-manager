@@ -5,6 +5,7 @@ import {Erc721MarketStatus} from './erc721-market-status';
 import {Notice} from './shell';
 import {Artwork} from './safe-media';
 import {Erc721MintCoverPicker} from './erc721-mint-cover-picker';
+import {Erc721SalePreparation} from './erc721-sale-preparation';
 import {useErc721Drafts,type SavedErc721Draft} from './erc721-draft-storage';
 
 type Step='edit'|'preview'|'review';
@@ -215,6 +216,7 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
         {step!=='edit'&&<button type="button" className="button secondary" onClick={()=>setStep('edit')}>Edit draft</button>}
       </div>
     </section>
+    <Erc721SalePreparation chainId={chainId} contract={contract} authorized={authorized}/>
     <section className="panel">
       <div className="section-top"><h2>Verified chain observations</h2><span className="tag">READ-ONLY</span></div>
       <p>Official deployment candidates are inspected as untrusted read targets,

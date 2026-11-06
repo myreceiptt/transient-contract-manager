@@ -2363,3 +2363,15 @@ th { color: #c1c1c8; }
 .erc721-creator-review .review-data dd{min-width:0;overflow-wrap:anywhere;word-break:normal}
 .erc721-creator-review pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
 @media(max-width:600px){.erc721-creator-review .review-data{grid-template-columns:minmax(0,1fr)}.erc721-creator-review .review-data dd{margin-bottom:12px}.erc721-creator-review .button-row .button{width:100%}}
+
+/* GO#|O private first-save sequence validation; no public mint or signing UI. */
+.erc721-sale-preparation{display:grid;gap:16px;min-width:0}
+.erc721-sale-preparation .section-top{min-width:0}
+.erc721-sale-preparation .erc721-campaign-fact small{line-height:1.55;color:var(--muted)}
+.erc721-sequence-list{border:1px solid var(--line);border-radius:9px;padding:12px;min-width:0}
+.erc721-sequence-list summary{cursor:pointer;font-weight:600;font-size:13px;padding:8px}
+.erc721-sequence-item{display:grid;grid-template-columns:45px minmax(0,1fr);gap:12px;
+  align-items:start;border-top:1px solid var(--line);padding:11px 8px;min-width:0}
+.erc721-sequence-item>strong{font-size:14px}
+.erc721-sequence-item>span{display:grid;gap:5px;min-width:0;overflow-wrap:anywhere;font-size:12px}
+.erc721-sequence-item small{color:var(--muted);font-size:11px;overflow-wrap:anywhere}

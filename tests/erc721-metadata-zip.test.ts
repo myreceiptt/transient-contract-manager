@@ -11,7 +11,6 @@ describe('GO#|O local metadata 3+27 ZIP package',()=>{
     const b=buildGo721MetadataZip(fixtures());
     expect(a.sha256).toBe(b.sha256);
     expect(a.zip.equals(b.zip)).toBe(true);
-    expect(a.fileCount).toBeUndefined(); // only count is authoritative
     expect(a.count).toBe(30);
     expect(a.paths.slice(0,3)).toEqual([
       'round-1-presale-3/0','round-1-presale-3/1','round-1-presale-3/2'

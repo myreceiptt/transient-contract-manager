@@ -5,7 +5,6 @@ import {useSession} from './providers';
 import {Notice} from './shell';
 import {GO_APPROVED_TERMS,approvedGoTerms,inspectDraftAgainstApprovedTerms} from '@/lib/erc721-sale-terms';
 const GO721_APPROVED_PLAN=approvedGoTerms(1,GO_APPROVED_TERMS.collection);
-const GO721_PRESALE_START_WIB=GO_APPROVED_TERMS.presaleStartWib;
 
 type Snapshot={
   protocol:{reportedVersion:string;address:string;observedRuntimeHash:string;
@@ -28,72 +27,70 @@ export function Erc721SaleReadinessPanel({chainId,contract,authorized,draft}:{
   if(!authorized||chainId!==1||contract.toLowerCase()!==GO721_APPROVED_PLAN.collection.contract.toLowerCase())
     return null;
   const mismatch=inspectDraftAgainstApprovedTerms(draft);
-  const review={matching:mismatch.length===0,mismatch};
   async function check(){
     if(loading)return;setLoading(true);setError('');setSnapshot(null);
     try{
       await ensureSession(chainId);
       const response=await api('read_erc721_sale_readiness',{chainId,contract});
       setSnapshot(response as Snapshot);
-    }catch(e){setError(e instanceof Error?e.message:'Read-only on-chain check failed.');}
+    }catch(e){setError(e instanceof Error?e.message:'Could not inspect the Ethereum sale contract.');}
     finally{setLoading(false);}
   }
-  return <section className="panel">
+  return <section className="panel erc721-sale-readiness">
     <div className="section-top"><div>
-      <span className="eyebrow">OWNER/ADMIN · ETHEREUM MAINNET · OBSERVATION ONLY</span>
-      <h2>Approved sale policy &amp; blockchain readiness</h2>
-      <p>Review the approved parameters and current TLStacks721 state without granting permissions
-        or creating a sale. Mint remains disabled.</p>
-    </div><span className="tag">NO SIGNING</span></div>
-    <div className="erc721-campaign-facts">
-      <div className="erc721-campaign-fact"><span>Presale begins · Asia/Jakarta</span>
-        <strong>10 Nov 2026 · 10:10 WIB</strong><small>{GO721_PRESALE_START_WIB}</small></div>
-      <div className="erc721-campaign-fact"><span>Presale · 1 recipient whitelist</span>
-        <strong>3 originals · 0 ETH each</strong>
-        <small>Max 3 / recipient · nominal price excludes protocol fee and gas</small></div>
-      <div className="erc721-campaign-fact"><span>Public sale · second separate round</span>
-        <strong>27 originals · 0.025 ETH each</strong>
-        <small>Max 10 / recipient · opens only after three presale mints are confirmed</small></div>
-      <div className="erc721-campaign-fact"><span>Approved payout</span>
-        <strong className="mono">{GO721_APPROVED_PLAN.payoutReceiver}</strong></div>
-    </div>
-    {!review.matching&&<Notice type="error">
-      Saved/editor Mint Page values still differ from the approved sale policy:
-      <ul>{review.mismatch.map(m=><li key={m}>{m}</li>)}</ul>
-      Confirm and save the correct values through your existing authenticated Mint Page editor.
-      No automatic database write occurs.
+      <span className="eyebrow">RELEASE CHECK · ETHEREUM MAINNET</span>
+      <h2>Is this collection ready to sell?</h2>
+      <p>One check reads the NFT contract and the sales protocol.
+        It cannot grant permissions, move funds, publish a page, or create a sale.</p>
+    </div><span className="tag">READ-ONLY</span></div>
+    {mismatch.length>0&&<Notice type="error">
+      The Mint Page editor still contains values different from the approved sale plan:
+      <ul>{mismatch.map(m=><li key={m}>{m}</li>)}</ul>
+      Review and save the draft before publication. This does not mean a blockchain transaction failed.
     </Notice>}
     <div className="button-row">
       <button className="button secondary" type="button" disabled={loading} onClick={()=>void check()}>
-        {loading?'Reading Ethereum state…':'Run read-only mainnet readiness audit'}
+        {loading?'Reading Ethereum state…':'Check Ethereum sale readiness (no transaction)'}
       </button>
     </div>
     {error&&<Notice type="error">{error}</Notice>}
     {snapshot&&<>
       <div className="erc721-campaign-facts">
-        <div className="erc721-campaign-fact"><span>Observed block</span><strong>{snapshot.observedBlock}</strong></div>
-        <div className="erc721-campaign-fact"><span>ERC721 unburned supply</span>
+        <div className="erc721-campaign-fact">
+          <span>Sale activation</span>
+          <strong>Not enabled by this app</strong>
+          <small>Every mainnet contract change requires separate explicit approval</small>
+        </div>
+        <div className="erc721-campaign-fact">
+          <span>TLStacks721 sale contract</span>
+          <strong>{snapshot.protocol.reportedVersion} · {snapshot.observedDrop.configured?'Drop exists':'No live drop configured'}</strong>
+          <small>Current protocol fee per NFT: {snapshot.protocol.protocolFeeEth} ETH, plus network gas</small>
+        </div>
+        <div className="erc721-campaign-fact">
+          <span>Protocol mint permission</span>
+          <strong>{snapshot.creator.approvedMintContract?'Granted':'Not yet granted'}</strong>
+          <small>{snapshot.creator.supplyLocked?'New minting is locked':'Creator supply is unlocked'}</small>
+        </div>
+        <div className="erc721-campaign-fact">
+          <span>Current circulating supply</span>
           <strong>{snapshot.creator.totalUnburnedSupply}</strong>
-          <small>Not proof that the historical minted ID counter starts at zero</small></div>
-        <div className="erc721-campaign-fact"><span>TLStacks721 version / configured</span>
-          <strong>{snapshot.protocol.reportedVersion} / {snapshot.observedDrop.configured?'YES':'NO'}</strong>
-          <small>Round {snapshot.observedDrop.round}; phase {snapshot.observedDrop.phase}</small></div>
-        <div className="erc721-campaign-fact"><span>Current protocol fee per mint</span>
-          <strong>{snapshot.protocol.protocolFeeEth} ETH</strong>
-          <small>Set by protocol; re-read when preparing a real transaction</small></div>
-        <div className="erc721-campaign-fact"><span>Creator role for sale contract</span>
-          <strong>{snapshot.creator.approvedMintContract?'APPROVED':'NOT APPROVED'}</strong>
-          <small>Creator supply {snapshot.creator.supplyLocked?'LOCKED':'UNLOCKED'}</small></div>
+          <small>Historical Token ID verification is still required</small>
+        </div>
       </div>
-      <Notice type="error">
-        **Not cleared for mainnet sale.** {snapshot.blockers.length} safety gates remain:
-        <ul>{snapshot.blockers.map(key=><li key={key}>{key}</li>)}</ul>
-        A reported contract version is not an audited bytecode allowlist. Do not publish or sign yet.
-      </Notice>
+      <Notice>Ethereum observation completed. {snapshot.blockers.length} verification or activation
+        requirements remain. The public Mint Page and sale signing are still disabled.
+        This is expected during preparation, not a failed payment.</Notice>
+      <details className="erc721-advanced-checks">
+        <summary>View technical contract checks ({snapshot.blockers.length} pending)</summary>
+        <p>Block: {snapshot.observedBlock} · TLStacks721: {snapshot.protocol.address}</p>
+        <ul>{Object.entries(snapshot.checks).map(([name,ok])=>
+          <li key={name}>{name}: {ok?'verified':'pending / not satisfied'}</li>)}</ul>
+        <p><small>Reported version and observed bytecode are research observations, not permission
+          to send transactions. The historical mint counter must be verified before guaranteeing
+          the NFT #1–#30 sequence.</small></p>
+      </details>
     </>}
-    <Notice>Final public Mint Page is not deployed by this audit.
-      The collector checkout, pinning of both indexed metadata folders,
-      protocol runtime authorization and complete ERC721 mint-event history
-      must be implemented and tested separately.</Notice>
+    {!snapshot&&<small>The collection is not yet ready for collector minting.
+      This button shows what remains without changing anything.</small>}
   </section>;
 }

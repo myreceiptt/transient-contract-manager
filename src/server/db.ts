@@ -91,6 +91,41 @@ export async function listRecords(
     throw new AppError('DATABASE_ERROR', 'Database list request failed', 503);
   }
 }
+/**
+ * GO#|O collection-scoped full Artwork read for the *already authorized*
+ * Owner/Admin draft path. The generic tcm_erc721_draft_op 'list' RPC intentionally
+ * returns at most 25 and must not be changed: our 30-piece sale needs 30.
+ *
+ * This helper is never an API route. Its caller must first perform on-chain
+ * role verification and same-chain SIWE checks in src/server/erc721-drafts.ts.
+ * 31-row cap catches accidental extra active artworks instead of silently
+ * accepting a truncated collection. No database writes or migration.
+ */
+export async function listGo721ArtworkRows(chainId:number,contract:string):Promise<any[]> {
+  if(chainId!==1 || contract.toLowerCase()!=='0x99b8ae3c16559b80424a45c92dd530d50d970a46')
+    throw new AppError('GO721_ARTWORK_SCOPE','Artwork sale reads are limited to GO#|O on Ethereum Mainnet.',403);
+  try {
+    const remote=await remoteDb();
+    if(remote){
+      const {data,error}=await remote.from('erc721_workspace_drafts').select('*')
+        .eq('chain_id',chainId).eq('contract',contract.toLowerCase())
+        .eq('kind','ARTWORK').is('archived_at',null)
+        .order('updated_at',{ascending:false}).order('id',{ascending:false}).limit(31);
+      if(error)throw error;
+      if(!Array.isArray(data))throw new Error('Unexpected database response');
+      return data;
+    }
+    const db=await localDb();
+    const result=await db.query(
+      "select * from public.erc721_workspace_drafts where chain_id=$1 and contract=$2 and kind='ARTWORK' and archived_at is null order by updated_at desc,id desc limit 31",
+      [chainId,contract.toLowerCase()]);
+    return result.rows;
+  }catch(e){
+    if(e instanceof AppError)throw e;
+    throw new AppError('DATABASE_ERROR','Could not read the 30 Artwork drafts for sale preparation.',503);
+  }
+}
+
 // Authorized server-only lookup. Never expose archived or draft records publicly.
 export async function identityPages(chainId: number, contract: string, tokenIds: string[]) {
   if (!tokenIds.length) return [];

@@ -2,7 +2,7 @@ import {randomUUID} from 'node:crypto';
 import {z} from 'zod';
 import {AppError,addressSchema,positive,safeUrl} from '../lib/domain';
 import {inspectErc721Candidate,scanErc721Candidates} from './erc721-probe';
-import {command} from './db';
+import {command,listGo721ArtworkRows} from './db';
 import {requireSessionChain,type Session} from './auth';
 
 /** ERC721 app-only editorial drafts. No blockchain calldata, sale execution,
@@ -84,6 +84,12 @@ async function scope(kind:Erc721DraftKind,chainId:number,contract:string,s:Sessi
 export async function listErc721Drafts(kind:Erc721DraftKind,chainId:number,contract:string,s:Session){
   draftStorageEnabled();
   const allowed=await scope(kind,chainId,contract,s,'list');
+  // The generic storage RPC is capped at 25. GO#|O has 30 canonical artworks.
+  // Keep that shared RPC unchanged; read only the approved collection's full,
+  // 31-row-bounded index after verified Owner/Admin + SIWE authorization.
+  if(kind==='ARTWORK' && chainId===1 &&
+     contract.toLowerCase()==='0x99b8ae3c16559b80424a45c92dd530d50d970a46')
+    return listGo721ArtworkRows(chainId,contract);
   return command('erc721_draft',{action:'list',kind,chainId,contract:contract.toLowerCase(),...allowed});
 }
 export async function getErc721Draft(kind:Erc721DraftKind,chainId:number,contract:string,id:string,s:Session){

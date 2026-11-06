@@ -1,10 +1,10 @@
 import {afterEach,beforeEach,describe,expect,it,vi} from 'vitest';
-const mocked=vi.hoisted(()=>({inspect:vi.fn(),scan:vi.fn(),command:vi.fn()}));
+const mocked=vi.hoisted(()=>({inspect:vi.fn(),scan:vi.fn(),command:vi.fn(),listGo:vi.fn()}));
 vi.mock('../src/server/erc721-probe',()=>({
   inspectErc721Candidate:mocked.inspect,
   scanErc721Candidates:mocked.scan,
 }));
-vi.mock('../src/server/db',()=>({command:mocked.command}));
+vi.mock('../src/server/db',()=>({command:mocked.command,listGo721ArtworkRows:mocked.listGo}));
 import {archiveErc721Draft,createErc721Draft,erc721DraftAvailability,
   listErc721Drafts,parseErc721Draft,saveErc721Draft} from '../src/server/erc721-drafts';
 import {operationBudget} from '../src/server/abuse';
@@ -24,6 +24,7 @@ beforeEach(()=>{
   mocked.inspect.mockResolvedValue({walletRole:'admin'});
   mocked.scan.mockResolvedValue({tokens:[{status:'OWNED',owner:collector}]});
   mocked.command.mockResolvedValue({id:'saved',version:1});
+  mocked.listGo.mockResolvedValue(Array.from({length:30},(_,i)=>({id:String(i),kind:'ARTWORK'})));
 });
 afterEach(()=>vi.unstubAllEnvs());
 
@@ -34,6 +35,26 @@ describe('ERC721 server-only draft permissions',()=>{
    expect(operationBudget('erc721_draft_status')).toBe('public');
    for(const op of ['erc721_draft_list','erc721_draft_get','erc721_draft_create',
      'erc721_draft_save','erc721_draft_archive'])expect(operationBudget(op)).toBe('workspace');
+ });
+ it('returns all 30 GO#|O Artwork drafts via bounded server read, not the 25-row RPC',async()=>{
+   const go='0x99b8ae3c16559b80424a45c92dd530d50d970a46';
+   const rows=await listErc721Drafts('ARTWORK',1,go,session(admin));
+   expect(rows).toHaveLength(30);
+   expect(mocked.listGo).toHaveBeenCalledWith(1,go);
+   expect(mocked.command).not.toHaveBeenCalled();
+   const other=await listErc721Drafts('ARTWORK',1,collection,session(admin));
+   expect(other).toEqual({id:'saved',version:1});
+   expect(mocked.command).toHaveBeenCalledWith('erc721_draft',expect.objectContaining({
+     action:'list',kind:'ARTWORK',allowCollection:true
+   }));
+ });
+ it('checks on-chain admin permission before ever reading full GO#|O artwork data',async()=>{
+   const go='0x99b8ae3c16559b80424a45c92dd530d50d970a46';
+   mocked.inspect.mockResolvedValue({walletRole:'viewer'});
+   await expect(listErc721Drafts('ARTWORK',1,go,session(collector)))
+     .rejects.toMatchObject({code:'ADMIN_REQUIRED'});
+   expect(mocked.listGo).not.toHaveBeenCalled();
+   expect(mocked.command).not.toHaveBeenCalled();
  });
  it('is disabled by default unless the schema was independently enabled',async()=>{
    vi.stubEnv('ERC721_DRAFTS_ENABLED','false');

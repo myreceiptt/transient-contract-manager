@@ -147,13 +147,17 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
         <RefreshCcw size={15}/>{busy?'Loading…':'Load & validate 30 Artwork drafts'}
       </button>
     </div>
+    <div className="erc721-cover-editor">
+      <label>Verify Official Artwork Order v1 (local JSON; never uploaded)
+        <input type="file" accept=".json,application/json" disabled={!loaded||busy} onChange={e=>{
+          const f=e.target.files?.[0];e.target.value='';void verify(f);
+        }}/>
+      </label>
+      {!loaded&&<small>File selection unlocks after the 30 saved Artwork drafts are loaded and validated.</small>}
+      {loaded&&<small>30 Artwork drafts loaded. Select the approved JSON manifest; it stays in your browser.</small>}
+    </div>
     {loaded&&<>
       <div className="erc721-cover-editor">
-        <label>Verify Official Artwork Order v1 (local JSON; never uploaded)
-          <input type="file" accept=".json,application/json" onChange={e=>{
-            const f=e.target.files?.[0];e.target.value='';void verify(f);
-          }}/>
-        </label>
         <div className="button-row">
           <button type="button" className="button secondary" disabled={!approved||!presale||!saleTerms||presale.recipient!==saleTerms.presale.recipient} onClick={download}>
             <Download size={15}/> Download off-chain sale preparation

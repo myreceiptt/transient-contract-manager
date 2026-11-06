@@ -55,7 +55,9 @@ export function makeGo721DraftReview(data:{price:string;payout:string;maxPerWall
   const mismatch:string[]=[];
   if(data.price!=='0.025')mismatch.push('Public price differs from approved 0.025 ETH');
   if(data.maxPerWallet!=='10')mismatch.push('Saved public wallet limit must be 10, not '+data.maxPerWallet);
-  if(!data.payout||getAddress(data.payout)!==GO721_PAYOUT)mismatch.push('Payout receiver differs from approval');
+  let payoutMatches=false;
+  try{payoutMatches=getAddress(data.payout)===GO721_PAYOUT;}catch{/* Missing/invalid editor data */}
+  if(!payoutMatches)mismatch.push('Payout receiver differs from approval');
   // datetime-local has no timezone; the approved schedule is explicitly Asia/Jakarta.
   if(data.start!=='2026-11-10T10:10')mismatch.push('Local start should be 2026-11-10 10:10 WIB');
   return {matching:mismatch.length===0,mismatch};

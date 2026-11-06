@@ -38,7 +38,7 @@ describe('GO#|O local metadata 3+27 ZIP package',()=>{
     expect(server).toContain("pinnedToIpfs:false");
     expect(route).toContain("download_erc721_metadata_archive");
     expect(ui).toContain("Download verified 3+27 metadata folders ZIP");
-    expect(ui).toContain("disabled={!approved||archiveBusy}");
+    expect(ui).toContain("disabled={!approved||archiveBusy||!saleTerms}");
     expect(server).not.toContain('writeContract');
     expect(server).not.toContain('pinTokenMetadata');
   });

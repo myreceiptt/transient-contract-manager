@@ -249,11 +249,12 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
     <Erc721SaleReadinessPanel chainId={chainId} contract={contract} authorized={authorized}
       draft={{price,payout,maxPerWallet,start}}/>
     <section className="panel">
-      <div className="section-top"><h2>Verified chain observations</h2><span className="tag">READ-ONLY</span></div>
-      <p>Official deployment candidates are inspected as untrusted read targets,
-        not preapproved execution addresses. Connected creator authority:
-        {authorized?' owner/admin observed':' viewer or unconnected'}.</p>
-      <Erc721MarketStatus chainId={chainId} contract={contract} view="stacks"/>
+      <details className="erc721-advanced-checks">
+        <summary>Protocol diagnostics (advanced)</summary>
+        <p>Official deployment candidates are research-only read targets.
+          Role: {authorized?'Owner/Admin':'Viewer'}. These details do not activate minting.</p>
+        <Erc721MarketStatus chainId={chainId} contract={contract} view="stacks"/>
+      </details>
     </section>
   </div>;
 }

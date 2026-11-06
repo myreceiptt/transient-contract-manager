@@ -1,0 +1,28 @@
+name: GO721 read-only mainnet authority audit
+on:
+  pull_request:
+    paths:
+      - "scripts/go721-live-readonly.ts"
+      - ".github/workflows/go721-readonly-audit.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      MAINNET_WRITES_ENABLED: "false"
+      NEXT_TELEMETRY_DISABLED: "1"
+      GO721_EXECUTION_ENABLED: "false"
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Observe GO721 mainnet only
+        run: node --import tsx scripts/go721-live-readonly.ts

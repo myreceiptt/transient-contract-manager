@@ -24,7 +24,7 @@ describe('GO#|O strict sequential sale contract policy',()=>{
   });
   it('blocks every non-whitelist wallet and bad Merkle root',()=>{
     expect(quoteGo721Mint(input,'0x0000000000000000000000000000000000000001',1).allowed).toBe(false);
-    expect(quoteGo721Mint({...input,presaleMerkleRoot:'0x'+'00'.repeat(32)},presaleRecipient,1)
+    expect(quoteGo721Mint({...input,presaleMerkleRoot:('0x'+'00'.repeat(32)) as `0x${string}`},presaleRecipient,1)
       .issues).toContain('Whitelist drop parameters do not match the approved allocation');
   });
   it('detects TLStacks721 auto-capping instead of quoting a false amount',()=>{

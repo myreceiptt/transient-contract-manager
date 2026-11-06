@@ -19,7 +19,9 @@ const describeWhen=enabled?describe:describe.skip;
 const port=18611;
 const rpc='http://127.0.0.1:'+port;
 const forkUrl=process.env.TCM_GO721_FORK_RPC||'https://ethereum-rpc.publicnode.com';
-const forkBlock=Number(process.env.TCM_GO721_FORK_BLOCK||'26350623');
+// PublicNode no longer allows historical archive calls without an API token.
+// Use a coherent latest-state fork unless a private archive RPC + block is provided.
+const forkBlock=Number(process.env.TCM_GO721_FORK_BLOCK||'0');
 const c=createPublicClient({chain:localChain,transport:http(rpc,{retryCount:0,timeout:18000})});
 const w=createWalletClient({chain:localChain,transport:http(rpc,{retryCount:0,timeout:18000})});
 const creatorAbi=parseAbi([
@@ -69,10 +71,11 @@ async function nextBlock(ts:number){
 
 describeWhen('GO#|O local mainnet-fork TLStacks721 3+27 lifecycle (never mainnet writes)',()=>{
   beforeAll(async()=>{
-    if(!Number.isSafeInteger(forkBlock)||forkBlock<25000000)throw Error('Pinned fork block required');
+    if(!Number.isSafeInteger(forkBlock)||forkBlock<0)throw Error('Invalid fork block');
     anvil=spawn(process.execPath,[
       'node_modules/@foundry-rs/anvil/bin.mjs','--host','127.0.0.1','--port',String(port),
-      '--chain-id','31337','--silent','--fork-url',forkUrl,'--fork-block-number',String(forkBlock),
+      '--chain-id','31337','--silent','--fork-url',forkUrl,
+      ...(forkBlock>0?['--fork-block-number',String(forkBlock)]:[]),
     ],{stdio:['ignore','pipe','pipe']});
     let stderr='';
     anvil.stderr?.on('data',x=>{stderr+=String(x)});

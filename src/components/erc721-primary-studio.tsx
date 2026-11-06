@@ -6,6 +6,7 @@ import {Notice} from './shell';
 import {Artwork} from './safe-media';
 import {Erc721MintCoverPicker} from './erc721-mint-cover-picker';
 import {Erc721SalePreparation} from './erc721-sale-preparation';
+import {Erc721SaleReadinessPanel} from './erc721-sale-readiness-panel';
 import {GO_APPROVED_TERMS,inspectDraftAgainstApprovedTerms} from '@/lib/erc721-sale-terms';
 import {useErc721Drafts,type SavedErc721Draft} from './erc721-draft-storage';
 
@@ -245,6 +246,8 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
       </div>
     </section>
     <Erc721SalePreparation chainId={chainId} contract={contract} authorized={authorized}/>
+    <Erc721SaleReadinessPanel chainId={chainId} contract={contract} authorized={authorized}
+      draft={{price,payout,maxPerWallet,start}}/>
     <section className="panel">
       <div className="section-top"><h2>Verified chain observations</h2><span className="tag">READ-ONLY</span></div>
       <p>Official deployment candidates are inspected as untrusted read targets,

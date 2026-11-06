@@ -143,7 +143,7 @@ export function Erc721Inspector({mode='standalone'}:{mode?:'standalone'|'checker
         <div className="section-top"><div>
           <span className="eyebrow">ERC-721 · SOURCE INTERFACE CANDIDATE</span>
           <h2>{collection.name} <span className="muted">{collection.symbol}</span></h2>
-        </div><span className="tag">RUNTIME UNVERIFIED</span></div>
+        </div><span className="tag">{collection.creatorMintRuntimeVerified?'CREATOR MINT VERIFIED':'RUNTIME UNVERIFIED'}</span></div>
         <Notice>{collection.notice}</Notice>
         <dl>
           <dt>Collection</dt><dd><a className="mono" href={explorer(collection.chainId,collection.contract)}
@@ -160,8 +160,8 @@ export function Erc721Inspector({mode='standalone'}:{mode?:'standalone'|'checker
             'Not connected. Connect a wallet, then inspect again.'}</dd>
           <dt>Your on-chain role (read-only)</dt>
           <dd><strong>{String(collection.walletRole).toUpperCase()}</strong>
-            <small>Role checked at the observed block. Execution is still disabled
-              until the exact Ethereum Mainnet runtime is verified.</small></dd>
+            <small>Role checked at the observed block. Creator minting requires a verified
+              runtime, a fresh review and explicit approval for the exact transaction.</small></dd>
           <dt>Admin wallets</dt><dd>{collection.admins.length?
             collection.admins.map((a:string)=><div className="mono" key={a}>{a}</div>):'No additional admins'}</dd>
           <dt>{collection.totalSupplyMeaning==='MINTED_TOKEN_ID_COUNTER_INCLUDES_BURNED'
@@ -180,9 +180,11 @@ export function Erc721Inspector({mode='standalone'}:{mode?:'standalone'|'checker
           <LockKeyhole color="#76816c" size={20}/>
         </div>
         {BigInt(collection.totalSupply)===0n&&<div className="erc721-empty-state">
-          <strong>No NFT minted yet</strong>
-          <p>This collection currently reports zero minted 1 of 1 NFTs.
-            Create 1 of 1 remains unavailable until exact runtime and admin-write simulation pass.</p>
+          <strong>No NFTs in the current supply</strong>
+          <p>This collection currently reports zero NFTs.
+            {collection.creatorMintRuntimeVerified
+              ? ' Connect the Owner/Admin wallet in the collection workspace to load a saved artwork and review its creator mint. Signing requires explicit approval for that exact transaction.'
+              : ' Creator minting requires independent verification of this deployment before it can be enabled.'}</p>
         </div>}
         {BigInt(collection.totalSupply)>0n&&<form className="checker-form" onSubmit={e=>{e.preventDefault();void scan(start);}}>
           <label>First Token ID
@@ -222,7 +224,7 @@ export function Erc721Inspector({mode='standalone'}:{mode?:'standalone'|'checker
         </div>}
         <p className="fineprint">For large collections this is an inspection window,
           not an exhaustive holder index. A reverted ownerOf call is never treated as a zero balance.
-          Full Transfer-event indexing and codehash allowlisting are pending.</p>
+          Complete Transfer-event indexing is not available in this catalogue.</p>
       </section>
       {mode!=='workspace'&&<Notice>TLStacks721 primary Mint Pages and TLAuctionHouse collector auctions
         remain disabled until their exact chain runtimes and test transactions are verified.</Notice>}

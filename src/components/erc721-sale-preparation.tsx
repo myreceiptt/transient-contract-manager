@@ -22,6 +22,8 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
   const [loaded,setLoaded]=useState(false),[approved,setApproved]=useState(false);
   const [busy,setBusy]=useState(false),[archiveBusy,setArchiveBusy]=useState(false);
   const [error,setError]=useState(''),[note,setNote]=useState('');
+  const [pinBusy,setPinBusy]=useState<1|2|null>(null);
+  const [folders,setFolders]=useState<Record<number,{cid:string;baseUri:string|null;verified:boolean;saved:boolean}>>({});
   const [walletInput,setWalletInput]=useState(isApprovedCollection?GO_APPROVED_TERMS.presaleRecipient:'');
   const [presale,setPresale]=useState<OneWalletPresale|null>(
     isApprovedCollection?prepareOneWalletPresale(GO_APPROVED_TERMS.presaleRecipient,chainId,contract):null);
@@ -97,6 +99,20 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
     }catch(e){setError(e instanceof Error?e.message:'Metadata ZIP export failed.');}
     finally{setArchiveBusy(false);}
   }
+  async function pinRound(round:1|2){
+    if(pinBusy||archiveBusy||!authorized||!saleTerms)return;
+    setPinBusy(round);setError('');setNote('');
+    try {
+      await ensureSession(chainId);
+      const result=await api('pin_go721_metadata_folder',{chainId,contract,round}) as {
+        round:1|2;cid:string;baseUri:string|null;verified:boolean;saved:boolean;message:string;
+      };
+      setFolders(prev=>({...prev,[round]:result}));
+      if(!result.verified)setError(result.message+' CID: '+result.cid);
+      else setNote('Round '+round+': '+result.message+' Base URI '+result.baseUri);
+    }catch(e){setError(e instanceof Error?e.message:'Could not pin the IPFS folder.');}
+    finally{setPinBusy(null);}
+  }
   if(!authorized)return <Notice>Only a verified collection Owner/Admin can prepare this private sale.</Notice>;
   return <section className="panel erc721-sale-preparation">
     <div className="section-top"><div>
@@ -125,8 +141,26 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
           <Download size={15}/>{archiveBusy?'Checking 30 metadata files…':'Download verified 3+27 metadata folders ZIP'}
         </button>
       </div>
-      <small>After download, extract the ZIP and pin each folder separately in Pinata.
-        We still need both folder CIDs before the sale can be configured. No wallet transaction occurs.</small>
+      <small>You can pin directly using the two actions below. No ZIP extraction, new wallet signature,
+        Ethereum transaction or manual Merkle proof entry is required. These actions upload public metadata to Pinata.</small>
+      <div className="button-row">
+        <button type="button" className="button secondary" disabled={pinBusy!==null||archiveBusy}
+          onClick={()=>void pinRound(1)}>
+          {pinBusy===1?'Pinning and validating…':'Pin presale folder (3 NFTs) to IPFS'}
+        </button>
+        <button type="button" className="button secondary" disabled={pinBusy!==null||archiveBusy}
+          onClick={()=>void pinRound(2)}>
+          {pinBusy===2?'Pinning and validating…':'Pin public folder (27 NFTs) to IPFS'}
+        </button>
+      </div>
+      {[1,2].map(round=>folders[round]&&<div key={round} className="erc721-campaign-fact">
+        <span>Round {round} metadata · {folders[round].verified?'IPFS gateway checked':'Awaiting gateway verification'}</span>
+        <strong className="mono">{folders[round].baseUri||folders[round].cid}</strong>
+        <small>{folders[round].saved?'Saved to the Mint Page draft':'Not yet saved as a verified folder base URI'}</small>
+      </div>)}
+      <small>For every folder, the app verifies all 30 original source CIDs and checks the
+        first and last uploaded paths against the original JSON bytes before saving a base URI.
+        Repeating a completed upload reuses an existing verified CID.</small>
     </div>
     {error&&<Notice type="error">{error}</Notice>}
     {note&&<Notice type="success">{note}</Notice>}

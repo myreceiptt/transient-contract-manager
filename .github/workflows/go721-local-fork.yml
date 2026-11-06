@@ -1,0 +1,28 @@
+name: GO721 local Ethereum fork 3 plus 27
+on:
+  pull_request:
+    paths:
+      - "scripts/go721-local-fork.spec.ts"
+      - "src/lib/go721-sale-engine.ts"
+      - "src/lib/go721-sale-plan.ts"
+      - ".github/workflows/go721-local-fork.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fork-lifecycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      TCM_GO721_FORK: "1"
+      TCM_GO721_FORK_BLOCK: "26350623"
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci --ignore-scripts=false
+      - name: Fork-only 3+27 real-contract lifecycle
+        run: npx vitest run scripts/go721-local-fork.spec.ts --reporter=verbose --maxWorkers=1

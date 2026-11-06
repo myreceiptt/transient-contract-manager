@@ -47,13 +47,13 @@ export function planGo721Drop(args:{
     throw new Error('Public sale cannot start before three verified presale mints.');
   const when=args.round2StartSeconds;
   const end=Math.floor(Date.parse(GO_APPROVED_TERMS.plannedCampaignEndWib)/1000);
-  if(!Number.isSafeInteger(when)||when!<=0||when!>=end)
+  if(when===undefined||!Number.isSafeInteger(when)||when<=0||when>=end)
     throw new Error('Round 2 requires a valid scheduled start before campaign end.');
   return {
     dropType:1,payoutReceiver,initialSupply:27n,supply:27n,
     allowance:10n,currencyAddress:zeroAddress,startTime:BigInt(when),
     presaleDuration:0n,presaleCost:0n,presaleMerkleRoot:zeroHash,
-    publicDuration:BigInt(end-when!),publicCost:parseEther('0.025'),
+    publicDuration:BigInt(end-when),publicCost:parseEther('0.025'),
     decayRate:0n,baseUri:base,
   };
 }

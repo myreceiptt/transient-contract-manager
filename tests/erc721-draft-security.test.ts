@@ -33,6 +33,8 @@ describe('ERC721 server-only draft permissions',()=>{
    expect(operationBudget('erc721_transfers')).toBe('inventory');
    expect(operationBudget('erc721_royalties')).toBe('public');
    expect(operationBudget('erc721_draft_status')).toBe('public');
+   expect(operationBudget('read_erc721_sale_readiness')).toBe('workspace');
+   expect(operationBudget('download_erc721_metadata_archive')).toBe('workspace');
    for(const op of ['erc721_draft_list','erc721_draft_get','erc721_draft_create',
      'erc721_draft_save','erc721_draft_archive'])expect(operationBudget(op)).toBe('workspace');
  });

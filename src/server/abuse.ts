@@ -65,6 +65,8 @@ export function operationBudget(op: string): Budget {
       'erc721_draft_create',
       'erc721_draft_save',
       'erc721_draft_archive',
+      'read_erc721_sale_readiness',
+      'download_erc721_metadata_archive',
       'metadata_pin_erc721',
       'session',
       'pages',

@@ -35,7 +35,7 @@ describe('GO#|O strict sequential sale contract policy',()=>{
   });
   it('quotes public 0.025 ETH and max 10 in the second distinct drop round',()=>{
     const round2:SaleSnapshot={...input,phase:3,roundNumber:1n,
-      supply:27n,initialSupply:27n,allowance:10n,presaleMerkleRoot:'0x'+'00'.repeat(32),
+      supply:27n,initialSupply:27n,allowance:10n,presaleMerkleRoot:('0x'+'00'.repeat(32)) as `0x${string}`,
       publicCost:parseEther('0.025'),mintedByWallet:9n};
     const q=quoteGo721Mint(round2,'0x0000000000000000000000000000000000000001',5);
     expect(q.allowed).toBe(true);

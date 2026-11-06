@@ -18,7 +18,7 @@ const GO721_COLLECTION=GO_APPROVED_TERMS.collection;
  *
  * This creates a ZIP in memory but NEVER pins, publishes or creates a drop.
  */
-export async function downloadGo721MetadataArchive(chainId:number,contract:Address,s:Session){
+export async function verifiedGo721MetadataItems(chainId:number,contract:Address,s:Session){
   if(chainId!==1||contract.toLowerCase()!==GO721_COLLECTION.toLowerCase())
     throw new AppError('ARCHIVE_SCOPE','Only the approved GO#|O collection can export metadata.',403);
   const raw=await listErc721Drafts('ARTWORK',chainId,contract,s);
@@ -55,6 +55,11 @@ export async function downloadGo721MetadataArchive(chainId:number,contract:Addre
       throw new AppError('ARCHIVE_INTEGRITY','Metadata, image or title changed at position '+a.position,409);
     return {round:a.round,file:a.folderFile,json:bytes};
   });
+  return {items,sequence};
+}
+
+export async function downloadGo721MetadataArchive(chainId:number,contract:Address,s:Session){
+  const {items}=await verifiedGo721MetadataItems(chainId,contract,s);
   const built=buildGo721MetadataZip(items);
   return {
     schema:'prof-nota-go721-verified-metadata-folders/v1',

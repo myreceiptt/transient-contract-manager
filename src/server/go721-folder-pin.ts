@@ -68,6 +68,21 @@ export async function pinGo721Folder(round:Round,chainId:number,contract:Address
     throw new AppError('FOLDER_SCOPE','Folder pinning is available only for GO#|O on Ethereum Mainnet.',403);
   const {items}=await verifiedGo721MetadataItems(chainId,contract,s);
   const {form,folder,subset}=pinataFolderUploadForm(round,items);
+  const saved=await listErc721Drafts('MINT_PAGE',chainId,contract,s) as {
+    id:string;version:number;draft:Record<string,unknown>;
+  }[];
+  if(!Array.isArray(saved)||saved.length!==1)
+    throw new AppError('FOLDER_DRAFT_MISSING','No single canonical collection Mint Page draft found.',409);
+  const key=round===1?'presaleMetadataBaseUri':'publicMetadataBaseUri';
+  const existing=saved[0].draft[key];
+  if(typeof existing==='string' && /^ipfs:\/\//.test(existing)){
+    const raw=existing.slice('ipfs://'.length).split('/')[0];
+    const verified=await verifyPinnedFolderPath(raw,folder,subset);
+    if(verified===existing)return {round,fileCount:subset.length,cid:raw,baseUri:existing,
+      verified:true,saved:true,reused:true,message:'Already pinned and re-verified. No new upload or blockchain transaction.'};
+    throw new AppError('FOLDER_SAVED_UNVERIFIED',
+      'Saved metadata base URI could not be independently revalidated. Do not repin automatically.',409);
+  }
   const jwt=process.env.PINATA_JWT;
   if(!jwt)throw new AppError('PINATA_DISABLED','Server IPFS pinning is not configured.',503);
   const response=await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS',{
@@ -85,13 +100,6 @@ export async function pinGo721Folder(round:Round,chainId:number,contract:Address
     round,fileCount:subset.length,cid,baseUri:null,verified:false,saved:false,
     message:'IPFS folder upload accepted but gateway validation is pending. Preserve this CID; do not use it for a sale until independently verified.'
   };
-  const saved=await listErc721Drafts('MINT_PAGE',chainId,contract,s) as {
-    id:string;version:number;draft:Record<string,unknown>;
-  }[];
-  if(!Array.isArray(saved)||saved.length!==1)
-    throw new AppError('FOLDER_DRAFT_MISSING','No single canonical collection Mint Page draft found.',409);
-  const key=round===1?'presaleMetadataBaseUri':'publicMetadataBaseUri';
-  const existing=saved[0].draft[key];
   if(existing&&existing!==baseUri)
     throw new AppError('FOLDER_CONFLICT','A different metadata base URI was saved. Do not silently overwrite.',409);
   if(existing!==baseUri){

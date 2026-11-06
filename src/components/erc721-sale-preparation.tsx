@@ -1,0 +1,97 @@
+'use client';
+import {useState} from 'react';
+import {Download,RefreshCcw} from 'lucide-react';
+import {api} from '@/lib/api-client';
+import {useSession} from './providers';
+import {Notice} from './shell';
+import {prepareSequence,verifyApprovedManifest,exportSalePreparation,type Draft,type SequenceItem} from '@/lib/erc721-sale-sequence';
+
+/** Private owner/admin preview: the official manifest file stays in the user's browser. */
+export function Erc721SalePreparation({chainId,contract,authorized}:{
+  chainId:number;contract:string;authorized:boolean;
+}){
+  const {ensureSession}=useSession();
+  const [items,setItems]=useState<SequenceItem[]>([]);
+  const [loaded,setLoaded]=useState(false),[approved,setApproved]=useState(false);
+  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[note,setNote]=useState('');
+  async function load(){
+    if(busy||!authorized)return;
+    setBusy(true);setLoaded(false);setApproved(false);setItems([]);setError('');setNote('');
+    try {
+      await ensureSession(chainId);
+      const drafts=await api('erc721_draft_list',{chainId,contract,kind:'ARTWORK'}) as Draft[];
+      const rows=prepareSequence(drafts);
+      setItems(rows);setLoaded(true);
+      setNote('All 30 source CIDs validated. Check them against the private approved Manifest v1.');
+    }catch(e){setError(e instanceof Error?e.message:'Cannot load artwork order.');}
+    finally{setBusy(false);}
+  }
+  async function verify(file?:File){
+    if(!file||!loaded)return;
+    setApproved(false);setError('');setNote('');
+    try{
+      if(file.size>256*1024)throw new Error('Manifest JSON is too large.');
+      verifyApprovedManifest(JSON.parse(await file.text()),items,chainId,contract);
+      setApproved(true);
+      setNote('Approved order v1 matches all 30 draft IDs, original timestamps, folder positions and source CIDs.');
+    }catch(e){setError(e instanceof Error?e.message:'Approved manifest validation failed.');}
+  }
+  function download(){
+    if(!approved)return;
+    const json=JSON.stringify(exportSalePreparation(chainId,contract,items),null,2)+'\n';
+    const url=URL.createObjectURL(new Blob([json],{type:'application/json'}));
+    try{
+      const a=document.createElement('a');a.href=url;a.download='GO_ONE_OF_ONE_SALE_PREPARATION_OFFCHAIN_v1.json';a.click();
+    }finally{URL.revokeObjectURL(url);}
+  }
+  if(!authorized)return <Notice>Only a verified collection Owner/Admin can prepare the private sale sequence.</Notice>;
+  return <section className="panel erc721-sale-preparation">
+    <div className="section-top"><div>
+      <span className="eyebrow">OFF-CHAIN · GO#|O SEQUENTIAL SALE</span>
+      <h2>Artwork order &amp; two-round preparation</h2>
+      <p>Read all saved artworks, confirm the original first-save order, and verify your approved Manifest v1.
+        No metadata pinning, public URL, wallet approval or blockchain transaction happens here.</p>
+    </div><span className="tag">NO CONTRACT WRITES</span></div>
+    <div className="erc721-campaign-facts">
+      <div className="erc721-campaign-fact"><span>Round 1 · Whitelist</span><strong>3 NFTs · 0 ETH each</strong>
+        <small>Exactly one allowlisted recipient · max 3 · artwork #1–#3</small></div>
+      <div className="erc721-campaign-fact"><span>Round 2 · Public</span><strong>27 NFTs · 0.025 ETH each</strong>
+        <small>Max 10 per recipient · artwork #4–#30</small></div>
+    </div>
+    <div className="button-row">
+      <button type="button" className="button secondary" disabled={busy} onClick={()=>void load()}>
+        <RefreshCcw size={15}/>{busy?'Loading…':'Load & validate 30 Artwork drafts'}
+      </button>
+    </div>
+    {loaded&&<>
+      <div className="erc721-cover-editor">
+        <label>Verify Official Artwork Order v1 (local JSON; never uploaded)
+          <input type="file" accept=".json,application/json" onChange={e=>{
+            const f=e.target.files?.[0];e.target.value='';void verify(f);
+          }}/>
+        </label>
+        <div className="button-row">
+          <button type="button" className="button secondary" disabled={!approved} onClick={download}>
+            <Download size={15}/> Download off-chain sale preparation
+          </button>
+        </div>
+        <small>Folder CIDs and whitelist remain unset. The draft file cannot enable a sale.</small>
+      </div>
+      <details className="erc721-sequence-list">
+        <summary>{items.length} artwork positions · {approved?'approved snapshot matched':'snapshot verification pending'}</summary>
+        {items.map(a=><div key={a.draftId} className="erc721-sequence-item">
+          <strong>#{a.position}</strong>
+          <span><strong>{a.titleAtSnapshot}</strong>
+            <small>Round {a.round} · file /{a.folderFile} · {a.sourceMetadataUri.slice(0,22)}…</small>
+          </span>
+        </div>)}
+      </details>
+    </>}
+    {error&&<Notice type="error">{error}</Notice>}
+    {note&&<Notice type="success">{note}</Notice>}
+    <Notice>Artwork positions are conditional targets, not minted Token IDs. A future on-chain
+      preflight must prove no prior or interleaved creator mints (including burned IDs).
+      TLStacks721 metadata folders, presale allowlist, configured drops and buyer transactions
+      are still pending separate verification and approval.</Notice>
+  </section>;
+}

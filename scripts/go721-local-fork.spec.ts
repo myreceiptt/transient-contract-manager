@@ -86,7 +86,7 @@ describeWhen('GO#|O local mainnet-fork TLStacks721 3+27 lifecycle (never mainnet
       await new Promise(ok=>setTimeout(ok,500));
     }
     expect(connected,'Fork startup failed: '+stderr.slice(-2000)).toBe(true);
-    const accounts=await w.getAddresses();buyers=accounts.slice(0,3).map(getAddress);
+    const accounts=await w.getAddresses();buyers=accounts.slice(0,3).map(a=>getAddress(a));
     expect(buyers).toHaveLength(3);
     owner=await c.readContract({address:GO721_COLLECTION,abi:creatorAbi,functionName:'owner'});
     await impersonate(owner);await impersonate(fixtureWallet);

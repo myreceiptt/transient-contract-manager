@@ -14,7 +14,7 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
   const {ensureSession}=useSession();
   const [items,setItems]=useState<SequenceItem[]>([]);
   const [loaded,setLoaded]=useState(false),[approved,setApproved]=useState(false);
-  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[note,setNote]=useState('');
+  const [busy,setBusy]=useState(false),[archiveBusy,setArchiveBusy]=useState(false),[error,setError]=useState(''),[note,setNote]=useState('');
   const [walletInput,setWalletInput]=useState(''),[presale,setPresale]=useState<OneWalletPresale|null>(null);
   async function load(){
     if(busy||!authorized)return;
@@ -66,6 +66,28 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
     try{
       const a=document.createElement('a');a.href=url;a.download='GO_ONE_OF_ONE_SALE_PREPARATION_OFFCHAIN_v1.json';a.click();
     }finally{URL.revokeObjectURL(url);}
+  }
+
+  async function downloadVerifiedFolderArchive(){
+    if(!approved||archiveBusy||!authorized)return;
+    setArchiveBusy(true);setError('');setNote('');
+    try{
+      await ensureSession(chainId);
+      const result=await api('download_erc721_metadata_archive',{chainId,contract}) as {
+        filename:string;base64:string;fileCount:number;sha256:string;pinnedToIpfs:boolean;
+      };
+      if(result.fileCount!==30||result.pinnedToIpfs!==false||
+        !/^[0-9a-f]{64}$/.test(result.sha256))
+        throw new Error('Server returned an incomplete or unexpected metadata archive.');
+      const bytes=Uint8Array.from(atob(result.base64),c=>c.charCodeAt(0));
+      const url=URL.createObjectURL(new Blob([bytes],{type:'application/zip'}));
+      try{
+        const a=document.createElement('a');a.href=url;a.download=result.filename;a.click();
+      }finally{URL.revokeObjectURL(url);}
+      setNote('Downloaded a 30-file ZIP verified against source JSON IPFS CIDs. SHA256: '+result.sha256+
+        '. The two folders are NOT yet pinned as IPFS directories.');
+    }catch(e){setError(e instanceof Error?e.message:'Metadata ZIP export failed.');}
+    finally{setArchiveBusy(false);}
   }
   if(!authorized)return <Notice>Only a verified collection Owner/Admin can prepare the private sale sequence.</Notice>;
   return <section className="panel erc721-sale-preparation">
@@ -120,6 +142,10 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
         <div className="button-row">
           <button type="button" className="button secondary" disabled={!approved||!presale} onClick={download}>
             <Download size={15}/> Download off-chain sale preparation
+          </button>
+          <button type="button" className="button secondary" disabled={!approved||archiveBusy}
+            onClick={()=>void downloadVerifiedFolderArchive()}>
+            <Download size={15}/> {archiveBusy?'Verifying 30 JSON files…':'Download verified 3+27 metadata folders ZIP'}
           </button>
         </div>
         <small>Folder CIDs remain unset. The draft file cannot enable a sale.

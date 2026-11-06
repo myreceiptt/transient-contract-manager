@@ -9,7 +9,8 @@ export function buildGo721MetadataZip(items:readonly ArchiveItem[]){
   const seen=new Set<string>(),parts:Buffer[]=[],directory:Buffer[]=[];
   let position=0;const manifestOrder=[...items].sort((a,b)=>a.round-b.round||Number(a.file)-Number(b.file));
   for(let i=0;i<manifestOrder.length;i++){
-    const item=manifestOrder[i],round:i<3?1:2,file=String(i<3?i:i-3);
+    const item=manifestOrder[i];
+    const round:1|2=i<3?1:2, file=String(i<3?i:i-3);
     if(item.round!==round||item.file!==file||item.json.length<2||item.json.length>24576)
       throw new AppError('ZIP_SEQUENCE','Metadata archive has an unexpected slot or file size.',422);
     const path=names[round-1]+'/'+file;

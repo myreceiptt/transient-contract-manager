@@ -23,6 +23,8 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
   const [busy,setBusy]=useState(false),[archiveBusy,setArchiveBusy]=useState(false);
   const [error,setError]=useState(''),[note,setNote]=useState('');
   const [pinBusy,setPinBusy]=useState<1|2|null>(null);
+  const [auditBusy,setAuditBusy]=useState(false);
+  const [auditResults,setAuditResults]=useState<Record<number,{verifiedPaths:number;expectedPaths:number;sourceSha256:string;verifiedAt:string}>>({});
   const [folders,setFolders]=useState<Record<number,{cid:string;baseUri:string|null;verified:boolean;saved:boolean}>>({});
   const [walletInput,setWalletInput]=useState(isApprovedCollection?GO_APPROVED_TERMS.presaleRecipient:'');
   const [presale,setPresale]=useState<OneWalletPresale|null>(
@@ -130,6 +132,27 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
     }catch(e){setError(e instanceof Error?e.message:'Could not verify the existing CID.');}
     finally{setPinBusy(null);}
   }
+  async function auditAllSavedFolders(){
+    if(auditBusy||pinBusy||archiveBusy||!authorized||!saleTerms)return;
+    setAuditBusy(true);setError('');setNote('');setAuditResults({});
+    try{
+      await ensureSession(chainId);
+      for(const round of [1,2] as const){
+        const result=await api('audit_go721_folder_paths',
+          {chainId,contract,round}) as {
+            round:1|2;verifiedPaths:number;expectedPaths:number;
+            sourceSha256:string;verifiedAt:string;allGatewayBytesMatched:boolean;
+            ethereumTransactionPerformed:false;
+          };
+        if(result.allGatewayBytesMatched!==true||result.verifiedPaths!==(round===1?3:27)
+          ||result.verifiedPaths!==result.expectedPaths)
+          throw new Error('Round '+round+': not all public metadata files verified.');
+        setAuditResults(prev=>({...prev,[round]:result}));
+      }
+      setNote('All 30 published IPFS metadata paths match the approved original JSON byte-for-byte. No re-upload or Ethereum transaction.');
+    }catch(e){setError(e instanceof Error?e.message:'Full IPFS directory audit failed.');}
+    finally{setAuditBusy(false);}
+  }
   if(!authorized)return <Notice>Only a verified collection Owner/Admin can prepare this private sale.</Notice>;
   return <section className="panel erc721-sale-preparation">
     <div className="section-top"><div>
@@ -179,6 +202,22 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
           Check the same CID again (no upload)
         </button>}
       </div>)}
+      <div className="erc721-cover-editor">
+        <strong>Full IPFS directory audit (read-only)</strong>
+        <p>After both folders are pinned, verify every numbered public file, not only
+          the first and last gateway samples. The app reads the saved base URIs;
+          no folder upload, new Merkle proof, or wallet transaction is needed.</p>
+        <div className="button-row">
+          <button type="button" className="button secondary" onClick={()=>void auditAllSavedFolders()}
+            disabled={auditBusy||pinBusy!==null||archiveBusy||!saleTerms}>
+            {auditBusy?'Checking numbered JSON files…':'Verify all 30 published IPFS files'}
+          </button>
+        </div>
+        {([1,2] as const).map(round=>auditResults[round]&&<small key={round}>
+          Round {round}: {auditResults[round].verifiedPaths}/{auditResults[round].expectedPaths}
+          {' '}original JSON files verified · {auditResults[round].verifiedAt}
+        </small>)}
+      </div>
       <small>For every folder, the app verifies all 30 original source CIDs and checks the
         first and last uploaded paths against the original JSON bytes before saving a base URI.
         Repeating a completed upload reuses an existing verified CID.</small>

@@ -50,14 +50,13 @@ export async function readGo721SaleReadiness(chainId:number,rawCollection:Addres
   const stack=TLSTACKS721_V231;
   const code=await c.getCode({address:stack,blockNumber:at});
   if(!code||code==='0x')throw new AppError('SALE_STACK_MISSING','TLStacks721 candidate has no deployed code.',503);
-  const s=<T extends keyof typeof stackViews>(name:T)=>name;
   const [stackVersion,fee,feeReceiver,paused,phase,round,drop,approvedMint,supplyLocked]=await Promise.all([
-    c.readContract({address:stack,abi:stackViews,functionName:s('VERSION'),blockNumber:at}),
-    c.readContract({address:stack,abi:stackViews,functionName:s('protocolFee'),blockNumber:at}),
-    c.readContract({address:stack,abi:stackViews,functionName:s('protocolFeeReceiver'),blockNumber:at}),
-    c.readContract({address:stack,abi:stackViews,functionName:s('paused'),blockNumber:at}),
-    c.readContract({address:stack,abi:stackViews,functionName:s('getDropPhase'),args:[collection],blockNumber:at}),
-    c.readContract({address:stack,abi:stackViews,functionName:s('getDropRound'),args:[collection],blockNumber:at}),
+    c.readContract({address:stack,abi:stackViews,functionName:'VERSION',blockNumber:at}),
+    c.readContract({address:stack,abi:stackViews,functionName:'protocolFee',blockNumber:at}),
+    c.readContract({address:stack,abi:stackViews,functionName:'protocolFeeReceiver',blockNumber:at}),
+    c.readContract({address:stack,abi:stackViews,functionName:'paused',blockNumber:at}),
+    c.readContract({address:stack,abi:stackViews,functionName:'getDropPhase',args:[collection],blockNumber:at}),
+    c.readContract({address:stack,abi:stackViews,functionName:'getDropRound',args:[collection],blockNumber:at}),
     c.readContract({address:stack,abi:dropAbi,functionName:'getDrop',args:[collection],blockNumber:at}),
     c.readContract({address:collection,abi:roleAbi,functionName:'hasRole',args:[role,stack],blockNumber:at}),
     c.readContract({address:collection,abi:roleAbi,functionName:'supplyLocked',blockNumber:at}),

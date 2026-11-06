@@ -5,6 +5,7 @@ import {api} from '@/lib/api-client';
 import {useSession} from './providers';
 import {Notice} from './shell';
 import {prepareSequence,verifyApprovedManifest,exportSalePreparation,type Draft,type SequenceItem} from '@/lib/erc721-sale-sequence';
+import {prepareOneWalletPresale,verifyOneWalletPresaleFile,type OneWalletPresale} from '@/lib/erc721-sale-allowlist';
 
 /** Private owner/admin preview: the official manifest file stays in the user's browser. */
 export function Erc721SalePreparation({chainId,contract,authorized}:{
@@ -14,6 +15,7 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
   const [items,setItems]=useState<SequenceItem[]>([]);
   const [loaded,setLoaded]=useState(false),[approved,setApproved]=useState(false);
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[note,setNote]=useState('');
+  const [walletInput,setWalletInput]=useState(''),[presale,setPresale]=useState<OneWalletPresale|null>(null);
   async function load(){
     if(busy||!authorized)return;
     setBusy(true);setLoaded(false);setApproved(false);setItems([]);setError('');setNote('');
@@ -36,9 +38,30 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
       setNote('Approved order v1 matches all 30 draft IDs, original timestamps, folder positions and source CIDs.');
     }catch(e){setError(e instanceof Error?e.message:'Approved manifest validation failed.');}
   }
+  function confirmWallet(){
+    setPresale(null);setError('');setNote('');
+    try{
+      const record=prepareOneWalletPresale(walletInput.trim(),chainId,contract);
+      setPresale(record);
+      setWalletInput(record.recipient);
+      setNote('One allowlisted recipient validated. Merkle root recomputed locally; no blockchain write.');
+    }catch(e){setError(e instanceof Error?e.message:'Invalid recipient wallet.');}
+  }
+  async function importWallet(file?:File){
+    if(!file)return;
+    setPresale(null);setError('');setNote('');
+    try{
+      if(file.size>16*1024)throw new Error('Whitelist file exceeds 16 KB.');
+      const record=verifyOneWalletPresaleFile(JSON.parse(await file.text()),chainId,contract);
+      setPresale(record);setWalletInput(record.recipient);
+      setNote('Local whitelist verified: one recipient, allowance 3, proof [], exact Merkle root.');
+    }catch(e){setError(e instanceof Error?e.message:'Could not verify whitelist file.');}
+  }
   function download(){
-    if(!approved)return;
-    const json=JSON.stringify(exportSalePreparation(chainId,contract,items),null,2)+'\n';
+    if(!approved||!presale)return;
+    const json=JSON.stringify({...exportSalePreparation(chainId,contract,items),
+      presaleWallet:presale.recipient,presaleMerkleRoot:presale.merkleRoot,
+      presaleAllowlist:presale},null,2)+'\n';
     const url=URL.createObjectURL(new Blob([json],{type:'application/json'}));
     try{
       const a=document.createElement('a');a.href=url;a.download='GO_ONE_OF_ONE_SALE_PREPARATION_OFFCHAIN_v1.json';a.click();
@@ -58,6 +81,30 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
       <div className="erc721-campaign-fact"><span>Round 2 · Public</span><strong>27 NFTs · 0.025 ETH each</strong>
         <small>Max 10 per recipient · artwork #4–#30</small></div>
     </div>
+    <div className="erc721-cover-editor">
+      <label>One allowlisted recipient wallet (Ethereum Mainnet)
+        <input type="text" className="mono" value={walletInput} spellCheck={false}
+          onChange={e=>{setWalletInput(e.target.value);setPresale(null);}}
+          placeholder="0x… (one wallet; max 3 free NFTs)"/>
+      </label>
+      <div className="button-row">
+        <button type="button" className="button secondary" onClick={confirmWallet}
+          disabled={!walletInput.trim()}>Validate wallet &amp; calculate Merkle root</button>
+      </div>
+      <label>Or import a prepared whitelist file (read only in your browser)
+        <input type="file" accept=".json,application/json"
+          onChange={e=>{const f=e.target.files?.[0];e.target.value='';void importWallet(f);}}/>
+      </label>
+      {presale&&<div className="erc721-campaign-facts">
+        <div className="erc721-campaign-fact"><span>Validated recipient</span>
+          <strong className="mono">{presale.recipient}</strong></div>
+        <div className="erc721-campaign-fact"><span>Presale Merkle root</span>
+          <strong className="mono">{presale.merkleRoot}</strong>
+          <small>Merkle proof: [] · one recipient · allowance 3 · no publication</small></div>
+      </div>}
+      <small>Whitelist restricts the NFT recipient, not necessarily the wallet paying gas or protocol fees.
+        A zero ETH NFT price is not a guarantee of zero total fees.</small>
+    </div>
     <div className="button-row">
       <button type="button" className="button secondary" disabled={busy} onClick={()=>void load()}>
         <RefreshCcw size={15}/>{busy?'Loading…':'Load & validate 30 Artwork drafts'}
@@ -71,11 +118,12 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
           }}/>
         </label>
         <div className="button-row">
-          <button type="button" className="button secondary" disabled={!approved} onClick={download}>
+          <button type="button" className="button secondary" disabled={!approved||!presale} onClick={download}>
             <Download size={15}/> Download off-chain sale preparation
           </button>
         </div>
-        <small>Folder CIDs and whitelist remain unset. The draft file cannot enable a sale.</small>
+        <small>Folder CIDs remain unset. The draft file cannot enable a sale.
+          {presale?' Whitelist is validated off-chain.':' Validate the one-wallet whitelist to export both rounds.'}</small>
       </div>
       <details className="erc721-sequence-list">
         <summary>{items.length} artwork positions · {approved?'approved snapshot matched':'snapshot verification pending'}</summary>

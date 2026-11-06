@@ -44,11 +44,17 @@ describe('GO#|O 3+27 metadata folder publication',()=>{
     const source=readFileSync('src/server/go721-folder-pin.ts','utf8');
     const route=readFileSync('src/app/api/route.ts','utf8');
     expect(operationBudget('pin_go721_metadata_folder')).toBe('media');
+    expect(operationBudget('verify_go721_metadata_folder')).toBe('workspace');
     expect(source).toContain('verifiedGo721MetadataItems(chainId,contract,s)');
     expect(source).toContain('process.env.PINATA_JWT');
     expect(source).toContain("saveErc721Draft('MINT_PAGE'");
     expect(source).toContain('verifyPinnedFolderPath');
+    expect(source).toContain('export async function verifyGo721UploadedFolder');
+    expect(source).toContain('The existing CID has not reached a trusted gateway yet');
+    const ui=readFileSync('src/components/erc721-sale-preparation.tsx','utf8');
+    expect(ui).toContain('Check the same CID again (no upload)');
     expect(route).toContain("op === 'pin_go721_metadata_folder'");
+    expect(route).toContain("op === 'verify_go721_metadata_folder'");
     expect(route).toContain('requireSessionChain(s,a.chainId)');
     expect(source).not.toContain('eth_sendTransaction');
     expect(source).not.toContain('writeContract');

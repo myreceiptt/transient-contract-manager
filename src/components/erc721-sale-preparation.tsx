@@ -113,6 +113,23 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
     }catch(e){setError(e instanceof Error?e.message:'Could not pin the IPFS folder.');}
     finally{setPinBusy(null);}
   }
+  async function recheckFolder(round:1|2){
+    const candidate=folders[round]?.cid;
+    if(!candidate||pinBusy||!authorized||!saleTerms)return;
+    setPinBusy(round);setError('');setNote('');
+    try{
+      await ensureSession(chainId);
+      const result=await api('verify_go721_metadata_folder',
+        {chainId,contract,round,cid:candidate}) as {
+          round:1|2;cid:string;baseUri:string|null;verified:boolean;saved:boolean;message:string;
+        };
+      setFolders(prev=>({...prev,[round]:result}));
+      if(result.verified&&result.saved)
+        setNote('Round '+round+': '+result.message+' Base URI '+result.baseUri);
+      else setError(result.message+' CID: '+result.cid);
+    }catch(e){setError(e instanceof Error?e.message:'Could not verify the existing CID.');}
+    finally{setPinBusy(null);}
+  }
   if(!authorized)return <Notice>Only a verified collection Owner/Admin can prepare this private sale.</Notice>;
   return <section className="panel erc721-sale-preparation">
     <div className="section-top"><div>
@@ -157,6 +174,10 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
         <span>Round {round} metadata · {folders[round].verified?'IPFS gateway checked':'Awaiting gateway verification'}</span>
         <strong className="mono">{folders[round].baseUri||folders[round].cid}</strong>
         <small>{folders[round].saved?'Saved to the Mint Page draft':'Not yet saved as a verified folder base URI'}</small>
+        {!folders[round].verified&&<button type="button" className="button secondary compact"
+          disabled={pinBusy!==null||archiveBusy} onClick={()=>void recheckFolder(round as 1|2)}>
+          Check the same CID again (no upload)
+        </button>}
       </div>)}
       <small>For every folder, the app verifies all 30 original source CIDs and checks the
         first and last uploaded paths against the original JSON bytes before saving a base URI.

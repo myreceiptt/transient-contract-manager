@@ -124,6 +124,12 @@ describeWhen('GO#|O local mainnet-fork TLStacks721 3+27 lifecycle (never mainnet
     const phase=await c.readContract({address:GO721_STACKS,abi:go721ViewsAbi,
       functionName:'getDropPhase',args:[GO721_COLLECTION]});
     expect(Number(phase)).toBe(2);
+    // Negative acceptance: a non-allowlisted buyer MUST fail on real forked bytecode.
+    await expect(c.simulateContract({
+      address:GO721_STACKS,abi:purchaseAbi,functionName:'purchase',
+      account:buyers[0],args:[GO721_COLLECTION,buyers[0],1n,3n,[]],
+      value:fee,
+    })).rejects.toThrow();
     const q=quoteGo721Mint({
       reportedVersion:'2.3.1',paused:false,phase:2,roundNumber:0n,
       supply:drop.supply,initialSupply:drop.initialSupply,allowance:drop.allowance,

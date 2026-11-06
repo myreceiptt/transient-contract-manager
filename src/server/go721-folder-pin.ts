@@ -109,3 +109,38 @@ export async function pinGo721Folder(round:Round,chainId:number,contract:Address
   return {round,fileCount:subset.length,cid,baseUri,verified:true,saved:true,
     message:'The numbered metadata files were verified on IPFS and saved into the Mint Page draft. No Ethereum transaction occurred.'};
 }
+
+
+/** Retry a CID already returned by Pinata without submitting a second upload.
+ * This is a user-initiated, Owner/Admin-only verification request. A successful
+ * hash check on all 3/27 JSON paths is mandatory before saving to a draft.
+ */
+export async function verifyGo721UploadedFolder(round:Round,rawCid:string,
+  chainId:number,contract:Address,s:Session){
+  if(chainId!==1||getAddress(contract)!==GO)
+    throw new AppError('FOLDER_SCOPE','Folder checks are only for GO#|O on Ethereum Mainnet.',403);
+  if(round!==1&&round!==2)throw new AppError('INVALID_ROUND','Expected presale or public round.',422);
+  if(!validUploadCid(rawCid))
+    throw new AppError('FOLDER_CID','Enter the exact IPFS directory CID returned by Pinata.',422);
+  const {items}=await verifiedGo721MetadataItems(chainId,contract,s);
+  const {folder,subset}=pinataFolderUploadForm(round,items);
+  const baseUri=await verifyPinnedFolderPath(rawCid,folder,subset);
+  if(!baseUri)return {
+    round,cid:rawCid,baseUri:null,fileCount:subset.length,verified:false,saved:false,
+    message:'The existing CID has not reached a trusted gateway yet. It was NOT re-uploaded; check this same CID again.'
+  };
+  const saved=await listErc721Drafts('MINT_PAGE',chainId,contract,s) as {
+    id:string;version:number;draft:Record<string,unknown>;
+  }[];
+  if(!Array.isArray(saved)||saved.length!==1)
+    throw new AppError('FOLDER_DRAFT_MISSING','One canonical Mint Page draft is required.',409);
+  const key=round===1?'presaleMetadataBaseUri':'publicMetadataBaseUri';
+  const existing=saved[0].draft[key];
+  if(existing&&existing!==baseUri)
+    throw new AppError('FOLDER_CONFLICT','An alternate folder URI is already saved. Do not replace it automatically.',409);
+  if(existing!==baseUri)
+    await saveErc721Draft('MINT_PAGE',chainId,contract,
+      saved[0].id,saved[0].version,{...saved[0].draft,[key]:baseUri},s);
+  return {round,cid:rawCid,baseUri,fileCount:subset.length,verified:true,saved:true,
+    message:'Verified existing CID and saved its indexed folder URI without another upload or Ethereum transaction.'};
+}

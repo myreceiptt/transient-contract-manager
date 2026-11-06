@@ -60,6 +60,8 @@ async function main(){
     historicalMintEventScanComplete:false,
     exactTLStacksRuntimeRebuildVerified:false,
     safeForMainnetWrites:false,
+    operatorNextAction:'Review official ERC721 owner role and unique deployed TLStacks721 runtime before any separate mainnet transaction approval',
+    publicationEnabled:false,
   };
   if(version!=='2.3.1'||creatorVersion!=='4.1.2'||!result.creator.exactPinnedImplementation)
     throw Error('Unexpected creator or Stacks runtime; fail closed. '+JSON.stringify(result));

@@ -6,12 +6,15 @@ import {useSession} from './providers';
 import {Notice} from './shell';
 import {prepareSequence,verifyApprovedManifest,exportSalePreparation,type Draft,type SequenceItem} from '@/lib/erc721-sale-sequence';
 import {prepareOneWalletPresale,verifyOneWalletPresaleFile,type OneWalletPresale} from '@/lib/erc721-sale-allowlist';
+import {approvedGoTerms,GO_APPROVED_TERMS} from '@/lib/erc721-sale-terms';
 
 /** Private owner/admin preview: the official manifest file stays in the user's browser. */
 export function Erc721SalePreparation({chainId,contract,authorized}:{
   chainId:number;contract:string;authorized:boolean;
 }){
   const {ensureSession}=useSession();
+  const isApprovedCollection=chainId===1&&contract.toLowerCase()===GO_APPROVED_TERMS.collection.toLowerCase();
+  const saleTerms=isApprovedCollection?approvedGoTerms(chainId,contract):null;
   const [items,setItems]=useState<SequenceItem[]>([]);
   const [loaded,setLoaded]=useState(false),[approved,setApproved]=useState(false);
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[note,setNote]=useState('');
@@ -58,10 +61,10 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
     }catch(e){setError(e instanceof Error?e.message:'Could not verify whitelist file.');}
   }
   function download(){
-    if(!approved||!presale)return;
+    if(!approved||!presale||!saleTerms||presale.recipient!==saleTerms.presale.recipient)return;
     const json=JSON.stringify({...exportSalePreparation(chainId,contract,items),
       presaleWallet:presale.recipient,presaleMerkleRoot:presale.merkleRoot,
-      presaleAllowlist:presale},null,2)+'\n';
+      presaleAllowlist:presale,approvedTerms:saleTerms},null,2)+'\n';
     const url=URL.createObjectURL(new Blob([json],{type:'application/json'}));
     try{
       const a=document.createElement('a');a.href=url;a.download='GO_ONE_OF_ONE_SALE_PREPARATION_OFFCHAIN_v1.json';a.click();
@@ -75,6 +78,17 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
       <p>Read all saved artworks, confirm the original first-save order, and verify your approved Manifest v1.
         No metadata pinning, public URL, wallet approval or blockchain transaction happens here.</p>
     </div><span className="tag">NO CONTRACT WRITES</span></div>
+    {saleTerms&&<div className="erc721-campaign-facts">
+      <div className="erc721-campaign-fact"><span>Approved presale start (WIB)</span>
+        <strong>10 November 2026 · 10.10 WIB</strong>
+        <small>UTC: {saleTerms.presale.startIsoUtc} · no automatic on-chain deployment</small></div>
+      <div className="erc721-campaign-fact"><span>Approved payout receiver</span>
+        <strong className="mono">{saleTerms.payoutReceiver}</strong>
+        <small>Public mint: 0.025 ETH/NFT · 10 NFTs per recipient maximum</small></div>
+      <div className="erc721-campaign-fact"><span>Confirmed sole whitelist recipient</span>
+        <strong className="mono">{saleTerms.presale.recipient}</strong>
+        <small>3 free NFTs; protocol fee and gas may apply. Merkle root calculated locally.</small></div>
+    </div>}
     <div className="erc721-campaign-facts">
       <div className="erc721-campaign-fact"><span>Round 1 · Whitelist</span><strong>3 NFTs · 0 ETH each</strong>
         <small>Exactly one allowlisted recipient · max 3 · artwork #1–#3</small></div>
@@ -102,6 +116,7 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
           <strong className="mono">{presale.merkleRoot}</strong>
           <small>Merkle proof: [] · one recipient · allowance 3 · no publication</small></div>
       </div>}
+      {presale&&saleTerms&&presale.recipient!==saleTerms.presale.recipient&&<Notice type="error">Wallet differs from the sole approved whitelist recipient. Export is blocked.</Notice>}
       <small>Whitelist restricts the NFT recipient, not necessarily the wallet paying gas or protocol fees.
         A zero ETH NFT price is not a guarantee of zero total fees.</small>
     </div>
@@ -118,7 +133,7 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
           }}/>
         </label>
         <div className="button-row">
-          <button type="button" className="button secondary" disabled={!approved||!presale} onClick={download}>
+          <button type="button" className="button secondary" disabled={!approved||!presale||!saleTerms||presale.recipient!==saleTerms.presale.recipient} onClick={download}>
             <Download size={15}/> Download off-chain sale preparation
           </button>
         </div>

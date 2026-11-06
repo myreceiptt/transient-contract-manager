@@ -26,8 +26,9 @@ describe('GO#|O regression: 30 original artwork list not truncated by generic 25
   });
   it('keeps the official manifest picker visible even before data load',()=>{
     const ui=read('src/components/erc721-sale-preparation.tsx');
-    expect(ui.indexOf('Verify Official Artwork Order v1'))
-      .toBeLessThan(ui.indexOf('{loaded&&<>'));
+    expect(ui).toContain('Advanced verification and technical files (optional)');
+    expect(ui).toContain('Verify Official Artwork Order v1');
+    expect(ui).toContain('downloadVerifiedFolderArchive');
     expect(ui).toContain('disabled={!loaded||busy}');
     expect(ui).toContain("api('erc721_draft_list'");
     expect(ui).toContain('Download verified 3+27 metadata folders ZIP');

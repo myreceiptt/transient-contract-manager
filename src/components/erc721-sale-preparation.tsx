@@ -8,7 +8,10 @@ import {prepareSequence,verifyApprovedManifest,exportSalePreparation,type Draft,
 import {prepareOneWalletPresale,verifyOneWalletPresaleFile,type OneWalletPresale} from '@/lib/erc721-sale-allowlist';
 import {approvedGoTerms,GO_APPROVED_TERMS} from '@/lib/erc721-sale-terms';
 
-/** Private owner/admin preview: the official manifest file stays in the user's browser. */
+/** Owner/Admin sale preparation. Technical files are optional: the server ZIP
+ * endpoint independently re-verifies all 30 metadata CIDs and review hashes.
+ * Everything here remains off-chain; no signatures or chain transactions.
+ */
 export function Erc721SalePreparation({chainId,contract,authorized}:{
   chainId:number;contract:string;authorized:boolean;
 }){
@@ -17,8 +20,11 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
   const saleTerms=isApprovedCollection?approvedGoTerms(chainId,contract):null;
   const [items,setItems]=useState<SequenceItem[]>([]);
   const [loaded,setLoaded]=useState(false),[approved,setApproved]=useState(false);
-  const [busy,setBusy]=useState(false),[archiveBusy,setArchiveBusy]=useState(false),[error,setError]=useState(''),[note,setNote]=useState('');
-  const [walletInput,setWalletInput]=useState(''),[presale,setPresale]=useState<OneWalletPresale|null>(null);
+  const [busy,setBusy]=useState(false),[archiveBusy,setArchiveBusy]=useState(false);
+  const [error,setError]=useState(''),[note,setNote]=useState('');
+  const [walletInput,setWalletInput]=useState(isApprovedCollection?GO_APPROVED_TERMS.presaleRecipient:'');
+  const [presale,setPresale]=useState<OneWalletPresale|null>(
+    isApprovedCollection?prepareOneWalletPresale(GO_APPROVED_TERMS.presaleRecipient,chainId,contract):null);
   async function load(){
     if(busy||!authorized)return;
     setBusy(true);setLoaded(false);setApproved(false);setItems([]);setError('');setNote('');
@@ -27,7 +33,7 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
       const drafts=await api('erc721_draft_list',{chainId,contract,kind:'ARTWORK'}) as Draft[];
       const rows=prepareSequence(drafts);
       setItems(rows);setLoaded(true);
-      setNote('All 30 source CIDs validated. Check them against the private approved Manifest v1.');
+      setNote('Thirty artworks found with unique metadata CIDs. The approved sequence may be checked using the local manifest.');
     }catch(e){setError(e instanceof Error?e.message:'Cannot load artwork order.');}
     finally{setBusy(false);}
   }
@@ -38,16 +44,15 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
       if(file.size>256*1024)throw new Error('Manifest JSON is too large.');
       verifyApprovedManifest(JSON.parse(await file.text()),items,chainId,contract);
       setApproved(true);
-      setNote('Approved order v1 matches all 30 draft IDs, original timestamps, folder positions and source CIDs.');
+      setNote('Official order v1 verified. All 30 draft IDs, creation times and source CIDs match.');
     }catch(e){setError(e instanceof Error?e.message:'Approved manifest validation failed.');}
   }
   function confirmWallet(){
     setPresale(null);setError('');setNote('');
     try{
       const record=prepareOneWalletPresale(walletInput.trim(),chainId,contract);
-      setPresale(record);
-      setWalletInput(record.recipient);
-      setNote('One allowlisted recipient validated. Merkle root recomputed locally; no blockchain write.');
+      setPresale(record);setWalletInput(record.recipient);
+      setNote('Whitelist Merkle root calculated locally for the sole approved recipient.');
     }catch(e){setError(e instanceof Error?e.message:'Invalid recipient wallet.');}
   }
   async function importWallet(file?:File){
@@ -57,7 +62,7 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
       if(file.size>16*1024)throw new Error('Whitelist file exceeds 16 KB.');
       const record=verifyOneWalletPresaleFile(JSON.parse(await file.text()),chainId,contract);
       setPresale(record);setWalletInput(record.recipient);
-      setNote('Local whitelist verified: one recipient, allowance 3, proof [], exact Merkle root.');
+      setNote('Local whitelist verified: exactly one recipient, allocation 3.');
     }catch(e){setError(e instanceof Error?e.message:'Could not verify whitelist file.');}
   }
   function download(){
@@ -70,9 +75,10 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
       const a=document.createElement('a');a.href=url;a.download='GO_ONE_OF_ONE_SALE_PREPARATION_OFFCHAIN_v1.json';a.click();
     }finally{URL.revokeObjectURL(url);}
   }
-
   async function downloadVerifiedFolderArchive(){
-    if(!approved||archiveBusy||!authorized)return;
+    // No local manifest upload required: server verifies admin authority,
+    // first-save 30-item order, original pinned CIDs and exact review hashes.
+    if(archiveBusy||!authorized||!saleTerms)return;
     setArchiveBusy(true);setError('');setNote('');
     try{
       await ensureSession(chainId);
@@ -87,104 +93,99 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
       try{
         const a=document.createElement('a');a.href=url;a.download=result.filename;a.click();
       }finally{URL.revokeObjectURL(url);}
-      setNote('Downloaded ZIP with 30 files independently verified against IPFS source CIDs. SHA256: '+
-        result.sha256+'. The two folders are NOT pinned as IPFS directories.');
+      setNote('Metadata ZIP downloaded. Extract its two folders and pin each folder separately to IPFS. No NFT was minted or sold.');
     }catch(e){setError(e instanceof Error?e.message:'Metadata ZIP export failed.');}
     finally{setArchiveBusy(false);}
   }
-  if(!authorized)return <Notice>Only a verified collection Owner/Admin can prepare the private sale sequence.</Notice>;
+  if(!authorized)return <Notice>Only a verified collection Owner/Admin can prepare this private sale.</Notice>;
   return <section className="panel erc721-sale-preparation">
     <div className="section-top"><div>
-      <span className="eyebrow">OFF-CHAIN · GO#|O SEQUENTIAL SALE</span>
-      <h2>Artwork order &amp; two-round preparation</h2>
-      <p>Read all saved artworks, confirm the original first-save order, and verify your approved Manifest v1.
-        No metadata pinning, public URL, wallet approval or blockchain transaction happens here.</p>
-    </div><span className="tag">NO CONTRACT WRITES</span></div>
-    {saleTerms&&<div className="erc721-campaign-facts">
-      <div className="erc721-campaign-fact"><span>Approved presale start (WIB)</span>
-        <strong>10 November 2026 · 10.10 WIB</strong>
-        <small>UTC: {saleTerms.presale.startIsoUtc} · no automatic on-chain deployment</small></div>
-      <div className="erc721-campaign-fact"><span>Approved payout receiver</span>
-        <strong className="mono">{saleTerms.payoutReceiver}</strong>
-        <small>Public mint: 0.025 ETH/NFT · 10 NFTs per recipient maximum</small></div>
-      <div className="erc721-campaign-fact"><span>Confirmed sole whitelist recipient</span>
-        <strong className="mono">{saleTerms.presale.recipient}</strong>
-        <small>3 free NFTs; protocol fee and gas may apply. Merkle root calculated locally.</small></div>
-    </div>}
+      <span className="eyebrow">GO#|O · COLLECTION LAUNCH PREPARATION</span>
+      <h2>Prepare 30 artworks for sale</h2>
+      <p>Your artwork order and sale parameters are approved. This section prepares the metadata package
+        used by the future collector Mint Page; it does not publish or sell NFTs.</p>
+    </div><span className="tag">NOT LIVE</span></div>
     <div className="erc721-campaign-facts">
-      <div className="erc721-campaign-fact"><span>Round 1 · Whitelist</span><strong>3 NFTs · 0 ETH each</strong>
-        <small>Exactly one allowlisted recipient · max 3 · artwork #1–#3</small></div>
-      <div className="erc721-campaign-fact"><span>Round 2 · Public</span><strong>27 NFTs · 0.025 ETH each</strong>
-        <small>Max 10 per recipient · artwork #4–#30</small></div>
+      <div className="erc721-campaign-fact"><span>First sale · 10 Nov 2026 10:10 WIB</span>
+        <strong>3 reserved NFTs · 0 ETH</strong>
+        <small>One approved wallet · maximum 3 NFTs</small></div>
+      <div className="erc721-campaign-fact"><span>Second sale · starts after 3 confirmed mints</span>
+        <strong>27 public NFTs · 0.025 ETH</strong>
+        <small>Maximum 10 NFTs per wallet</small></div>
     </div>
-    <div className="erc721-cover-editor">
-      <label>One allowlisted recipient wallet (Ethereum Mainnet)
-        <input type="text" className="mono" value={walletInput} spellCheck={false}
-          onChange={e=>{setWalletInput(e.target.value);setPresale(null);}}
-          placeholder="0x… (one wallet; max 3 free NFTs)"/>
-      </label>
+    <div className="erc721-release-next">
+      <span className="eyebrow">NEXT PREPARATION STEP</span>
+      <h3>Get the two IPFS metadata folders</h3>
+      <p>The 30 artworks already have individually pinned metadata. The download below packages
+        them into two numbered folders: 3 for the reserved presale and 27 for public sale.
+        The server independently checks each source metadata CID before sending the ZIP.</p>
       <div className="button-row">
-        <button type="button" className="button secondary" onClick={confirmWallet}
-          disabled={!walletInput.trim()}>Validate wallet &amp; calculate Merkle root</button>
+        <button type="button" className="button" disabled={archiveBusy||!saleTerms}
+          onClick={()=>void downloadVerifiedFolderArchive()}>
+          <Download size={15}/>{archiveBusy?'Checking 30 metadata files…':'Download verified 3+27 metadata folders ZIP'}
+        </button>
       </div>
-      <label>Or import a prepared whitelist file (read only in your browser)
-        <input type="file" accept=".json,application/json"
-          onChange={e=>{const f=e.target.files?.[0];e.target.value='';void importWallet(f);}}/>
-      </label>
-      {presale&&<div className="erc721-campaign-facts">
-        <div className="erc721-campaign-fact"><span>Validated recipient</span>
-          <strong className="mono">{presale.recipient}</strong></div>
-        <div className="erc721-campaign-fact"><span>Presale Merkle root</span>
-          <strong className="mono">{presale.merkleRoot}</strong>
-          <small>Merkle proof: [] · one recipient · allowance 3 · no publication</small></div>
-      </div>}
-      {presale&&saleTerms&&presale.recipient!==saleTerms.presale.recipient&&<Notice type="error">Wallet differs from the sole approved whitelist recipient. Export is blocked.</Notice>}
-      <small>Whitelist restricts the NFT recipient, not necessarily the wallet paying gas or protocol fees.
-        A zero ETH NFT price is not a guarantee of zero total fees.</small>
+      <small>After download, extract the ZIP and pin each folder separately in Pinata.
+        We still need both folder CIDs before the sale can be configured. No wallet transaction occurs.</small>
     </div>
-    <div className="button-row">
-      <button type="button" className="button secondary" disabled={busy} onClick={()=>void load()}>
-        <RefreshCcw size={15}/>{busy?'Loading…':'Load & validate 30 Artwork drafts'}
-      </button>
-    </div>
-    <div className="erc721-cover-editor">
-      <label>Verify Official Artwork Order v1 (local JSON; never uploaded)
-        <input type="file" accept=".json,application/json" disabled={!loaded||busy} onChange={e=>{
-          const f=e.target.files?.[0];e.target.value='';void verify(f);
-        }}/>
-      </label>
-      {!loaded&&<small>File selection unlocks after the 30 saved Artwork drafts are loaded and validated.</small>}
-      {loaded&&<small>30 Artwork drafts loaded. Select the approved JSON manifest; it stays in your browser.</small>}
-    </div>
-    {loaded&&<>
-      <div className="erc721-cover-editor">
-        <div className="button-row">
-          <button type="button" className="button secondary" disabled={!approved||!presale||!saleTerms||presale.recipient!==saleTerms.presale.recipient} onClick={download}>
-            <Download size={15}/> Download off-chain sale preparation
-          </button>
-          <button type="button" className="button secondary" disabled={!approved||archiveBusy||!saleTerms}
-            onClick={()=>void downloadVerifiedFolderArchive()}>
-            <Download size={15}/>{archiveBusy?'Verifying 30 metadata files…':'Download verified 3+27 metadata folders ZIP'}
-          </button>
-        </div>
-        <small>Folder CIDs remain unset. The draft file cannot enable a sale.
-          {presale?' Whitelist is validated off-chain.':' Validate the one-wallet whitelist to export both rounds.'}</small>
-      </div>
-      <details className="erc721-sequence-list">
-        <summary>{items.length} artwork positions · {approved?'approved snapshot matched':'snapshot verification pending'}</summary>
-        {items.map(a=><div key={a.draftId} className="erc721-sequence-item">
-          <strong>#{a.position}</strong>
-          <span><strong>{a.titleAtSnapshot}</strong>
-            <small>Round {a.round} · file /{a.folderFile} · {a.sourceMetadataUri.slice(0,22)}…</small>
-          </span>
-        </div>)}
-      </details>
-    </>}
     {error&&<Notice type="error">{error}</Notice>}
     {note&&<Notice type="success">{note}</Notice>}
-    <Notice>Artwork positions are conditional targets, not minted Token IDs. A future on-chain
-      preflight must prove no prior or interleaved creator mints (including burned IDs).
-      TLStacks721 metadata folders, presale allowlist, configured drops and buyer transactions
-      are still pending separate verification and approval.</Notice>
+    <details className="erc721-advanced-checks">
+      <summary>Advanced verification and technical files (optional)</summary>
+      <p>This information is for auditing. You do not need to repeat these checks to
+        download the verified metadata folder ZIP.</p>
+      <div className="erc721-cover-editor">
+        <label>One allowlisted recipient wallet
+          <input type="text" className="mono" value={walletInput} spellCheck={false}
+            onChange={e=>{setWalletInput(e.target.value);setPresale(null);}}
+            placeholder="0x…"/>
+        </label>
+        <div className="button-row">
+          <button type="button" className="button secondary" onClick={confirmWallet}
+            disabled={!walletInput.trim()}>Validate wallet &amp; calculate Merkle root</button>
+        </div>
+        <label>Or import a prepared whitelist JSON
+          <input type="file" accept=".json,application/json"
+            onChange={e=>{const f=e.target.files?.[0];e.target.value='';void importWallet(f);}}/>
+        </label>
+        {presale&&<small>Recipient: {presale.recipient}; allowance: 3;
+          Merkle root: <code>{presale.merkleRoot}</code>.</small>}
+        {presale&&saleTerms&&presale.recipient!==saleTerms.presale.recipient&&
+          <Notice type="error">The wallet differs from the approved sole whitelist recipient.</Notice>}
+      </div>
+      <div className="button-row">
+        <button type="button" className="button secondary" disabled={busy} onClick={()=>void load()}>
+          <RefreshCcw size={15}/>{busy?'Loading…':'Load & validate 30 Artwork drafts'}
+        </button>
+      </div>
+      <div className="erc721-cover-editor">
+        <label>Verify Official Artwork Order v1 (local JSON; never uploaded)
+          <input type="file" accept=".json,application/json" disabled={!loaded||busy} onChange={e=>{
+            const f=e.target.files?.[0];e.target.value='';void verify(f);
+          }}/>
+        </label>
+        {!loaded&&<small>First load the 30 drafts to enable file verification.</small>}
+        {loaded&&<small>{items.length} artwork positions loaded. Verify against your local manifest if needed.</small>}
+      </div>
+      {loaded&&<>
+        <div className="button-row">
+          <button type="button" className="button secondary"
+            disabled={!approved||!presale||!saleTerms||presale.recipient!==saleTerms.presale.recipient}
+            onClick={download}>Download off-chain sale preparation</button>
+        </div>
+        <details className="erc721-sequence-list">
+          <summary>{items.length} artwork positions · {approved?'approved snapshot matched':'manifest check optional'}</summary>
+          {items.map(a=><div key={a.draftId} className="erc721-sequence-item">
+            <strong>#{a.position}</strong>
+            <span><strong>{a.titleAtSnapshot}</strong>
+              <small>Round {a.round} · file /{a.folderFile} · {a.sourceMetadataUri.slice(0,22)}…</small>
+            </span>
+          </div>)}
+        </details>
+      </>}
+      <p><small>These positions are target mint order, not existing Token IDs.
+        Contract history and protocol permissions require a separate on-chain preflight.
+        The metadata folders and sale are not yet published.</small></p>
+    </details>
   </section>;
 }

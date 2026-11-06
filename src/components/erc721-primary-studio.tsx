@@ -7,6 +7,7 @@ import {Artwork} from './safe-media';
 import {Erc721MintCoverPicker} from './erc721-mint-cover-picker';
 import {Erc721SalePreparation} from './erc721-sale-preparation';
 import {Erc721SaleReadinessPanel} from './erc721-sale-readiness-panel';
+import {GO721_COLLECTION,GO721_PAYOUT} from '@/lib/erc721-go721-approved-sale';
 import {useErc721Drafts,type SavedErc721Draft} from './erc721-draft-storage';
 
 type Step='edit'|'preview'|'review';
@@ -81,6 +82,12 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
             onClick={newDraft}>Clear editor</button>
           <button type="button" className="button" disabled={!authorized||!storage.enabled||storage.busy||coverUploading}
             onClick={()=>void saveDraft()}>Save Mint Page draft</button>
+          {chainId===1&&contract.toLowerCase()===GO721_COLLECTION.toLowerCase()&&
+            <button type="button" className="button secondary" disabled={!authorized||storage.busy||coverUploading}
+              onClick={()=>{setPrice('0.025');setPayout(GO721_PAYOUT);setMaxPerWallet('10');
+                setStart('2026-11-10T10:10');setUnsavedEdits(v=>v+1);setStep('edit');}}>
+              Fill approved GO#|O sale fields (unsaved)
+            </button>}
         </div>
         {storage.records.length>0&&<div className="erc721-saved-index">
           {storage.records.map(row=><button type="button" className="button secondary compact" disabled={coverUploading}

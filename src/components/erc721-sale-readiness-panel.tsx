@@ -10,7 +10,9 @@ type Snapshot={
   protocol:{reportedVersion:string;address:string;observedRuntimeHash:string;
     paused:boolean;protocolFeeEth:string;protocolFeeReceiver:string};
   creator:{version:string;totalUnburnedSupply:string;supplyLocked:boolean;
-    approvedMintContract:boolean;role:string;creatorRuntimeVerified:boolean};
+    approvedMintContract:boolean;role:string;creatorRuntimeVerified:boolean;
+    owner:string;admins:string[];approvedMintRoleHash:string;
+    ownerMustGrantApprovedMintContract:boolean};
   observedBlock:string;observedDrop:{phase:number;round:number;configured:boolean;
     payoutReceiver:string;remainingSupply:string;initialSupply:string;
     publicWalletAllowance:string;publicCostWei:string;baseUri:string};
@@ -77,6 +79,25 @@ export function Erc721SaleReadinessPanel({chainId,contract,authorized,draft}:{
           <small>Historical Token ID verification is still required</small>
         </div>
       </div>
+      {snapshot.creator.ownerMustGrantApprovedMintContract&&<div className="erc721-release-next">
+        <span className="eyebrow">OWNER ACTION REQUIRED BEFORE THE PRESALE</span>
+        <h3>Allow the official TLStacks721 contract to mint GO#|O NFTs</h3>
+        <p>On Ethereum Mainnet, the ERC721 collection Owner must grant
+          <code> APPROVED_MINT_CONTRACT</code> to the TLStacks721 contract.
+          Your connected Admin wallet cannot grant this permission by itself.
+          No transaction can be signed through this panel.</p>
+        <dl>
+          <dt>Owner wallet (must sign)</dt><dd className="mono">{snapshot.creator.owner}</dd>
+          <dt>Collection contract</dt><dd className="mono">{GO_APPROVED_TERMS.collection}</dd>
+          <dt>Approved mint contract</dt><dd className="mono">{snapshot.protocol.address}</dd>
+          <dt>Role hash</dt><dd className="mono">{snapshot.creator.approvedMintRoleHash}</dd>
+          <dt>Required contract action</dt><dd><code>setRole(role, [TLStacks721], true)</code></dd>
+        </dl>
+        <small>Do not sign this transaction until the runtime verification and exact
+          wallet transaction review have been completed and separately approved.
+          If the Owner grants the permission through an authorized interface,
+          return here to recheck the actual on-chain role after confirmation.</small>
+      </div>}
       <Notice>Ethereum observation completed. {snapshot.blockers.length} verification or activation
         requirements remain. The public Mint Page and sale signing are still disabled.
         This is expected during preparation, not a failed payment.</Notice>

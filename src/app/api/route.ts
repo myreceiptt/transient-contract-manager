@@ -6,6 +6,7 @@ import {readGo721SaleReadiness} from '@/server/erc721-sale-readiness';
 import {downloadGo721MetadataArchive} from '@/server/erc721-metadata-archive';
 import {pinGo721Folder,verifyGo721UploadedFolder} from '@/server/go721-folder-pin';
 import {readPublicGo721Status} from '@/server/go721-public-sale';
+import {auditSavedGo721Folder} from '@/server/go721-folder-audit';
 import {readErc721Transfers} from '@/server/erc721-activity';
 import {readErc721Royalties} from '@/server/erc721-royalty-observer';
 import {erc721DraftKind,erc721DraftAvailability,listErc721Drafts,getErc721Draft,
@@ -186,6 +187,11 @@ export async function POST(req: NextRequest) {
           cid:z.string().min(46).max(100)}).parse(p);
         requireSessionChain(s,a.chainId);
         result=await verifyGo721UploadedFolder(a.round,a.cid,a.chainId,a.contract,s);
+      }
+      else if (op === 'audit_go721_folder_paths') {
+        const a=identity.extend({round:z.union([z.literal(1),z.literal(2)])}).parse(p);
+        requireSessionChain(s,a.chainId);
+        result=await auditSavedGo721Folder(a.round,a.chainId,a.contract,s);
       }
       else if (op === 'history_erc721_mint') {
         const a=identity.parse(p);

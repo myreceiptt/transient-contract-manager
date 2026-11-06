@@ -2375,3 +2375,16 @@ th { color: #c1c1c8; }
 .erc721-sequence-item>strong{font-size:14px}
 .erc721-sequence-item>span{display:grid;gap:5px;min-width:0;overflow-wrap:anywhere;font-size:12px}
 .erc721-sequence-item small{color:var(--muted);font-size:11px;overflow-wrap:anywhere}
+
+/* GO#|O release preparation: one primary next action, technical details optional. */
+.erc721-release-next{padding:22px 22px 18px;border:1px solid var(--line);border-radius:10px;
+  display:grid;gap:10px;background:var(--white);min-width:0}
+.erc721-release-next .eyebrow{margin-bottom:0}
+.erc721-release-next h3{margin-bottom:0}
+.erc721-release-next p{margin:0}
+.erc721-release-next .button-row{margin-top:7px}
+.erc721-advanced-checks{min-width:0}
+.erc721-advanced-checks summary{margin-bottom:10px}
+.erc721-advanced-checks ul{overflow-wrap:anywhere}
+@media(max-width:680px){.erc721-release-next{padding:16px}
+  .erc721-release-next .button{white-space:normal;text-align:center}}

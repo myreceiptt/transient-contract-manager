@@ -6,6 +6,7 @@ import {Notice} from './shell';
 import {Artwork} from './safe-media';
 import {Erc721MintCoverPicker} from './erc721-mint-cover-picker';
 import {Erc721SalePreparation} from './erc721-sale-preparation';
+import {GO_APPROVED_TERMS,inspectDraftAgainstApprovedTerms} from '@/lib/erc721-sale-terms';
 import {useErc721Drafts,type SavedErc721Draft} from './erc721-draft-storage';
 
 type Step='edit'|'preview'|'review';
@@ -25,6 +26,18 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
   const [unsavedEdits,setUnsavedEdits]=useState(0);
   const [coverUploading,setCoverUploading]=useState(false);
   const storage=useErc721Drafts('MINT_PAGE',chainId,contract,authorized);
+  const goSaleTerms=chainId===1&&contract.toLowerCase()===GO_APPROVED_TERMS.collection.toLowerCase();
+  const approvedDraftWarnings=goSaleTerms&&storage.active
+    ?inspectDraftAgainstApprovedTerms({price,payout,maxPerWallet,start}):[];
+  function applyApprovedSaleTerms(){
+    if(!goSaleTerms||!authorized||coverUploading)return;
+    setPrice(GO_APPROVED_TERMS.publicUnitPriceEth);
+    setCurrency('ETH');
+    setPayout(GO_APPROVED_TERMS.payoutReceiver);
+    setMaxPerWallet(String(GO_APPROVED_TERMS.publicWalletLimit));
+    setStart('2026-11-10T10:10');
+    setUnsavedEdits(v=>v+1);setStep('edit');
+  }
   function useSaved(row:SavedErc721Draft){
     if(coverUploading)return;
     storage.setActive(row);const d=row.draft;
@@ -68,6 +81,21 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
         <div><small>Unsaved field changes</small><strong>{unsavedEdits}</strong></div>
         <div><small>Publish status</small><strong>Not published</strong></div>
       </div>
+      {goSaleTerms&&<div className="erc721-cover-editor">
+        <strong>Approved GO#|O sale terms · Off-chain</strong>
+        <p>Presale begins 10 Nov 2026 at 10:10 WIB; one allowlisted wallet,
+          3 free NFTs. Public sale: 27 NFTs at 0.025 ETH, maximum 10 per recipient.
+          Payout: <code>{GO_APPROVED_TERMS.payoutReceiver}</code>.</p>
+        {approvedDraftWarnings.length>0&&<Notice type="error">
+          Saved campaign draft does not match the approved terms: {approvedDraftWarnings.join(' ')}
+          This is not an on-chain misconfiguration; the draft needs to be updated and saved separately.
+        </Notice>}
+        <button type="button" className="button secondary" disabled={!authorized||coverUploading||storage.busy}
+          onClick={applyApprovedSaleTerms}>
+          Apply approved terms to editor (unsaved)
+        </button>
+        <small>Review and choose Save Mint Page draft yourself. No automatic database or blockchain change.</small>
+      </div>}
       <Notice>{storage.statusNote} There is no collector-facing page, configured sale,
         approval, payment, or mint transaction in this release.</Notice>
       <div className="erc721-draft-storage">

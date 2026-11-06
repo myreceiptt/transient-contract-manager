@@ -33,6 +33,9 @@ const mintData=z.object({
   currency:z.literal('ETH'),
   payout:optAddress,
   maxPerWallet:duration,
+  // Indexed IPFS directory URIs are app-only; never contract configuration.
+  presaleMetadataBaseUri:safeUrl.optional(),
+  publicMetadataBaseUri:safeUrl.optional(),
   start:z.string().max(35),
   end:z.string().max(35),
 }).strict().superRefine((v,ctx)=>{

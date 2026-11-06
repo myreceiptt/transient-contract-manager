@@ -188,3 +188,4 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
         The metadata folders and sale are not yet published.</small></p>
     </details>
   </section>;
+}

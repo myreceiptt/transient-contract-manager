@@ -15,7 +15,6 @@ jobs:
     timeout-minutes: 12
     env:
       TCM_GO721_FORK: "1"
-      TCM_GO721_FORK_BLOCK: "26350623"
       CI: "true"
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683

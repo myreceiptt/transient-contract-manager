@@ -83,19 +83,22 @@ export async function inspectErc721Candidate(chainId:number,contract:Address,wal
     functionName:'hasRole',args:[ADMIN_ROLE,wallet],blockNumber:block.number}):false;
   const walletRole=wallet?(owner.toLowerCase()===wallet.toLowerCase()?
     'owner':adminForWallet?'admin':'viewer'):'not-connected';
+  const creatorMintRuntimeVerified=chainId === 1 && !!clone && version === erc721Creator.version &&
+    implementation.toLowerCase() === erc721Creator.implementation &&
+    keccak256(implementationCode) === erc721Creator.runtimeHash;
   return serializable({
     chainId,contract,standard:'ERC721',version,implementation,
     proxy:!!clone,implementationCodeHash:keccak256(implementationCode),
-    creatorMintRuntimeVerified: chainId === 1 && !!clone && version === erc721Creator.version &&
-      implementation.toLowerCase() === erc721Creator.implementation &&
-      keccak256(implementationCode) === erc721Creator.runtimeHash,
+    creatorMintRuntimeVerified,
     runtimeVerification:'ABI_COMPATIBLE_UNVERIFIED_RUNTIME' as Erc721CandidateState,
     transactionSigningEnabled:false,
     name,symbol,owner,admins,totalSupply:supply,
     sourceCommit:source.commit,totalSupplyMeaning:source.totalSupplyMeaning,
     inspectedWallet:wallet??null,walletRole,walletRoleVerifiedReadOnly:true,
     observedBlock:block.number,observedBlockHash:block.hash,
-    notice:'This ERC721TL version has a reviewed official source baseline, but its observed deployment runtime is NOT allowlisted for transactions. Ownership, version and roles are read-only findings. No creator or auction writes are authorized.',
+    notice:creatorMintRuntimeVerified
+      ? 'Exact ERC721TL v4.1.2 creator mint runtime verified. Open the collection workspace to prepare a mint review. Signing requires explicit approval for the exact transaction; sale and auction execution remain disabled.'
+      : 'This ERC721TL version has a reviewed official source baseline, but its observed deployment runtime is NOT allowlisted for transactions. Ownership, version and roles are read-only findings. No creator or auction writes are authorized.',
   });
 }
 

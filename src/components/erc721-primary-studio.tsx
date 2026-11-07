@@ -6,7 +6,6 @@ import {Notice} from './shell';
 import {Artwork} from './safe-media';
 import {Erc721MintCoverPicker} from './erc721-mint-cover-picker';
 import {Erc721SalePreparation} from './erc721-sale-preparation';
-import {Erc721SaleReadinessPanel} from './erc721-sale-readiness-panel';
 import {Go721LaunchPanel} from './go721-launch-panel';
 import {GO_APPROVED_TERMS,inspectDraftAgainstApprovedTerms} from '@/lib/erc721-sale-terms';
 import {useErc721Drafts,type SavedErc721Draft} from './erc721-draft-storage';
@@ -92,7 +91,7 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
         <div><small>Saved draft revision</small>
           <strong>{storage.active?storage.active.version:'Not saved yet'}</strong></div>
         <div><small>Unsaved field changes</small><strong>{unsavedEdits}</strong></div>
-        <div><small>Publish status</small><strong>Not published</strong></div>
+        <div><small>Public page</small><strong>{goSaleTerms?'Available · checkout guarded':'Not published'}</strong></div>
       </div>
       {goSaleTerms&&<div className="erc721-cover-editor">
         <strong>Approved GO#|O sale terms · Off-chain</strong>
@@ -192,13 +191,13 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
                 <span>No cover selected</span></div>}
           </div>
           <div className="erc721-collector-copy">
-            <span className="eyebrow">UNPUBLISHED · INTERNAL COLLECTOR PREVIEW</span>
+            <span className="eyebrow">DRAFT EDITOR · INTERNAL COLLECTOR PREVIEW</span>
             <h2>{title||'Untitled primary mint campaign'}</h2>
             <p>{description||'Add the collection story in Page content to preview it here.'}</p>
             <div className="erc721-collector-price">
               <small>Proposed mint price · illustrative</small>
               <strong>{price?price+' '+currency:'Not configured'}</strong>
-              <small>Payment unavailable; no collector-facing page has been published.</small>
+              <small>{goSaleTerms?'This editor does not take payments. Open the public Mint Page above for live sale status.':'Payment unavailable; no collector-facing page has been published.'}</small>
             </div>
             <button className="button" type="button" disabled>Mint unavailable · Draft only</button>
           </div>
@@ -225,7 +224,7 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
         <div className="erc721-safety-states">
           <div><small>Draft</small><strong>{storage.active?'Saved revision '+storage.active.version:'Unsaved'}</strong></div>
           <div><small>Cover</small><strong>{artwork.startsWith('ipfs://')?'IPFS URI present':'Not configured'}</strong></div>
-          <div><small>Publication</small><strong>Blocked</strong></div>
+          <div><small>{goSaleTerms?'Execution review':'Publication'}</small><strong>{goSaleTerms?'Use launch control above':'Blocked'}</strong></div>
         </div>
         <h3>Proposed sale parameters</h3>
         <div className="erc721-campaign-facts">
@@ -243,12 +242,12 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
             'Collector-facing page publication and revision persistence',
             'Transaction simulation, explicit wallet approval and receipt reconciliation',
           ].map(gate=><div key={gate} className="erc721-safety-gate">
-            <ShieldAlert size={15}/><span>{gate}</span><span>Pending</span>
+            <ShieldAlert size={15}/><span>{gate}</span><span>{goSaleTerms?'Checked by launch review':'Pending'}</span>
           </div>)}
         </div>
-        <Notice>Not ready for on-chain transactions. Your saved Mint Page draft
+        <Notice>{goSaleTerms?'Use Launch control above to read current readiness and review each exact transaction. The public page is available; signing and checkout require separate explicit approval.':<>Not ready for on-chain transactions. Your saved Mint Page draft
           and pinned cover are reusable, but they do not configure TLStacks721 or
-          authorize NFT minting. ERC721 signing remains disabled.</Notice>
+          authorize NFT minting. ERC721 signing remains disabled.</>}</Notice>
         <button className="button secondary" disabled>Publish transaction disabled</button>
       </div>}
       <div className="button-row">
@@ -258,12 +257,10 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
       </div>
     </section>
     <Erc721SalePreparation chainId={chainId} contract={contract} authorized={authorized}/>
-    <Erc721SaleReadinessPanel chainId={chainId} contract={contract} authorized={authorized}
-      draft={{price,payout,maxPerWallet,start}}/>
     <section className="panel">
       <details className="erc721-advanced-checks">
         <summary>Protocol diagnostics (advanced)</summary>
-        <p>Official deployment candidates are research-only read targets.
+        <p>These protocol observations are read only. GO#|O launch control verifies the exact runtime separately.
           Role: {authorized?'Owner/Admin':'Viewer'}. These details do not activate minting.</p>
         <Erc721MarketStatus chainId={chainId} contract={contract} view="stacks"/>
       </details>

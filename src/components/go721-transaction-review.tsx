@@ -62,6 +62,8 @@ export function Go721TransactionReview({
   }
   async function reconcile(h: Hex) {
     await api('attach_go721', { id: intent.id, txHash: h });
+    setHash(h);
+    localStorage.setItem(storageKey, h);
     acceptResult(await api('confirm_go721', { id: intent.id }));
   }
   async function send() {

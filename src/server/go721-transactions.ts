@@ -155,6 +155,8 @@ export async function preflightGo721(id: string, s: Session) {
   if (!permission) throw new AppError('GO721_APPROVAL_REQUIRED', 'Explicit Mainnet transaction or checkout approval is required.', 403);
   if (Date.now() >= Date.parse(i.payload.tx.expiresAt)) throw new AppError('REVIEW_EXPIRED', 'Prepare a fresh review.', 409);
   const fresh = await inspect(Number(i.chain_id), i.payload.action, s);
+  if (Date.now() >= Date.parse(i.payload.tx.expiresAt) || !go721SigningPermission(i))
+    throw new AppError('REVIEW_EXPIRED', 'The review or permission expired during preflight. Review again.', 409);
   if (fresh.snapshot !== i.payload.snapshot || fresh.approvalKey !== i.payload.approvalKey)
     throw new AppError('GO721_STATE_CHANGED', 'Sale, role, fee, allowance, nonce or metadata identity changed. Review again.', 409);
   if (BigInt(fresh.tx.maximumNetworkFee) > BigInt(i.payload.tx.maximumNetworkFee) ||
@@ -268,7 +270,8 @@ export async function cancelGo721(id: string, hash: Hex, s: Session) {
 }
 export async function go721History(chainId: number, s: Session) {
   requireSessionChain(s, chainId);
-  const rows = await listRecords('history', { chainId, contract: GO721_COLLECTION, limit: 25, offset: 0 });
+  const rows = await listRecords('history', { chainId, contract: GO721_COLLECTION, limit: 25, offset: 0,
+    actor: s.wallet, payloadKind: kind });
   return rows.filter((i: any) => i.actor === s.wallet.toLowerCase() && i.payload?.kind === kind)
     .map((i: any) => ({ ...i, signingEnabled: !!go721SigningPermission(i) }));
 }

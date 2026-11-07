@@ -105,6 +105,15 @@ describeWhen('GO#|O guarded application lifecycle on real forked contracts',()=>
     expect((await state.readGo721State(31337)).approved).toBe(true);
     await expect(server.getGo721Intent(i.id,session(admin))).rejects.toThrow('another wallet');
   });
+  it('keeps actor-owned recovery available after more than 25 other-wallet reviews',async()=>{
+    await db.query(`insert into public.publication_records(actor,chain_id,contract,payload)
+      select $1,31337,$2,'{"kind":"go721_launch","action":{"type":"grant"}}'::jsonb from generate_series(1,30)`,
+      [buyers[0].toLowerCase(),GO721_COLLECTION.toLowerCase()]);
+    const own=await server.go721History(31337,session(owner));
+    expect(own.some((i:any)=>i.id===report.ownerReview.id)).toBe(true);
+    expect(own.every((i:any)=>i.actor===owner.toLowerCase())).toBe(true);
+    report.checks.push('actor filtering precedes the recovery ledger limit');
+  });
   it('blocks expired reviews, revoked roles, changed nonce and altered saved CID',async()=>{
     const a={type:'configure',round:1};const i=await api.call('prepare_go721',{chainId:31337,action:a});
     expect((await api.request('intent',{id:i.id})).body.error).toBe('WRONG_TRANSACTION_FLOW');

@@ -59,3 +59,16 @@ Presale recipient / current Owner: `0xbeE916aBC292D4EfF57702fABbA1AAC4d4046036`.
 Admin: `0x29bF68E3969E0b6686ea55B7C48241ba3f6B9bA0`.
 
 No Ethereum Mainnet transaction was submitted. No role was granted on Mainnet. No ETH/NFT was moved. No Mainnet checkout was enabled. Fork success is not authorization. TLAuctionHouse execution remains out of this primary-sale release and locked.
+
+## Checkpoint safely pushed, then release review resumed
+
+- Draft PR #44: https://github.com/myreceiptt/transient-contract-manager/pull/44
+- First remote checkpoint commit: `cee047b75b2c231c56f9d8de6e3768a656e98e59`; its tree exactly matches local checkpoint `7f9e3072804300339cc470224bfc293d4ee591c1`, retained on `checkpoint/issue-30-local-7f9e307`.
+- GitHub CI passed: application run `42349974820`; real fork lifecycle run `42349974862`.
+- Local production build and HTTP/CSP/security checks passed.
+- Follow-up security/recovery review: actor and payload-kind filtering now precedes the recovery ledger limit; review/permission expiry is checked again after asynchronous preflight; primary and archive RPC must agree on the finalized block; recovering a replacement updates the durable browser hash.
+- The expanded real fork suite passed **10/10**, including recovery after 30 other-wallet reviews.
+- The cloud browser could not reach the local development server (`ERR_CONNECTION_REFUSED`). The temporary local-only review fixture was removed from application sources. This is not Production visual evidence; Production visual acceptance remains required.
+
+- Final follow-up validation: TypeScript and all 252 unit tests passed; GO1 integration passed after the shared history-query change.
+- Removed duplicate legacy readiness UI from the GO#|O studio; draft previews now distinguish the available public page from guarded execution.

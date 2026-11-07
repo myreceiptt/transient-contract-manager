@@ -1,0 +1,40 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> transient-contract-manager@0.1.0 build
+> next build
+
+▲ Next.js 16.4.2 (Turbopack)
+✓ Running next.config.ts took 28ms
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 2.3s
+  Running TypeScript ...
+  Finished TypeScript in 7.9s ...
+  Collecting page data using 8 workers ...
+  Generating static pages using 8 workers (0/2) ...
+✓ Generating static pages using 8 workers (2/2) in 97ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /api
+├ ƒ /api/media-upload
+├ ƒ /api/media-upload/sign
+├ ƒ /checker
+├ ƒ /erc721
+├ ƒ /guide
+├ ƒ /manage
+├ ƒ /manage-721
+├ ƒ /media
+└ ƒ /mint/[slug]
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand

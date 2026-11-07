@@ -43,6 +43,8 @@ export async function listRecords(
     id?: string;
     limit: number;
     offset: number;
+    actor?: string;
+    payloadKind?: string;
   },
 ) {
   const specs = {
@@ -71,6 +73,8 @@ export async function listRecords(
           ? q.eq('chain_id', p.chainId!).eq('contract', p.contract!.toLowerCase())
           : q.eq('page_id', p.id!);
       if (kind === 'pages') q = q.is('archived_at', null);
+      if (kind === 'history' && p.actor) q = q.eq('actor', p.actor.toLowerCase());
+      if (kind === 'history' && p.payloadKind) q = q.eq('payload->>kind', p.payloadKind);
       q = q.order(order, { ascending: false });
       if (tie !== order) q = q.order(tie, { ascending: false });
       const { data, error } = await q.range(p.offset, p.offset + p.limit - 1);
@@ -79,8 +83,10 @@ export async function listRecords(
     }
     const db = await localDb();
     const collection = kind === 'pages' || kind === 'history';
-    const where = collection ? 'chain_id=$1 and contract=$2' + (kind === 'pages' ? ' and archived_at is null' : '') : 'page_id=$1';
+    let where = collection ? 'chain_id=$1 and contract=$2' + (kind === 'pages' ? ' and archived_at is null' : '') : 'page_id=$1';
     const args = collection ? [p.chainId!, p.contract!.toLowerCase()] : [p.id!];
+    if (kind === 'history' && p.actor) { args.push(p.actor.toLowerCase()); where += ` and actor=$${args.length}`; }
+    if (kind === 'history' && p.payloadKind) { args.push(p.payloadKind); where += ` and payload->>'kind'=$${args.length}`; }
     const result = await db.query(
       `select * from public.${table} where ${where} order by ${order} desc${tie !== order ? `, ${tie} desc` : ''} limit $${args.length + 1} offset $${args.length + 2}`,
       [...args, p.limit, p.offset],

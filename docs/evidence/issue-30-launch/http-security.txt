@@ -1,0 +1,35 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> transient-contract-manager@0.1.0 test:preview
+> node --import tsx scripts/preview-security-smoke.ts
+
+[
+  {
+    "check": "/: production nonce, script attributes, cache and security headers",
+    "status": "PASS"
+  },
+  {
+    "check": "/checker: production nonce, script attributes, cache and security headers",
+    "status": "PASS"
+  },
+  {
+    "check": "/guide: production nonce, script attributes, cache and security headers",
+    "status": "PASS"
+  },
+  {
+    "check": "/manage: production nonce, script attributes, cache and security headers",
+    "status": "PASS"
+  },
+  {
+    "check": "/mint/unpublished-page: production nonce, script attributes, cache and security headers",
+    "status": "PASS"
+  },
+  {
+    "check": "/: production nonce, script attributes, cache and security headers",
+    "status": "PASS"
+  },
+  {
+    "check": "Host/Origin rejection and preview operator kill switch disabled",
+    "status": "PASS"
+  }
+]

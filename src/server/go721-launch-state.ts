@@ -103,6 +103,8 @@ export async function verifyFinalPresale(chainId: number) {
     ? createPublicClient({ transport: http('https://ethereum.reth.rs/rpc', { timeout: 25000, retryCount: 1 }) })
     : client(chainId);
   await exactChain(c as ReturnType<typeof client>, chainId);
+  if ((await c.getBlock({ blockNumber: s.block.number })).hash !== s.block.hash)
+    throw new AppError('GO721_FINALITY', 'Archive and primary RPC disagree on the finalized block.', 409);
   // The historical counter is 0 at the independently audited prelaunch checkpoint.
   const from = chainId === 1 ? 26332151n : BigInt(process.env.TCM_GO721_FORK_BLOCK || '26332151');
   const logs = [];

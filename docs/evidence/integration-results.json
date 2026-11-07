@@ -1,6 +1,6 @@
 {
-  "started": "2026-11-06T23:08:44.495Z",
-  "finished": "2026-11-06T23:08:51.951Z",
+  "started": "2026-11-07T07:12:49.767Z",
+  "finished": "2026-11-07T07:12:55.985Z",
   "environment": "Anvil 31337 + actual pinned contracts + PGlite PostgreSQL + Next API handlers",
   "mainnetTransactions": 0,
   "passed": 37,
@@ -9,37 +9,37 @@
     {
       "name": "Pinned creator and Stacks runtime; owner and admin recognition",
       "status": "PASS",
-      "ms": 114
+      "ms": 111
     },
     {
       "name": "SIWE login, nonce replay rejection, cookie flags and CSRF",
       "status": "PASS",
-      "ms": 80
+      "ms": 68
     },
     {
       "name": "Invalid signature, expired nonce, wrong session chain and oversized request are rejected",
       "status": "PASS",
-      "ms": 54
+      "ms": 62
     },
     {
       "name": "Unsigned and unauthorized wallets cannot mutate the workspace",
       "status": "PASS",
-      "ms": 50
+      "ms": 48
     },
     {
       "name": "Persistent draft shared by owner/admin; optimistic concurrency and private drafts",
       "status": "PASS",
-      "ms": 187
+      "ms": 143
     },
     {
       "name": "A second Mint Page for one NFT is rejected atomically",
       "status": "PASS",
-      "ms": 62
+      "ms": 49
     },
     {
       "name": "Revoked admin loses access without waiting for session expiration",
       "status": "PASS",
-      "ms": 69
+      "ms": 65
     },
     {
       "name": "Database roles cannot read private rows or execute service RPC",
@@ -49,117 +49,117 @@
     {
       "name": "NFT metadata pinning requires SIWE and admin role; invalid metadata is never uploaded",
       "status": "PASS",
-      "ms": 64
+      "ms": 67
     },
     {
       "name": "Read-only NFT simulations validate admin roles without creating intents or changing token supply",
       "status": "PASS",
-      "ms": 118
+      "ms": 96
     },
     {
       "name": "Create token overloads and batch creation execute exact ABI",
       "status": "PASS",
-      "ms": 343
+      "ms": 309
     },
     {
       "name": "Batch token creation with per-token royalties uses the five-argument overload",
       "status": "PASS",
-      "ms": 117
+      "ms": 115
     },
     {
       "name": "Draft identity can change to an available token and release its claim on archive",
       "status": "PASS",
-      "ms": 119
+      "ms": 104
     },
     {
       "name": "Airdrop, token URI, default royalty, token royalty and Stacks grant",
       "status": "PASS",
-      "ms": 553
+      "ms": 545
     },
     {
       "name": "Unsupported destructive action, invalid royalty, missing token and locked mint fail",
       "status": "PASS",
-      "ms": 55
+      "ms": 45
     },
     {
       "name": "Authenticated read-only sale preflight simulates Stacks without creating a publication intent",
       "status": "PASS",
-      "ms": 111
+      "ms": 94
     },
     {
       "name": "Draft collector quote includes protocol fee without creating a mint or publication intent",
       "status": "PASS",
-      "ms": 101
+      "ms": 87
     },
     {
       "name": "Autonomous non-owner admin prepares, signs and publishes native sale",
       "status": "PASS",
-      "ms": 177
+      "ms": 154
     },
     {
       "name": "Published Mint Page slug can change without minting or publishing another revision",
       "status": "PASS",
-      "ms": 148
+      "ms": 142
     },
     {
       "name": "Native mint transfers editions, exact payout and per-unit protocol fee",
       "status": "PASS",
-      "ms": 92
+      "ms": 79
     },
     {
       "name": "Duplicate confirmation is idempotent; wrong wallet cannot read collector intent",
       "status": "PASS",
-      "ms": 96
+      "ms": 102
     },
     {
       "name": "Changed draft keeps old public content until explicit content publication",
       "status": "PASS",
-      "ms": 101
+      "ms": 102
     },
     {
       "name": "External sale change blocks mint and publication until baseline review",
       "status": "PASS",
-      "ms": 211
+      "ms": 225
     },
     {
       "name": "Changed configuration between simulation and wallet signing is rejected",
       "status": "PASS",
-      "ms": 42
+      "ms": 52
     },
     {
       "name": "ERC-20 sale quotes 6-decimal units; exact approval then purchase with native fee",
       "status": "PASS",
-      "ms": 352
+      "ms": 298
     },
     {
       "name": "Nonzero insufficient ERC-20 allowance is reset before exact approval",
       "status": "PASS",
-      "ms": 232
+      "ms": 227
     },
     {
       "name": "Presale Merkle proof, invalid proof and per-recipient allowance",
       "status": "PASS",
-      "ms": 218
+      "ms": 239
     },
     {
       "name": "Publication rejects an unsent review after another draft revision is saved",
       "status": "PASS",
-      "ms": 203
+      "ms": 162
     },
     {
       "name": "Receipt reports actual quantity when another buyer consumes supply after preflight",
       "status": "PASS",
-      "ms": 146
+      "ms": 123
     },
     {
       "name": "Pending transaction recovery, replacement cancellation and no automatic retry",
       "status": "PASS",
-      "ms": 116
+      "ms": 100
     },
     {
       "name": "Insufficient ETH, ended sale, locked token and unsafe media fail closed",
       "status": "PASS",
-      "ms": 78
+      "ms": 74
     },
     {
       "name": "Request throttling rejects overflow in an active window",
@@ -169,7 +169,7 @@
     {
       "name": "Public quota exhaustion does not consume authenticated workspace capacity",
       "status": "PASS",
-      "ms": 22
+      "ms": 18
     },
     {
       "name": "Media GET is throttled before network fetch and returns retry/no-store headers",
@@ -179,7 +179,7 @@
     {
       "name": "Bounded private lists paginate and preserve collection isolation",
       "status": "PASS",
-      "ms": 98
+      "ms": 101
     },
     {
       "name": "Malformed envelopes and unknown operations fail before upstream work",
@@ -189,7 +189,7 @@
     {
       "name": "Session logout invalidates server token; mainnet write gate remains closed",
       "status": "PASS",
-      "ms": 6
+      "ms": 5
     }
   ]
 }

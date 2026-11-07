@@ -40,6 +40,7 @@ export function useErc721Drafts(kind:Kind,chainId:number,contract:string,canMana
       const rows=await api('erc721_draft_list',{chainId,contract,kind});
       setRecords(rows as SavedErc721Draft[]);
       setMessage('Saved draft index loaded. No blockchain transaction occurred.');
+      return rows as SavedErc721Draft[];
     }catch(e){setError(e instanceof Error?e.message:'Could not load drafts.');}
     finally{setBusy(false);}
   },[canManage,enabled,ensureSession,chainId,contract,kind]);

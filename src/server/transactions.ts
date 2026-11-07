@@ -703,7 +703,7 @@ export async function prepareMint(
 export async function getIntent(id: string, s: Session) {
   const intent = await command('intent_get', { id });
   if (!intent) throw new AppError('NOT_FOUND', 'Transaction review not found', 404);
-  if (intent.payload.kind === 'erc721_creator_mint')
+  if (['erc721_creator_mint', 'go721_launch'].includes(intent.payload.kind))
     throw new AppError('WRONG_TRANSACTION_FLOW', 'Use the isolated ERC721 creator review', 403);
   requireSessionChain(s, Number(intent.chain_id));
   if (['admin', 'publication'].includes(intent.payload.kind)) {

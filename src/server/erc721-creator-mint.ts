@@ -49,7 +49,7 @@ export function localCreatorExecution(chainId: number) {
   }
 }
 
-export async function attestCreator(chainId: number, contract: Address, wallet?: Address) {
+export async function attestCreator(chainId: number, contract: Address, wallet?: Address, atBlock?: bigint) {
   if (chainId !== 1 && !localCreatorExecution(chainId))
     throw new AppError(
       'ERC721_CHAIN_SCOPE',
@@ -58,7 +58,7 @@ export async function attestCreator(chainId: number, contract: Address, wallet?:
     );
   const c = client(chainId);
   await exactChain(c, chainId);
-  const block = await c.getBlock();
+  const block = await c.getBlock(atBlock === undefined ? {} : { blockNumber: atBlock });
   const code = await c.getCode({ address: contract, blockNumber: block.number });
   const clone = code?.match(
     /^0x363d3d373d3d3d363d73([0-9a-fA-F]{40})5af43d82803e903d91602b57fd5bf3$/,
@@ -188,6 +188,9 @@ export function creatorSigningAllowed(tx: Parameters<typeof approvalKey>[0]) {
 
 async function inspectMint(chainId: number, contract: Address, raw: unknown, s: Session) {
   requireSessionChain(s, chainId);
+  if (chainId === 1 && contract.toLowerCase() === '0x99b8ae3c16559b80424a45c92dd530d50d970a46')
+    throw new AppError('GO721_RESERVED_SEQUENCE',
+      'GO#|O Token IDs 1–30 are reserved for the audited 3 + 27 primary sale. Use Mint Pages launch review.', 409);
   const action = creatorMintInput.parse(raw);
   const info = await attestCreator(chainId, contract, s.wallet);
   if (!['owner', 'admin'].includes(info.role))

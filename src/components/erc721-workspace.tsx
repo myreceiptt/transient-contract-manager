@@ -66,7 +66,7 @@ export function Erc721Workspace(){
         {info.creatorMintRuntimeVerified
           ? 'ERC721TL v4.1.2 creator mint runtime verified. Prepare an artwork, review its mint, and obtain explicit approval for that exact transaction before signing.'
           : `ERC721TL v${info.version} is available for read-only inspection. This deployment is not verified for creator mint signing.`}
-        {' '}Mint Page publication and auctions remain disabled.
+        {' '}GO#|O launch controls are in Mint Pages. Mainnet checkout requires separate approval; auctions remain disabled.
       </Notice>
       <div className="tabs" role="tablist" aria-label="ERC721 collection sections">
         {tabs.map(t=><button key={t} role="tab" className={tab===t?'active':''}

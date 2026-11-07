@@ -1,0 +1,43 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> transient-contract-manager@0.1.0 test:integration
+> node --import tsx scripts/integration.ts
+
+Local fixtures deployed: {"chainId":31337,"nft":"0x5fbdb2315678afecb367f032d93f642f64180aa3","stacks":"0xe7f1725e7734ce288f8367e1bb143e90bb3f0512"}
+PASS Pinned creator and Stacks runtime; owner and admin recognition
+PASS SIWE login, nonce replay rejection, cookie flags and CSRF
+PASS Invalid signature, expired nonce, wrong session chain and oversized request are rejected
+PASS Unsigned and unauthorized wallets cannot mutate the workspace
+PASS Persistent draft shared by owner/admin; optimistic concurrency and private drafts
+PASS A second Mint Page for one NFT is rejected atomically
+PASS Revoked admin loses access without waiting for session expiration
+PASS Database roles cannot read private rows or execute service RPC
+PASS NFT metadata pinning requires SIWE and admin role; invalid metadata is never uploaded
+PASS Read-only NFT simulations validate admin roles without creating intents or changing token supply
+PASS Create token overloads and batch creation execute exact ABI
+PASS Batch token creation with per-token royalties uses the five-argument overload
+PASS Draft identity can change to an available token and release its claim on archive
+PASS Airdrop, token URI, default royalty, token royalty and Stacks grant
+PASS Unsupported destructive action, invalid royalty, missing token and locked mint fail
+PASS Authenticated read-only sale preflight simulates Stacks without creating a publication intent
+PASS Draft collector quote includes protocol fee without creating a mint or publication intent
+PASS Autonomous non-owner admin prepares, signs and publishes native sale
+PASS Published Mint Page slug can change without minting or publishing another revision
+PASS Native mint transfers editions, exact payout and per-unit protocol fee
+PASS Duplicate confirmation is idempotent; wrong wallet cannot read collector intent
+PASS Changed draft keeps old public content until explicit content publication
+PASS External sale change blocks mint and publication until baseline review
+PASS Changed configuration between simulation and wallet signing is rejected
+PASS ERC-20 sale quotes 6-decimal units; exact approval then purchase with native fee
+PASS Nonzero insufficient ERC-20 allowance is reset before exact approval
+PASS Presale Merkle proof, invalid proof and per-recipient allowance
+PASS Publication rejects an unsent review after another draft revision is saved
+PASS Receipt reports actual quantity when another buyer consumes supply after preflight
+PASS Pending transaction recovery, replacement cancellation and no automatic retry
+PASS Insufficient ETH, ended sale, locked token and unsafe media fail closed
+PASS Request throttling rejects overflow in an active window
+PASS Public quota exhaustion does not consume authenticated workspace capacity
+PASS Media GET is throttled before network fetch and returns retry/no-store headers
+PASS Bounded private lists paginate and preserve collection isolation
+PASS Malformed envelopes and unknown operations fail before upstream work
+PASS Session logout invalidates server token; mainnet write gate remains closed

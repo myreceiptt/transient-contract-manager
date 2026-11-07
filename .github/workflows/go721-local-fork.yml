@@ -5,6 +5,11 @@ on:
       - "scripts/go721-local-fork.spec.ts"
       - "src/lib/go721-sale-engine.ts"
       - "src/lib/go721-sale-plan.ts"
+      - "src/lib/go721-launch.ts"
+      - "src/server/go721-*.ts"
+      - "src/components/go721-*.tsx"
+      - "src/app/api/route.ts"
+      - "contracts/*721*"
       - ".github/workflows/go721-local-fork.yml"
   workflow_dispatch:
 permissions:
@@ -25,3 +30,11 @@ jobs:
       - run: npm ci --ignore-scripts=false
       - name: Fork-only 3+27 real-contract lifecycle
         run: npx vitest run --config vitest.go721-fork.config.ts --reporter=verbose --maxWorkers=1
+      - name: Preserve fork transaction and acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: go721-fork-${{ github.sha }}
+          path: artifacts/go721/
+          if-no-files-found: error
+          retention-days: 30

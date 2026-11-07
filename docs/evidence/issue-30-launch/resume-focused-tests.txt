@@ -1,0 +1,10 @@
+Resume verification, 7 November 2026
+Base: 86baa015a18958b2d9b78d25a014094975e93630
+Branch: feat/issue-30-go721-launch
+
+git diff --check: PASS
+npm run typecheck (Next typegen + tsc --noEmit): PASS
+npx vitest run tests/go721-execution-policy.test.ts tests/go721-sale-engine.test.ts tests/erc721-sale-sequence.test.ts --reporter=verbose: PASS
+Test files: 3 passed. Tests: 16 passed.
+No outstanding failure in the focused resume checks.
+Build, GitHub CI and browser/Production acceptance remain release gates.

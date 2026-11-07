@@ -12,11 +12,17 @@ export async function readPublicGo721Status(rawRecipient?: Address, quantity = 1
   const [s] = await Promise.all([readGo721State(chainId, wallet), savedGo721Campaign()]);
   const quote = go721Quote(s, wallet, quantity);
   const round = Number(s.round) + 1;
-  const issues = [...quote.issues];
+  // An empty on-chain drop is not a sold-out sale or a lost saved IPFS folder.
+  const unconfigured = s.drop.dropType === 0;
+  const issues = unconfigured
+    ? ['Sale is not configured on Ethereum. The saved launch draft and IPFS folders do not activate it.']
+    : [...quote.issues];
   try {
-    assertGo721Live(s);
-    if (round !== 1 && round !== 2) throw new Error('Unexpected sale round.');
-    assertGo721Drop(s, round);
+    if (!unconfigured) {
+      assertGo721Live(s);
+      if (round !== 1 && round !== 2) throw new Error('Unexpected sale round.');
+      assertGo721Drop(s, round);
+    }
   } catch (e) { issues.push((e as Error).message); }
   const permission = go721CheckoutPermission(round, s.fee, chainId);
   if (permission && quote.mintableQuantity > permission.maxQuantity)

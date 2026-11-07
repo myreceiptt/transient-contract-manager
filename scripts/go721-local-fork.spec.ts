@@ -90,6 +90,8 @@ describeWhen('GO#|O guarded application lifecycle on real forked contracts',()=>
     const s=await state.readGo721State(31337,owner);expect(s.counter).toBe(0n);expect(s.burns).toBe(0n);expect(s.phase).toBe(0);expect(s.approved).toBe(false);
     expect((await state.savedGo721Campaign()).version).toBe(10);
     const r=await api.call('public_go721_status',{chainId:31337});expect(r.exactRuntimeVerified).toBe(true);expect(r.observedRuntimeHash).toBe(GO721_RUNTIME);
+    expect(r.displayedQuote.allowed).toBe(false);
+    expect(r.displayedQuote.issues).toEqual(['Sale is not configured on Ethereum. The saved launch draft and IPFS folders do not activate it.']);
     expect(r.transactionExecutionEnabled).toBe(false);report.checks.push('exact runtime + historical minted/burned counters + saved CIDs');
   });
   it('enforces SIWE, CSRF, chain, Owner-only grant and GO1 intent separation',async()=>{

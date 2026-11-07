@@ -1,5 +1,5 @@
 'use client';
-import {useState} from 'react';
+import {useRef,useState} from 'react';
 import {Layers3,Eye,FilePenLine,ShieldAlert} from 'lucide-react';
 import {Erc721MarketStatus} from './erc721-market-status';
 import {Notice} from './shell';
@@ -7,6 +7,7 @@ import {Artwork} from './safe-media';
 import {Erc721MintCoverPicker} from './erc721-mint-cover-picker';
 import {Erc721SalePreparation} from './erc721-sale-preparation';
 import {Go721LaunchPanel} from './go721-launch-panel';
+import {GO721_DRAFT_ID} from '@/lib/go721-launch';
 import {GO_APPROVED_TERMS,inspectDraftAgainstApprovedTerms} from '@/lib/erc721-sale-terms';
 import {useErc721Drafts,type SavedErc721Draft} from './erc721-draft-storage';
 
@@ -27,6 +28,7 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
   const [presaleMetadataBaseUri,setPresaleMetadataBaseUri]=useState('');
   const [publicMetadataBaseUri,setPublicMetadataBaseUri]=useState('');
   const [unsavedEdits,setUnsavedEdits]=useState(0);
+  const editorRevision=useRef(0);
   const [coverUploading,setCoverUploading]=useState(false);
   const storage=useErc721Drafts('MINT_PAGE',chainId,contract,authorized);
   const goSaleTerms=chainId===1&&contract.toLowerCase()===GO_APPROVED_TERMS.collection.toLowerCase();
@@ -34,6 +36,7 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
     ?inspectDraftAgainstApprovedTerms({price,payout,maxPerWallet,start}):[];
   function applyApprovedSaleTerms(){
     if(!goSaleTerms||!authorized||coverUploading)return;
+    editorRevision.current++;
     setPrice(GO_APPROVED_TERMS.publicUnitPriceEth);
     setCurrency('ETH');
     setPayout(GO_APPROVED_TERMS.payoutReceiver);
@@ -43,6 +46,7 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
   }
   function useSaved(row:SavedErc721Draft){
     if(coverUploading)return;
+    editorRevision.current++;
     storage.setActive(row);const d=row.draft;
     setTitle(String(d.title||''));setDescription(String(d.description||''));
     setArtwork(String(d.artwork||''));setPrice(String(d.price||''));
@@ -59,11 +63,12 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
   async function saveDraft(){if(coverUploading)return;
     const saved=await storage.save(data());if(saved)setUnsavedEdits(0);}
   function newDraft(){if(coverUploading)return;
+    editorRevision.current++;
     storage.setActive(null);setTitle('');setDescription('');setArtwork('');
     setPrice('');setCurrency('ETH');setPayout('');setMaxPerWallet('');
     setStart('');setEnd('');setPresaleMetadataBaseUri('');setPublicMetadataBaseUri('');
     setUnsavedEdits(0);setStep('edit');}
-  function change(setter:(value:string)=>void,value:string){setter(value);setUnsavedEdits(v=>v+1);setStep('edit');}
+  function change(setter:(value:string)=>void,value:string){editorRevision.current++;setter(value);setUnsavedEdits(v=>v+1);setStep('edit');}
   const fields=[
     ['Payment currency',currency],['Price per NFT',price?price+' '+currency:'Not specified'],
     ['Payout receiver',payout||'Not specified'],['Per-wallet limit',maxPerWallet||'Not specified'],
@@ -82,14 +87,13 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
     </section>
     <section className="panel">
       <div className="section-top"><div><h2>Primary Mint Pages</h2>
-        <p>One collection-level drop identity. Multiple draft revisions here
-          do not create multiple independent on-chain drops.</p></div>
+        <p>{goSaleTerms?'Campaign editor · Launch Control reads the saved launch draft independently. Load that draft below to edit it; an empty editor does not mean the saved campaign is missing.':'One collection-level drop identity. Multiple draft revisions here do not create multiple independent on-chain drops.'}</p></div>
         <span className="tag">{storage.enabled?"PRIVATE APP DRAFT":"SESSION PREVIEW ONLY"}</span>
       </div>
       <div className="erc721-metrics">
-        <div><small>Campaign identity</small><strong>{title||'Untitled draft'}</strong></div>
-        <div><small>Saved draft revision</small>
-          <strong>{storage.active?storage.active.version:'Not saved yet'}</strong></div>
+        <div><small>Editor campaign</small><strong>{title||(goSaleTerms?'Saved launch draft not loaded':'Untitled draft')}</strong></div>
+        <div><small>Saved draft revision · editor</small>
+          <strong>{storage.active?storage.active.version:goSaleTerms?'Not loaded into editor':'Not saved yet'}</strong></div>
         <div><small>Unsaved field changes</small><strong>{unsavedEdits}</strong></div>
         <div><small>Public page</small><strong>{goSaleTerms?'Available · checkout guarded':'Not published'}</strong></div>
       </div>
@@ -112,17 +116,23 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
         'This collection remains in preparation; no sale is configured by editing this draft.'}</Notice>
       <div className="erc721-draft-storage">
         <div className="button-row">
-          <button type="button" className="button secondary" disabled={!authorized||!storage.enabled||storage.busy||coverUploading}
+          <button type="button" className="button secondary" disabled={!authorized||!storage.enabled||storage.busy||coverUploading||(goSaleTerms&&unsavedEdits>0)}
             onClick={async()=>{
-              await storage.load();
-            }}>Load Mint Page draft</button>
+              const revision=editorRevision.current;
+              const rows=await storage.load();
+              if(goSaleTerms&&revision===editorRevision.current){
+                const canonical=rows?.find(row=>row.id===GO721_DRAFT_ID);
+                if(canonical)useSaved(canonical);
+              }
+            }}>{goSaleTerms?'Load saved launch draft into editor':'Load Mint Page draft'}</button>
           <button type="button" className="button secondary" disabled={!authorized||storage.busy||coverUploading}
             onClick={newDraft}>Clear editor</button>
-          <button type="button" className="button" disabled={!authorized||!storage.enabled||storage.busy||coverUploading}
+          <button type="button" className="button" disabled={!authorized||!storage.enabled||storage.busy||coverUploading||(goSaleTerms&&!storage.active)}
             onClick={()=>void saveDraft()}>Save Mint Page draft</button>
         </div>
+        {goSaleTerms&&unsavedEdits>0&&<small>Save your current changes, or explicitly clear the editor, before loading the saved launch draft.</small>}
         {storage.records.length>0&&<div className="erc721-saved-index">
-          {storage.records.map(row=><button type="button" className="button secondary compact" disabled={coverUploading}
+          {storage.records.map(row=><button type="button" className="button secondary compact" disabled={coverUploading||(goSaleTerms&&unsavedEdits>0)}
             key={row.id} onClick={()=>useSaved(row)}>
             {String(row.draft.title||'Collection primary Mint Page')} · Revision {row.version}
           </button>)}

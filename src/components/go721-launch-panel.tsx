@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { formatEther } from 'viem';
 import { useSession } from './providers';
-import { api } from '@/lib/api-client';
+import { api, short } from '@/lib/api-client';
 import { GO721_COLLECTION } from '@/lib/go721-sale-engine';
 import { Go721TransactionReview, Go721TransactionLedger } from './go721-transaction-review';
 import { Notice } from './shell';
@@ -46,12 +46,20 @@ export function Go721LaunchPanel({ chainId, authorized }: { chainId: number; aut
         <div className="erc721-campaign-fact"><span>Verified runtime / saved revision</span><strong>Matched · v{state.draftVersion}</strong></div>
         <div className="erc721-campaign-fact"><span>Historical minted / burned</span><strong>{state.counter} / {state.burned}</strong></div>
         <div className="erc721-campaign-fact"><span>Minter permission</span><strong>{state.approvedMinter ? 'Granted' : 'Owner grant required'}</strong></div>
+        <div className="erc721-campaign-fact"><span>Authenticated wallet role</span><strong>{String(state.role).toUpperCase()}</strong>
+          <small>Session: {short(state.authenticatedWallet)} · Contract Owner: {short(state.owner)}</small></div>
         <div className="erc721-campaign-fact"><span>On-chain sale</span><strong>Round {state.round} · {state.phase}</strong></div>
         <div className="erc721-campaign-fact"><span>Protocol fee per NFT</span><strong>{formatEther(BigInt(state.protocolFeeWei))} ETH + gas</strong></div>
       </div>
       {state.reason && <Notice>{state.reason}</Notice>}
+      {!state.approvedMinter && state.role !== 'owner' && <Notice type="error">
+        The minter authorization review is locked because this authenticated session has {String(state.role).toUpperCase()} permission,
+        not OWNER. The collection Owner is {state.owner}. Confirm the connected account in the wallet menu,
+        switch to that Owner account, then select Read launch readiness again. This is not a failed transaction.
+      </Notice>}
       <div className="button-row">
         <button className="button secondary" disabled={busy || state.approvedMinter || state.role !== 'owner'}
+          title={state.role !== 'owner' ? 'Only the collection Owner can review the minter role grant' : undefined}
           onClick={() => void run({ type: 'grant' })}>Review Owner minter authorization</button>
         <button className="button" disabled={busy || !state.approvedMinter || state.phaseCode !== 0 || state.counter !== '0'}
           onClick={() => void run({ type: 'configure', round: 1 })}>Review presale configuration</button>

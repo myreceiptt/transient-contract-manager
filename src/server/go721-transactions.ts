@@ -284,7 +284,8 @@ export async function go721Readiness(chainId: number, s: Session) {
     try { await verifyFinalPresale(chainId); publicRoundReady = true; }
     catch (e) { reason = (e as Error).message; }
   }
-  return serializable({ role: state.creator.role, owner: state.creator.owner, approvedMinter: state.approved,
+  return serializable({ role: state.creator.role, owner: state.creator.owner, authenticatedWallet: s.wallet,
+    approvedMinter: state.approved,
     counter: state.counter, burned: state.burns, round: Number(state.round) + 1,
     phase: go721Phase[state.phase], phaseCode: state.phase, remaining: state.drop.supply,
     runtimeVerified: true, draftVersion: saved.version, protocolFeeWei: state.fee,

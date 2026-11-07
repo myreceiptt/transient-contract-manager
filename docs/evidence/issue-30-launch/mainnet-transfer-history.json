@@ -1,0 +1,11 @@
+{
+  "rpc": "https://ethereum.reth.rs/rpc",
+  "creationBlock": "26332151",
+  "creationBlockHash": "0x36cf968a109354ae6fe137c339f7646e2596dc7de7289e6bc2fb6cc0aba33897",
+  "precedingBlockCode": "0x",
+  "endBlock": "26358857",
+  "endBlockHash": "0x332853a9c095ca16eb6f0543b5f2ccc553ccb732c2771c9619dda17436a9c5de",
+  "transferLogs": [],
+  "minted": 0,
+  "burned": 0
+}

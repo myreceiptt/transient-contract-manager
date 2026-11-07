@@ -635,11 +635,10 @@ export default function Guide() {
       </section>
 
       <section className="panel guide-section" id="auction">
-        <span className="section-number">14 / FUTURE ADAPTER · NOT LIVE</span>
-        <h2>1 of 1 NFT creation and auctions: integration plan</h2>
-        <p><strong>Not available in this application yet.</strong> This section
-          describes the safe integration sequence, not buttons that are
-          currently enabled. Creating an ERC-721 NFT, listing an existing
+        <span className="section-number">14 / ONE OF ONE · GUARDED LAUNCH</span>
+        <h2>1 of 1 NFT creation, primary sale and auctions</h2>
+        <p>Creator mint and the GO#|O primary sale have independent approval gates.
+          Auctions remain in preparation. Creating an ERC-721 NFT, listing an existing
           ERC-721 NFT and minting a new ERC-721 through Stacks are
           <strong> three distinct operations</strong>.</p>
         <h3>Owner-deployed ERC721TL on Ethereum Mainnet</h3>
@@ -671,13 +670,36 @@ export default function Guide() {
           ERC721TL 3.6.0 <code>totalSupply()</code> returns the minted Token ID
           counter (including burned IDs), while v4.1.2 subtracts burned
           tokens. Neither is an auction listing or a configured sale supply.</p>
-        <p>This inspector currently verifies the <strong>public interface
-          and reported VERSION only</strong>. It explicitly displays
-          <strong> RUNTIME UNVERIFIED</strong>; neither the candidate
-          interface nor its observed codehash is yet a pinned, independently
-          verified execution allowlist. It provides <strong>no</strong>
-          minting, permissions, transfers or auction transaction controls.
+        <p>Read-only interface recognition is distinct from exact runtime verification.
+          The canonical ERC721TL v4.1.2 implementation and the GO#|O TLStacks721 v2.3.1
+          sale runtime are independently compiled and checked before transaction reviews.
+          Unsupported implementations cannot inherit their permissions.
           The supported ERC1155TL manager remains separate.</p>
+        <h3>GO#|O: launch 3 presale NFTs, then 27 public NFTs</h3>
+        <p>Use <strong>Mint Pages → Launch the 3 + 27 sale</strong>. The 30 originals and
+          two indexed IPFS folders were verified by the Owner/Admin. They do not need to be uploaded again.
+          Direct creator minting for this collection is reserved to protect the approved Token ID order.</p>
+        <ol className="guide-steps">
+          <li><strong>Read launch readiness.</strong> The app checks the exact runtimes,
+            historical mint and burn counters, stored folder identities, current roles and sale state.</li>
+          <li><strong>Owner minter authorization.</strong> Review the grant of APPROVED_MINT_CONTRACT
+            to the official TLStacks721 address. Only the collection Owner can grant this role.</li>
+          <li><strong>Presale configuration.</strong> Owner or Admin reviews 3 NFTs for the approved
+            recipient, starting 10 November 2026 at 10:10 WIB. The proposed window is 24 hours,
+            with no public phase inside this first round. Artwork price is zero; protocol fee and gas are additional.</li>
+          <li><strong>Explicit activation.</strong> Configuration transactions and checkout activation
+            require separate operator approval. Configuring a sale makes it callable directly on-chain,
+            even while app checkout is locked.</li>
+          <li><strong>Collector checkout.</strong> Open <a href="/mint/go-one-of-one">the public Mint Page</a>,
+            connect Ethereum, select quantity and review payment, fee and gas. Confirm in the wallet only
+            after checking the details. The receipt supplies actual Token IDs and metadata links.</li>
+          <li><strong>Second round.</strong> After all three presale mints reach Ethereum finality,
+            review a new 27-NFT public round at 0.025 ETH with a 10-NFT recipient limit.
+            Its configuration and checkout require separate approval; the app never signs automatically.</li>
+          <li><strong>Recovery.</strong> Use My GO#|O transactions to reopen a review and check its receipt.
+            A speed-up uses the replacement hash; cancellation is verified against the same sender and nonce.
+            A partial purchase is recorded at the actual minted quantity and the contract refunds excess ETH.</li>
+        </ol>
         <h3>Creator mint: ERC721TL v4.1.2 on Ethereum</h3>
         <p>The exact canonical clone and implementation runtime are independently compiled and
           verified for the isolated creator mint flow. The general GO1 write switch does not
@@ -785,7 +807,8 @@ export default function Guide() {
         <p>It does not reproduce all of The Lab. It supports the verified
           ERC1155TL creator adapter and TLStacks1155 fixed-price drop flow,
           not every Transient Labs contract, every drop style or private
-          The Lab page feature. ERC721TL v4.1.2 creator minting has its own exact-transaction approval gate. <strong>TLStacks721,
+          The Lab page feature. ERC721TL v4.1.2 creator minting has its own exact-transaction approval gate.
+          TLStacks721 v2.3.1 is scoped to the verified GO#|O 3 + 27 campaign. <strong>
           TLAuctionHouse, ERC7160TL, ERC7160TLEditions and TRACE are
           not supported at runtime</strong>. It does not automatically
           manage ownership transfers, role revocations, arbitrary mint

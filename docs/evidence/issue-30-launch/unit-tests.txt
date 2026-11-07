@@ -1,0 +1,14 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> transient-contract-manager@0.1.0 test
+> vitest run --reporter=dot
+
+
+ RUN  v4.1.12 /workspace/scratch/4a63033b0900/transient-contract-manager
+
+····························································································································································································································································
+
+ Test Files  42 passed (42)
+      Tests  252 passed (252)
+   Start at  06:07:18
+   Duration  4.71s (transform 2.13s, setup 0ms, import 21.32s, tests 2.96s, environment 6ms)

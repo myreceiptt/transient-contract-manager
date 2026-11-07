@@ -5,6 +5,13 @@ import creatorCompiler from 'solc';
 import stacksCompiler from 'solc-stacks';
 const specs = [
   {
+    name: 'TLStacks721',
+    source: 'src/TLStacks721.sol',
+    input: 'stacks721',
+    compiler: stacksCompiler,
+    hash: '0xd63c5a1f574a2c03b17985a72615c25f51362f38e8369cb75ad0c9232fdbc9ce',
+  },
+  {
     name: 'ERC721TL',
     source: 'src/erc-721/ERC721TL.sol',
     input: 'erc721',
@@ -29,12 +36,20 @@ const specs = [
 for (const s of specs) {
   const input = JSON.parse(fs.readFileSync(`contracts/${s.input}.standard-input.json`));
   input.settings.outputSelection = {
-    '*': { '*': ['abi', 'evm.bytecode.object', 'evm.deployedBytecode.object'] },
+    '*': { '*': ['abi', 'evm.bytecode.object', 'evm.deployedBytecode.object', 'storageLayout'] },
   };
   const out = JSON.parse(s.compiler.compile(JSON.stringify(input)));
   const errors = out.errors?.filter((e) => e.severity === 'error') || [];
   assert.equal(errors.length, 0, JSON.stringify(errors));
   const artifact = out.contracts[s.source][s.name];
+  if (s.name === 'ERC721TL') {
+    for (const [label, slot] of [['_counter', '0'], ['_burnCounter', '1']]) {
+      const field = artifact.storageLayout.storage.find((v) => v.label === label);
+      assert.equal(field?.slot, slot, 'Token history storage slot changed');
+      assert.equal(field?.offset, 0);
+      assert.equal(field?.type, 't_uint256');
+    }
+  }
   const deployedBytecode = '0x' + artifact.evm.deployedBytecode.object;
   assert.equal(
     keccak256(deployedBytecode),

@@ -1,0 +1,1072 @@
+{
+  "chainId": 31337,
+  "mainnetWrites": false,
+  "ipfsAuditsRepeated": false,
+  "transactions": [
+    {
+      "id": "d336320a-e7c8-491b-86c4-2ff00b7dd2b5",
+      "actor": "0xbee916abc292d4eff57702fabba1aac4d4046036",
+      "status": "CONFIRMED",
+      "page_id": null,
+      "payload": {
+        "tx": {
+          "to": "0x99B8AE3C16559B80424a45C92Dd530d50d970a46",
+          "gas": "154948",
+          "data": "0xd4bf502af0178e81e3689af48153edf0e1b2d669fe2786ab9e21fdecf3e3771c70330af5000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000384092784cfaa91efaa77870c04d958e20840242",
+          "nonce": 15,
+          "value": "0",
+          "account": "0xbeE916aBC292D4EfF57702fABbA1AAC4d4046036",
+          "chainId": 31337,
+          "expiresAt": "2026-11-06T23:15:40.530Z",
+          "estimatedGas": "123958",
+          "maxFeePerGas": "1053555727",
+          "maximumNetworkFee": "163246352787196",
+          "maxPriorityFeePerGas": "1000000000"
+        },
+        "drop": null,
+        "kind": "go721_launch",
+        "nonce": 15,
+        "round": 1,
+        "action": {
+          "type": "grant"
+        },
+        "receipt": {
+          "action": "grant",
+          "tokens": [],
+          "gasUsed": "122446",
+          "sentWei": "0",
+          "blockHash": "0xac3a037d3fb9b93775a568e4c6f145adcdec7aca16dfa4502387a87bb9d19a10",
+          "gasPaidWei": "127230043830332",
+          "blockNumber": "26359007",
+          "partialFill": false,
+          "refundPolicy": "TLStacks721 refunds excess ETH; receipt quantities are authoritative.",
+          "actualQuantity": 0,
+          "transactionHash": "0xe9f714aed840c45abf60ec8621bb18b76cb11ca7d57c41ecb3fe416abc7dc8e5",
+          "reviewedQuantity": 0,
+          "effectiveGasPrice": "1039070642"
+        },
+        "quantity": 0,
+        "snapshot": "0xd075b68984c9a59de3b94e0903df4ae9d5f6c8724b7fdb2c557e58d7c88f2694",
+        "approvalKey": "0x9ccd5c86e7294ea8e6918b3f4c6c6a363ed9d875b75b57bbd1c097009ed74165",
+        "attestation": {
+          "role": "owner",
+          "block": "26359006",
+          "owner": "0xbeE916aBC292D4EfF57702fABbA1AAC4d4046036",
+          "chainId": 31337,
+          "contract": "0x99B8AE3C16559B80424a45C92Dd530d50d970a46",
+          "blockHash": "0x48d366f1ed68a2c507434c17ba1c9e201bad4bf6c1640737d0b258e726f68376",
+          "runtimeHash": "0x3ef32f426fbb9aadd50d894e5c9a8cfea059f7c02106e692e871508da62b05f4",
+          "sourceCommit": "a2ef226db2e6df9d07e002c7c11ddab17c1df3f5",
+          "supplyLocked": false,
+          "stacksRuntime": "0xd63c5a1f574a2c03b17985a72615c25f51362f38e8369cb75ad0c9232fdbc9ce",
+          "implementation": "0xEA573D90cFD624bed1344a7a7eb44785ae1AD540",
+          "renderingContract": "0x0000000000000000000000000000000000000000"
+        },
+        "campaignKey": "0x581901b39a0bec6702ea75a176977625c87af9fd60f4d72df4a854f7c6f17e4f",
+        "draftVersion": 10,
+        "mintPriceWei": "0",
+        "protocolFeeWei": "900000000000000",
+        "counterAtReview": "0",
+        "presaleEvidence": null
+      },
+      "tx_hash": "0xe9f714aed840c45abf60ec8621bb18b76cb11ca7d57c41ecb3fe416abc7dc8e5",
+      "chain_id": 31337,
+      "contract": "0x99b8ae3c16559b80424a45c92dd530d50d970a46",
+      "revision": null,
+      "created_at": "2026-11-06T23:10:40.532+00:00",
+      "updated_at": "2026-11-06T23:10:40.584+00:00"
+    },
+    {
+      "id": "63313092-68ec-486f-8fe5-e9fa29456094",
+      "actor": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+      "status": "CONFIRMED",
+      "page_id": null,
+      "payload": {
+        "tx": {
+          "to": "0x384092784cfaa91efaa77870c04d958e20840242",
+          "gas": "387954",
+          "data": "0x7f28a39200000000000000000000000099b8ae3c16559b80424a45c92dd530d50d970a460000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000100000000000000000000000057ee21f9acffcba7f1e8cb51f9b96afd33b4cb870000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006af28b0800000000000000000000000000000000000000000000000000000000000151800000000000000000000000000000000000000000000000000000000000000000099149fab0112133588d7e328ada8d936974fd2d51188e6ded8c5bbc4551e6c500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001c00000000000000000000000000000000000000000000000000000000000000042697066733a2f2f62616679626569653575793535367a33626134776b776532646f6d7662707370726f7a68636c69717a3335647a61336b34626b3237637377796675000000000000000000000000000000000000000000000000000000000000",
+          "nonce": 11634,
+          "value": "0",
+          "account": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+          "chainId": 31337,
+          "expiresAt": "2026-11-06T23:15:42.181Z",
+          "estimatedGas": "310363",
+          "maxFeePerGas": "2027521252",
+          "maximumNetworkFee": "786584979798408",
+          "maxPriorityFeePerGas": "2000000000"
+        },
+        "drop": {
+          "supply": "3",
+          "baseUri": "ipfs://bafybeie5uy556z3ba4wkwe2domvbpsprozhcliqz35dza3k4bk27cswyfu",
+          "dropType": 1,
+          "allowance": "0",
+          "decayRate": "0",
+          "startTime": "1794280200",
+          "publicCost": "0",
+          "presaleCost": "0",
+          "initialSupply": "3",
+          "payoutReceiver": "0x57eE21f9aCFFCBa7F1E8cB51f9b96aFd33b4CB87",
+          "publicDuration": "0",
+          "currencyAddress": "0x0000000000000000000000000000000000000000",
+          "presaleDuration": "86400",
+          "presaleMerkleRoot": "0x099149fab0112133588d7e328ada8d936974fd2d51188e6ded8c5bbc4551e6c5"
+        },
+        "kind": "go721_launch",
+        "nonce": 11634,
+        "round": 1,
+        "action": {
+          "type": "configure",
+          "round": 1
+        },
+        "receipt": {
+          "action": "configure",
+          "tokens": [],
+          "gasUsed": "305384",
+          "sentWei": "0",
+          "blockHash": "0x66d5d6c74bdd1325f1060c8613e9cb4fe547029622e18549d788eac62ae982c8",
+          "gasPaidWei": "616896930756408",
+          "blockNumber": "26359012",
+          "partialFill": false,
+          "refundPolicy": "TLStacks721 refunds excess ETH; receipt quantities are authoritative.",
+          "actualQuantity": 0,
+          "transactionHash": "0xe07e2eb46b1e2193f5662654051702c365bbc75024e05d745fb4c03862d37a86",
+          "reviewedQuantity": 0,
+          "effectiveGasPrice": "2020069587"
+        },
+        "quantity": 0,
+        "snapshot": "0x863d1ffe06d1cfceb8732cf90887f854215101484f95c40f5d1987f1bbcdfd43",
+        "approvalKey": "0x4b13a40d3b826e9afdfc2f5fb6bab37d66553fe281397a5a079c839b7575623b",
+        "attestation": {
+          "role": "admin",
+          "block": "26359011",
+          "owner": "0xbeE916aBC292D4EfF57702fABbA1AAC4d4046036",
+          "chainId": 31337,
+          "contract": "0x99B8AE3C16559B80424a45C92Dd530d50d970a46",
+          "blockHash": "0x8908aa3bf19bd3e234bfe3adf5c79744bdd58796684658e322404f797282f985",
+          "runtimeHash": "0x3ef32f426fbb9aadd50d894e5c9a8cfea059f7c02106e692e871508da62b05f4",
+          "sourceCommit": "a2ef226db2e6df9d07e002c7c11ddab17c1df3f5",
+          "supplyLocked": false,
+          "stacksRuntime": "0xd63c5a1f574a2c03b17985a72615c25f51362f38e8369cb75ad0c9232fdbc9ce",
+          "implementation": "0xEA573D90cFD624bed1344a7a7eb44785ae1AD540",
+          "renderingContract": "0x0000000000000000000000000000000000000000"
+        },
+        "campaignKey": "0x581901b39a0bec6702ea75a176977625c87af9fd60f4d72df4a854f7c6f17e4f",
+        "draftVersion": 10,
+        "mintPriceWei": "0",
+        "protocolFeeWei": "900000000000000",
+        "counterAtReview": "0",
+        "presaleEvidence": null
+      },
+      "tx_hash": "0xe07e2eb46b1e2193f5662654051702c365bbc75024e05d745fb4c03862d37a86",
+      "chain_id": 31337,
+      "contract": "0x99b8ae3c16559b80424a45c92dd530d50d970a46",
+      "revision": null,
+      "created_at": "2026-11-06T23:10:42.182+00:00",
+      "updated_at": "2026-11-06T23:10:42.346+00:00"
+    },
+    {
+      "id": "688e458f-c82e-438d-9443-bb8440698dbf",
+      "actor": "0xbee916abc292d4eff57702fabba1aac4d4046036",
+      "status": "CONFIRMED",
+      "page_id": null,
+      "payload": {
+        "tx": {
+          "to": "0x384092784cfaa91efaa77870c04d958e20840242",
+          "gas": "711319",
+          "data": "0xafdcf23c00000000000000000000000099b8ae3c16559b80424a45c92dd530d50d970a46000000000000000000000000bee916abc292d4eff57702fabba1aac4d40460360000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000",
+          "nonce": 18,
+          "value": "2700000000000000",
+          "account": "0xbeE916aBC292D4EfF57702fABbA1AAC4d4046036",
+          "chainId": 31337,
+          "expiresAt": "2026-11-06T23:15:47.026Z",
+          "estimatedGas": "569055",
+          "maxFeePerGas": "1021103711",
+          "maximumNetworkFee": "726330470604809",
+          "maxPriorityFeePerGas": "1000000000"
+        },
+        "drop": null,
+        "kind": "go721_launch",
+        "nonce": 18,
+        "round": 1,
+        "action": {
+          "type": "purchase",
+          "quantity": 3
+        },
+        "receipt": {
+          "action": "purchase",
+          "tokens": [
+            {
+              "tokenId": "1",
+              "tokenURI": "ipfs://bafybeie5uy556z3ba4wkwe2domvbpsprozhcliqz35dza3k4bk27cswyfu/0",
+              "recipientAtMint": "0xbee916abc292d4eff57702fabba1aac4d4046036"
+            },
+            {
+              "tokenId": "2",
+              "tokenURI": "ipfs://bafybeie5uy556z3ba4wkwe2domvbpsprozhcliqz35dza3k4bk27cswyfu/1",
+              "recipientAtMint": "0xbee916abc292d4eff57702fabba1aac4d4046036"
+            },
+            {
+              "tokenId": "3",
+              "tokenURI": "ipfs://bafybeie5uy556z3ba4wkwe2domvbpsprozhcliqz35dza3k4bk27cswyfu/2",
+              "recipientAtMint": "0xbee916abc292d4eff57702fabba1aac4d4046036"
+            }
+          ],
+          "gasUsed": "559330",
+          "sentWei": "2700000000000000",
+          "blockHash": "0x661d7ebd043d5b0f086fdcf26356226887fbaad91ea35911df31c63d5c5bbdd3",
+          "gasPaidWei": "567937038837590",
+          "blockNumber": "26359014",
+          "partialFill": false,
+          "refundPolicy": "TLStacks721 refunds excess ETH; receipt quantities are authoritative.",
+          "actualQuantity": 3,
+          "transactionHash": "0x6e63db11c7fa0dd29a611fecfc44e6478824d650cd9f58d7fb6eb1fb87435fce",
+          "reviewedQuantity": 3,
+          "effectiveGasPrice": "1015388123"
+        },
+        "quantity": 3,
+        "snapshot": "0x894f0b596e71c9eec40ef287f24bb49f0c82898c4fac3336e5e6357b6b8b88ae",
+        "approvalKey": "0xc24360edf3791f83c21e165a7a9ed28b6cf7c7c72f7b2356ab7701873c712853",
+        "attestation": {
+          "role": "owner",
+          "block": "26359013",
+          "owner": "0xbeE916aBC292D4EfF57702fABbA1AAC4d4046036",
+          "chainId": 31337,
+          "contract": "0x99B8AE3C16559B80424a45C92Dd530d50d970a46",
+          "blockHash": "0x94fa3e2e3a8730d7a0583f68dfcd8e44812314e256e049520726f496cbd84b3d",
+          "runtimeHash": "0x3ef32f426fbb9aadd50d894e5c9a8cfea059f7c02106e692e871508da62b05f4",
+          "sourceCommit": "a2ef226db2e6df9d07e002c7c11ddab17c1df3f5",
+          "supplyLocked": false,
+          "stacksRuntime": "0xd63c5a1f574a2c03b17985a72615c25f51362f38e8369cb75ad0c9232fdbc9ce",
+          "implementation": "0xEA573D90cFD624bed1344a7a7eb44785ae1AD540",
+          "renderingContract": "0x0000000000000000000000000000000000000000"
+        },
+        "campaignKey": "0x581901b39a0bec6702ea75a176977625c87af9fd60f4d72df4a854f7c6f17e4f",
+        "draftVersion": 10,
+        "mintPriceWei": "0",
+        "protocolFeeWei": "900000000000000",
+        "counterAtReview": "0",
+        "presaleEvidence": null
+      },
+      "tx_hash": "0x6e63db11c7fa0dd29a611fecfc44e6478824d650cd9f58d7fb6eb1fb87435fce",
+      "chain_id": 31337,
+      "contract": "0x99b8ae3c16559b80424a45c92dd530d50d970a46",
+      "revision": null,
+      "created_at": "2026-11-06T23:10:47.027+00:00",
+      "updated_at": "2026-11-06T23:10:47.189+00:00"
+    },
+    {
+      "id": "f37dbea2-8884-4dc6-9191-dce745627bf9",
+      "actor": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+      "status": "CONFIRMED",
+      "page_id": null,
+      "payload": {
+        "tx": {
+          "to": "0x384092784cfaa91efaa77870c04d958e20840242",
+          "gas": "291280",
+          "data": "0x7f28a39200000000000000000000000099b8ae3c16559b80424a45c92dd530d50d970a460000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000100000000000000000000000057ee21f9acffcba7f1e8cb51f9b96afd33b4cb87000000000000000000000000000000000000000000000000000000000000001b000000000000000000000000000000000000000000000000000000000000001b000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006af28b4e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001e1333a0000000000000000000000000000000000000000000000000058d15e17628000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001c00000000000000000000000000000000000000000000000000000000000000042697066733a2f2f62616679626569617365786c79366837727a6d666872717074636a713568726f697963776c6a6c6c7435766d62616363666f7337346c6337647334000000000000000000000000000000000000000000000000000000000000",
+          "nonce": 11635,
+          "value": "0",
+          "account": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+          "chainId": 31337,
+          "expiresAt": "2026-11-06T23:15:47.572Z",
+          "estimatedGas": "233024",
+          "maxFeePerGas": "1018465747",
+          "maximumNetworkFee": "296658702786160",
+          "maxPriorityFeePerGas": "1000000000"
+        },
+        "drop": {
+          "supply": "27",
+          "baseUri": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4",
+          "dropType": 1,
+          "allowance": "10",
+          "decayRate": "0",
+          "startTime": "1794280270",
+          "publicCost": "25000000000000000",
+          "presaleCost": "0",
+          "initialSupply": "27",
+          "payoutReceiver": "0x57eE21f9aCFFCBa7F1E8cB51f9b96aFd33b4CB87",
+          "publicDuration": "31535930",
+          "currencyAddress": "0x0000000000000000000000000000000000000000",
+          "presaleDuration": "0",
+          "presaleMerkleRoot": "0x0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "kind": "go721_launch",
+        "nonce": 11635,
+        "round": 2,
+        "action": {
+          "type": "configure",
+          "round": 2,
+          "startTime": 1794280270
+        },
+        "receipt": {
+          "action": "configure",
+          "tokens": [],
+          "gasUsed": "218445",
+          "sentWei": "0",
+          "blockHash": "0x388931f286b63ddc2c6528a992409ac38b080f34e4910fd5fed8dc01442fe82e",
+          "gasPaidWei": "221394110387595",
+          "blockNumber": "26359015",
+          "partialFill": false,
+          "refundPolicy": "TLStacks721 refunds excess ETH; receipt quantities are authoritative.",
+          "actualQuantity": 0,
+          "transactionHash": "0xb6203a83b8bdeb09b17e070ceebf74b6297be7f9bb8042bae3534e20c7de19e9",
+          "reviewedQuantity": 0,
+          "effectiveGasPrice": "1013500471"
+        },
+        "quantity": 0,
+        "snapshot": "0x207f4bc7504163f3c14a21e5a4a3a7a6afd419ea5e9d49627f19456a26f020f3",
+        "approvalKey": "0x6a7ce24aa09e2e90f6de348e033c3c2d790d7058e2c2b76dbda1b91bd183a5a9",
+        "attestation": {
+          "role": "admin",
+          "block": "26359014",
+          "owner": "0xbeE916aBC292D4EfF57702fABbA1AAC4d4046036",
+          "chainId": 31337,
+          "contract": "0x99B8AE3C16559B80424a45C92Dd530d50d970a46",
+          "blockHash": "0x661d7ebd043d5b0f086fdcf26356226887fbaad91ea35911df31c63d5c5bbdd3",
+          "runtimeHash": "0x3ef32f426fbb9aadd50d894e5c9a8cfea059f7c02106e692e871508da62b05f4",
+          "sourceCommit": "a2ef226db2e6df9d07e002c7c11ddab17c1df3f5",
+          "supplyLocked": false,
+          "stacksRuntime": "0xd63c5a1f574a2c03b17985a72615c25f51362f38e8369cb75ad0c9232fdbc9ce",
+          "implementation": "0xEA573D90cFD624bed1344a7a7eb44785ae1AD540",
+          "renderingContract": "0x0000000000000000000000000000000000000000"
+        },
+        "campaignKey": "0x581901b39a0bec6702ea75a176977625c87af9fd60f4d72df4a854f7c6f17e4f",
+        "draftVersion": 10,
+        "mintPriceWei": "0",
+        "protocolFeeWei": "900000000000000",
+        "counterAtReview": "3",
+        "presaleEvidence": {
+          "block": "26359014",
+          "tokenIds": [
+            "1",
+            "2",
+            "3"
+          ],
+          "blockHash": "0x661d7ebd043d5b0f086fdcf26356226887fbaad91ea35911df31c63d5c5bbdd3",
+          "transactionHashes": [
+            "0x6e63db11c7fa0dd29a611fecfc44e6478824d650cd9f58d7fb6eb1fb87435fce"
+          ]
+        }
+      },
+      "tx_hash": "0xb6203a83b8bdeb09b17e070ceebf74b6297be7f9bb8042bae3534e20c7de19e9",
+      "chain_id": 31337,
+      "contract": "0x99b8ae3c16559b80424a45c92dd530d50d970a46",
+      "revision": null,
+      "created_at": "2026-11-06T23:10:47.573+00:00",
+      "updated_at": "2026-11-06T23:10:47.624+00:00"
+    },
+    {
+      "id": "9182cb9e-2654-47c8-83c4-251be7251711",
+      "actor": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
+      "status": "CONFIRMED",
+      "page_id": null,
+      "payload": {
+        "tx": {
+          "to": "0x384092784cfaa91efaa77870c04d958e20840242",
+          "gas": "1821067",
+          "data": "0xafdcf23c00000000000000000000000099b8ae3c16559b80424a45c92dd530d50d970a4600000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c8000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000",
+          "nonce": 5344,
+          "value": "259000000000000000",
+          "account": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+          "chainId": 31337,
+          "expiresAt": "2026-11-06T23:15:54.679Z",
+          "estimatedGas": "1456853",
+          "maxFeePerGas": "1014190241",
+          "maximumNetworkFee": "1846908379607147",
+          "maxPriorityFeePerGas": "1000000000"
+        },
+        "drop": null,
+        "kind": "go721_launch",
+        "nonce": 5344,
+        "round": 2,
+        "action": {
+          "type": "purchase",
+          "quantity": 10
+        },
+        "receipt": {
+          "action": "purchase",
+          "tokens": [
+            {
+              "tokenId": "4",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/0",
+              "recipientAtMint": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8"
+            },
+            {
+              "tokenId": "5",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/1",
+              "recipientAtMint": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8"
+            },
+            {
+              "tokenId": "6",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/2",
+              "recipientAtMint": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8"
+            },
+            {
+              "tokenId": "7",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/3",
+              "recipientAtMint": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8"
+            },
+            {
+              "tokenId": "8",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/4",
+              "recipientAtMint": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8"
+            },
+            {
+              "tokenId": "9",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/5",
+              "recipientAtMint": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8"
+            },
+            {
+              "tokenId": "10",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/6",
+              "recipientAtMint": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8"
+            },
+            {
+              "tokenId": "11",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/7",
+              "recipientAtMint": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8"
+            },
+            {
+              "tokenId": "12",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/8",
+              "recipientAtMint": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8"
+            },
+            {
+              "tokenId": "13",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/9",
+              "recipientAtMint": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8"
+            }
+          ],
+          "gasUsed": "1451928",
+          "sentWei": "259000000000000000",
+          "blockHash": "0x1803d7c2e83e03c11f7a1bc37223dcb417d747a69f898957a003678b940fe36a",
+          "gasPaidWei": "1466951173064328",
+          "blockNumber": "26359017",
+          "partialFill": false,
+          "refundPolicy": "TLStacks721 refunds excess ETH; receipt quantities are authoritative.",
+          "actualQuantity": 10,
+          "transactionHash": "0xd026339926995ebe860e053cdb3fbeb6238c4ddedbcee5ba66f18d6326ed4b76",
+          "reviewedQuantity": 10,
+          "effectiveGasPrice": "1010347051"
+        },
+        "quantity": 10,
+        "snapshot": "0xc6eaafc6f44a3995dc567a926427f658f876e6763d62607ef64235ba2dee62bf",
+        "approvalKey": "0x1bf5d8794ed1faf072670b9dd17580099b9ceb037b7a3aaa9615abc887138660",
+        "attestation": {
+          "role": "viewer",
+          "block": "26359016",
+          "owner": "0xbeE916aBC292D4EfF57702fABbA1AAC4d4046036",
+          "chainId": 31337,
+          "contract": "0x99B8AE3C16559B80424a45C92Dd530d50d970a46",
+          "blockHash": "0xb7231b6e95e33eee31ffdc3a8b3690130e3f2a70798c9f5c33a88080ce2d27bf",
+          "runtimeHash": "0x3ef32f426fbb9aadd50d894e5c9a8cfea059f7c02106e692e871508da62b05f4",
+          "sourceCommit": "a2ef226db2e6df9d07e002c7c11ddab17c1df3f5",
+          "supplyLocked": false,
+          "stacksRuntime": "0xd63c5a1f574a2c03b17985a72615c25f51362f38e8369cb75ad0c9232fdbc9ce",
+          "implementation": "0xEA573D90cFD624bed1344a7a7eb44785ae1AD540",
+          "renderingContract": "0x0000000000000000000000000000000000000000"
+        },
+        "campaignKey": "0x581901b39a0bec6702ea75a176977625c87af9fd60f4d72df4a854f7c6f17e4f",
+        "draftVersion": 10,
+        "mintPriceWei": "250000000000000000",
+        "protocolFeeWei": "900000000000000",
+        "counterAtReview": "3",
+        "presaleEvidence": null
+      },
+      "tx_hash": "0xd026339926995ebe860e053cdb3fbeb6238c4ddedbcee5ba66f18d6326ed4b76",
+      "chain_id": 31337,
+      "contract": "0x99b8ae3c16559b80424a45c92dd530d50d970a46",
+      "revision": null,
+      "created_at": "2026-11-06T23:10:54.679+00:00",
+      "updated_at": "2026-11-06T23:10:54.902+00:00"
+    },
+    {
+      "id": "617cdd68-8ab6-4fcd-a56e-eeec659dae3f",
+      "actor": "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc",
+      "status": "CONFIRMED",
+      "page_id": null,
+      "payload": {
+        "tx": {
+          "to": "0x384092784cfaa91efaa77870c04d958e20840242",
+          "gas": "1790639",
+          "data": "0xafdcf23c00000000000000000000000099b8ae3c16559b80424a45c92dd530d50d970a460000000000000000000000003c44cdddb6a900fa2b585dd299e03d12fa4293bc000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000",
+          "nonce": 2826,
+          "value": "259000000000000000",
+          "account": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+          "chainId": 31337,
+          "expiresAt": "2026-11-06T23:16:01.729Z",
+          "estimatedGas": "1432511",
+          "maxFeePerGas": "1012416461",
+          "maximumNetworkFee": "1812872399308579",
+          "maxPriorityFeePerGas": "1000000000"
+        },
+        "drop": null,
+        "kind": "go721_launch",
+        "nonce": 2826,
+        "round": 2,
+        "action": {
+          "type": "purchase",
+          "quantity": 10
+        },
+        "receipt": {
+          "action": "purchase",
+          "tokens": [
+            {
+              "tokenId": "14",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/10",
+              "recipientAtMint": "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
+            },
+            {
+              "tokenId": "15",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/11",
+              "recipientAtMint": "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
+            },
+            {
+              "tokenId": "16",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/12",
+              "recipientAtMint": "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
+            },
+            {
+              "tokenId": "17",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/13",
+              "recipientAtMint": "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
+            },
+            {
+              "tokenId": "18",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/14",
+              "recipientAtMint": "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
+            },
+            {
+              "tokenId": "19",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/15",
+              "recipientAtMint": "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
+            },
+            {
+              "tokenId": "20",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/16",
+              "recipientAtMint": "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
+            },
+            {
+              "tokenId": "21",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/17",
+              "recipientAtMint": "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
+            },
+            {
+              "tokenId": "22",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/18",
+              "recipientAtMint": "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
+            },
+            {
+              "tokenId": "23",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/19",
+              "recipientAtMint": "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
+            }
+          ],
+          "gasUsed": "1427586",
+          "sentWei": "259000000000000000",
+          "blockHash": "0x4a7ac7be5d8a142118d322bd442546e03eb546a77b712937d1c36943c09b6c02",
+          "gasPaidWei": "1440600255141462",
+          "blockNumber": "26359018",
+          "partialFill": false,
+          "refundPolicy": "TLStacks721 refunds excess ETH; receipt quantities are authoritative.",
+          "actualQuantity": 10,
+          "transactionHash": "0x1650ac39acc1d864a141ffcdd18aed28ae78d9c9de989fc5919c5f818a494b21",
+          "reviewedQuantity": 10,
+          "effectiveGasPrice": "1009116267"
+        },
+        "quantity": 10,
+        "snapshot": "0x432cbbadcf54fdb6f678c7780bbbfc9f4422096565c3acfb16510ef1606a713f",
+        "approvalKey": "0xa67cefaa9505e358132595b67a6dcadf93f7359b73db789e2cbe9af6ece4bf8d",
+        "attestation": {
+          "role": "viewer",
+          "block": "26359017",
+          "owner": "0xbeE916aBC292D4EfF57702fABbA1AAC4d4046036",
+          "chainId": 31337,
+          "contract": "0x99B8AE3C16559B80424a45C92Dd530d50d970a46",
+          "blockHash": "0x1803d7c2e83e03c11f7a1bc37223dcb417d747a69f898957a003678b940fe36a",
+          "runtimeHash": "0x3ef32f426fbb9aadd50d894e5c9a8cfea059f7c02106e692e871508da62b05f4",
+          "sourceCommit": "a2ef226db2e6df9d07e002c7c11ddab17c1df3f5",
+          "supplyLocked": false,
+          "stacksRuntime": "0xd63c5a1f574a2c03b17985a72615c25f51362f38e8369cb75ad0c9232fdbc9ce",
+          "implementation": "0xEA573D90cFD624bed1344a7a7eb44785ae1AD540",
+          "renderingContract": "0x0000000000000000000000000000000000000000"
+        },
+        "campaignKey": "0x581901b39a0bec6702ea75a176977625c87af9fd60f4d72df4a854f7c6f17e4f",
+        "draftVersion": 10,
+        "mintPriceWei": "250000000000000000",
+        "protocolFeeWei": "900000000000000",
+        "counterAtReview": "13",
+        "presaleEvidence": null
+      },
+      "tx_hash": "0x1650ac39acc1d864a141ffcdd18aed28ae78d9c9de989fc5919c5f818a494b21",
+      "chain_id": 31337,
+      "contract": "0x99b8ae3c16559b80424a45c92dd530d50d970a46",
+      "revision": null,
+      "created_at": "2026-11-06T23:11:01.731+00:00",
+      "updated_at": "2026-11-06T23:11:01.931+00:00"
+    },
+    {
+      "id": "b81dcdb3-6369-421a-9591-6b167350742c",
+      "actor": "0x90f79bf6eb2c4f870365e785982e1f101e93b906",
+      "status": "CONFIRMED",
+      "page_id": null,
+      "payload": {
+        "tx": {
+          "to": "0x384092784cfaa91efaa77870c04d958e20840242",
+          "gas": "1821067",
+          "data": "0xafdcf23c00000000000000000000000099b8ae3c16559b80424a45c92dd530d50d970a4600000000000000000000000090f79bf6eb2c4f870365e785982e1f101e93b906000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000",
+          "nonce": 2223,
+          "value": "259000000000000000",
+          "account": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+          "chainId": 31337,
+          "expiresAt": "2026-11-06T23:15:54.241Z",
+          "estimatedGas": "1456853",
+          "maxFeePerGas": "1014190241",
+          "maximumNetworkFee": "1846908379607147",
+          "maxPriorityFeePerGas": "1000000000"
+        },
+        "drop": null,
+        "kind": "go721_launch",
+        "nonce": 2223,
+        "round": 2,
+        "action": {
+          "type": "purchase",
+          "quantity": 10
+        },
+        "receipt": {
+          "action": "purchase",
+          "tokens": [
+            {
+              "tokenId": "24",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/20",
+              "recipientAtMint": "0x90f79bf6eb2c4f870365e785982e1f101e93b906"
+            },
+            {
+              "tokenId": "25",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/21",
+              "recipientAtMint": "0x90f79bf6eb2c4f870365e785982e1f101e93b906"
+            },
+            {
+              "tokenId": "26",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/22",
+              "recipientAtMint": "0x90f79bf6eb2c4f870365e785982e1f101e93b906"
+            },
+            {
+              "tokenId": "27",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/23",
+              "recipientAtMint": "0x90f79bf6eb2c4f870365e785982e1f101e93b906"
+            },
+            {
+              "tokenId": "28",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/24",
+              "recipientAtMint": "0x90f79bf6eb2c4f870365e785982e1f101e93b906"
+            },
+            {
+              "tokenId": "29",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/25",
+              "recipientAtMint": "0x90f79bf6eb2c4f870365e785982e1f101e93b906"
+            },
+            {
+              "tokenId": "30",
+              "tokenURI": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4/26",
+              "recipientAtMint": "0x90f79bf6eb2c4f870365e785982e1f101e93b906"
+            }
+          ],
+          "gasUsed": "1056592",
+          "sentWei": "259000000000000000",
+          "blockHash": "0xc67052159a45a878910f5eacc727983bc13a3f01a6e2d949cd9623a711c8900d",
+          "gasPaidWei": "1065077448088320",
+          "blockNumber": "26359019",
+          "partialFill": true,
+          "refundPolicy": "TLStacks721 refunds excess ETH; receipt quantities are authoritative.",
+          "actualQuantity": 7,
+          "transactionHash": "0x436634c9f73f1c86505a138a08c2c1dc6514baba536ef367f0f6b26891ec11b8",
+          "reviewedQuantity": 10,
+          "effectiveGasPrice": "1008030960"
+        },
+        "quantity": 10,
+        "snapshot": "0xc6eaafc6f44a3995dc567a926427f658f876e6763d62607ef64235ba2dee62bf",
+        "approvalKey": "0x892d98bf7a7e25fed2e0e9b1f234e29d53d0eb843f43fd4896eecc86dade3c61",
+        "attestation": {
+          "role": "viewer",
+          "block": "26359016",
+          "owner": "0xbeE916aBC292D4EfF57702fABbA1AAC4d4046036",
+          "chainId": 31337,
+          "contract": "0x99B8AE3C16559B80424a45C92Dd530d50d970a46",
+          "blockHash": "0xb7231b6e95e33eee31ffdc3a8b3690130e3f2a70798c9f5c33a88080ce2d27bf",
+          "runtimeHash": "0x3ef32f426fbb9aadd50d894e5c9a8cfea059f7c02106e692e871508da62b05f4",
+          "sourceCommit": "a2ef226db2e6df9d07e002c7c11ddab17c1df3f5",
+          "supplyLocked": false,
+          "stacksRuntime": "0xd63c5a1f574a2c03b17985a72615c25f51362f38e8369cb75ad0c9232fdbc9ce",
+          "implementation": "0xEA573D90cFD624bed1344a7a7eb44785ae1AD540",
+          "renderingContract": "0x0000000000000000000000000000000000000000"
+        },
+        "campaignKey": "0x581901b39a0bec6702ea75a176977625c87af9fd60f4d72df4a854f7c6f17e4f",
+        "draftVersion": 10,
+        "mintPriceWei": "250000000000000000",
+        "protocolFeeWei": "900000000000000",
+        "counterAtReview": "3",
+        "presaleEvidence": null
+      },
+      "tx_hash": "0x436634c9f73f1c86505a138a08c2c1dc6514baba536ef367f0f6b26891ec11b8",
+      "chain_id": 31337,
+      "contract": "0x99b8ae3c16559b80424a45c92dd530d50d970a46",
+      "revision": null,
+      "created_at": "2026-11-06T23:10:54.241+00:00",
+      "updated_at": "2026-11-06T23:11:06.504+00:00"
+    }
+  ],
+  "checks": [
+    "exact runtime + historical minted/burned counters + saved CIDs",
+    "SIWE + CSRF + same-chain + Owner-only grant",
+    "expiry + revoked admin + nonce change + CID change + GO1 separation",
+    "same-nonce cancellation verified; no resubmission",
+    "mempool partial fill 10 → 7; excess ETH refund verified by balance delta excluding gas",
+    "public purchases + 10-wallet cap + reduced final quote + token IDs and URIs 1–30 + exact payout + receipt idempotency"
+  ],
+  "forkBlock": "26359005",
+  "ownerReview": {
+    "id": "d336320a-e7c8-491b-86c4-2ff00b7dd2b5",
+    "actor": "0xbee916abc292d4eff57702fabba1aac4d4046036",
+    "status": "PREPARED",
+    "page_id": null,
+    "payload": {
+      "tx": {
+        "to": "0x99B8AE3C16559B80424a45C92Dd530d50d970a46",
+        "gas": "154948",
+        "data": "0xd4bf502af0178e81e3689af48153edf0e1b2d669fe2786ab9e21fdecf3e3771c70330af5000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000384092784cfaa91efaa77870c04d958e20840242",
+        "nonce": 15,
+        "value": "0",
+        "account": "0xbeE916aBC292D4EfF57702fABbA1AAC4d4046036",
+        "chainId": 31337,
+        "expiresAt": "2026-11-06T23:15:40.530Z",
+        "estimatedGas": "123958",
+        "maxFeePerGas": "1053555727",
+        "maximumNetworkFee": "163246352787196",
+        "maxPriorityFeePerGas": "1000000000"
+      },
+      "drop": null,
+      "kind": "go721_launch",
+      "round": 1,
+      "action": {
+        "type": "grant"
+      },
+      "quantity": 0,
+      "snapshot": "0xd075b68984c9a59de3b94e0903df4ae9d5f6c8724b7fdb2c557e58d7c88f2694",
+      "approvalKey": "0x9ccd5c86e7294ea8e6918b3f4c6c6a363ed9d875b75b57bbd1c097009ed74165",
+      "attestation": {
+        "role": "owner",
+        "block": "26359006",
+        "owner": "0xbeE916aBC292D4EfF57702fABbA1AAC4d4046036",
+        "chainId": 31337,
+        "contract": "0x99B8AE3C16559B80424a45C92Dd530d50d970a46",
+        "blockHash": "0x48d366f1ed68a2c507434c17ba1c9e201bad4bf6c1640737d0b258e726f68376",
+        "runtimeHash": "0x3ef32f426fbb9aadd50d894e5c9a8cfea059f7c02106e692e871508da62b05f4",
+        "sourceCommit": "a2ef226db2e6df9d07e002c7c11ddab17c1df3f5",
+        "supplyLocked": false,
+        "stacksRuntime": "0xd63c5a1f574a2c03b17985a72615c25f51362f38e8369cb75ad0c9232fdbc9ce",
+        "implementation": "0xEA573D90cFD624bed1344a7a7eb44785ae1AD540",
+        "renderingContract": "0x0000000000000000000000000000000000000000"
+      },
+      "campaignKey": "0x581901b39a0bec6702ea75a176977625c87af9fd60f4d72df4a854f7c6f17e4f",
+      "draftVersion": 10,
+      "mintPriceWei": "0",
+      "protocolFeeWei": "900000000000000",
+      "counterAtReview": "0",
+      "presaleEvidence": null
+    },
+    "tx_hash": null,
+    "chain_id": 31337,
+    "contract": "0x99b8ae3c16559b80424a45c92dd530d50d970a46",
+    "revision": null,
+    "created_at": "2026-11-06T23:10:40.532+00:00",
+    "updated_at": "2026-11-06T23:10:40.532+00:00",
+    "signingEnabled": true
+  },
+  "presaleReview": {
+    "id": "63313092-68ec-486f-8fe5-e9fa29456094",
+    "actor": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+    "status": "PREPARED",
+    "page_id": null,
+    "payload": {
+      "tx": {
+        "to": "0x384092784cfaa91efaa77870c04d958e20840242",
+        "gas": "387954",
+        "data": "0x7f28a39200000000000000000000000099b8ae3c16559b80424a45c92dd530d50d970a460000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000100000000000000000000000057ee21f9acffcba7f1e8cb51f9b96afd33b4cb870000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006af28b0800000000000000000000000000000000000000000000000000000000000151800000000000000000000000000000000000000000000000000000000000000000099149fab0112133588d7e328ada8d936974fd2d51188e6ded8c5bbc4551e6c500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001c00000000000000000000000000000000000000000000000000000000000000042697066733a2f2f62616679626569653575793535367a33626134776b776532646f6d7662707370726f7a68636c69717a3335647a61336b34626b3237637377796675000000000000000000000000000000000000000000000000000000000000",
+        "nonce": 11634,
+        "value": "0",
+        "account": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+        "chainId": 31337,
+        "expiresAt": "2026-11-06T23:15:42.181Z",
+        "estimatedGas": "310363",
+        "maxFeePerGas": "2027521252",
+        "maximumNetworkFee": "786584979798408",
+        "maxPriorityFeePerGas": "2000000000"
+      },
+      "drop": {
+        "supply": "3",
+        "baseUri": "ipfs://bafybeie5uy556z3ba4wkwe2domvbpsprozhcliqz35dza3k4bk27cswyfu",
+        "dropType": 1,
+        "allowance": "0",
+        "decayRate": "0",
+        "startTime": "1794280200",
+        "publicCost": "0",
+        "presaleCost": "0",
+        "initialSupply": "3",
+        "payoutReceiver": "0x57eE21f9aCFFCBa7F1E8cB51f9b96aFd33b4CB87",
+        "publicDuration": "0",
+        "currencyAddress": "0x0000000000000000000000000000000000000000",
+        "presaleDuration": "86400",
+        "presaleMerkleRoot": "0x099149fab0112133588d7e328ada8d936974fd2d51188e6ded8c5bbc4551e6c5"
+      },
+      "kind": "go721_launch",
+      "round": 1,
+      "action": {
+        "type": "configure",
+        "round": 1
+      },
+      "quantity": 0,
+      "snapshot": "0x863d1ffe06d1cfceb8732cf90887f854215101484f95c40f5d1987f1bbcdfd43",
+      "approvalKey": "0x4b13a40d3b826e9afdfc2f5fb6bab37d66553fe281397a5a079c839b7575623b",
+      "attestation": {
+        "role": "admin",
+        "block": "26359011",
+        "owner": "0xbeE916aBC292D4EfF57702fABbA1AAC4d4046036",
+        "chainId": 31337,
+        "contract": "0x99B8AE3C16559B80424a45C92Dd530d50d970a46",
+        "blockHash": "0x8908aa3bf19bd3e234bfe3adf5c79744bdd58796684658e322404f797282f985",
+        "runtimeHash": "0x3ef32f426fbb9aadd50d894e5c9a8cfea059f7c02106e692e871508da62b05f4",
+        "sourceCommit": "a2ef226db2e6df9d07e002c7c11ddab17c1df3f5",
+        "supplyLocked": false,
+        "stacksRuntime": "0xd63c5a1f574a2c03b17985a72615c25f51362f38e8369cb75ad0c9232fdbc9ce",
+        "implementation": "0xEA573D90cFD624bed1344a7a7eb44785ae1AD540",
+        "renderingContract": "0x0000000000000000000000000000000000000000"
+      },
+      "campaignKey": "0x581901b39a0bec6702ea75a176977625c87af9fd60f4d72df4a854f7c6f17e4f",
+      "draftVersion": 10,
+      "mintPriceWei": "0",
+      "protocolFeeWei": "900000000000000",
+      "counterAtReview": "0",
+      "presaleEvidence": null
+    },
+    "tx_hash": null,
+    "chain_id": 31337,
+    "contract": "0x99b8ae3c16559b80424a45c92dd530d50d970a46",
+    "revision": null,
+    "created_at": "2026-11-06T23:10:42.182+00:00",
+    "updated_at": "2026-11-06T23:10:42.182+00:00",
+    "signingEnabled": true
+  },
+  "presaleCheckoutReview": {
+    "id": "688e458f-c82e-438d-9443-bb8440698dbf",
+    "actor": "0xbee916abc292d4eff57702fabba1aac4d4046036",
+    "status": "PREPARED",
+    "page_id": null,
+    "payload": {
+      "tx": {
+        "to": "0x384092784cfaa91efaa77870c04d958e20840242",
+        "gas": "711319",
+        "data": "0xafdcf23c00000000000000000000000099b8ae3c16559b80424a45c92dd530d50d970a46000000000000000000000000bee916abc292d4eff57702fabba1aac4d40460360000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000",
+        "nonce": 18,
+        "value": "2700000000000000",
+        "account": "0xbeE916aBC292D4EfF57702fABbA1AAC4d4046036",
+        "chainId": 31337,
+        "expiresAt": "2026-11-06T23:15:47.026Z",
+        "estimatedGas": "569055",
+        "maxFeePerGas": "1021103711",
+        "maximumNetworkFee": "726330470604809",
+        "maxPriorityFeePerGas": "1000000000"
+      },
+      "drop": null,
+      "kind": "go721_launch",
+      "round": 1,
+      "action": {
+        "type": "purchase",
+        "quantity": 3
+      },
+      "quantity": 3,
+      "snapshot": "0x894f0b596e71c9eec40ef287f24bb49f0c82898c4fac3336e5e6357b6b8b88ae",
+      "approvalKey": "0xc24360edf3791f83c21e165a7a9ed28b6cf7c7c72f7b2356ab7701873c712853",
+      "attestation": {
+        "role": "owner",
+        "block": "26359013",
+        "owner": "0xbeE916aBC292D4EfF57702fABbA1AAC4d4046036",
+        "chainId": 31337,
+        "contract": "0x99B8AE3C16559B80424a45C92Dd530d50d970a46",
+        "blockHash": "0x94fa3e2e3a8730d7a0583f68dfcd8e44812314e256e049520726f496cbd84b3d",
+        "runtimeHash": "0x3ef32f426fbb9aadd50d894e5c9a8cfea059f7c02106e692e871508da62b05f4",
+        "sourceCommit": "a2ef226db2e6df9d07e002c7c11ddab17c1df3f5",
+        "supplyLocked": false,
+        "stacksRuntime": "0xd63c5a1f574a2c03b17985a72615c25f51362f38e8369cb75ad0c9232fdbc9ce",
+        "implementation": "0xEA573D90cFD624bed1344a7a7eb44785ae1AD540",
+        "renderingContract": "0x0000000000000000000000000000000000000000"
+      },
+      "campaignKey": "0x581901b39a0bec6702ea75a176977625c87af9fd60f4d72df4a854f7c6f17e4f",
+      "draftVersion": 10,
+      "mintPriceWei": "0",
+      "protocolFeeWei": "900000000000000",
+      "counterAtReview": "0",
+      "presaleEvidence": null
+    },
+    "tx_hash": null,
+    "chain_id": 31337,
+    "contract": "0x99b8ae3c16559b80424a45c92dd530d50d970a46",
+    "revision": null,
+    "created_at": "2026-11-06T23:10:47.027+00:00",
+    "updated_at": "2026-11-06T23:10:47.027+00:00",
+    "signingEnabled": true
+  },
+  "publicReview": {
+    "id": "f37dbea2-8884-4dc6-9191-dce745627bf9",
+    "actor": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+    "status": "PREPARED",
+    "page_id": null,
+    "payload": {
+      "tx": {
+        "to": "0x384092784cfaa91efaa77870c04d958e20840242",
+        "gas": "291280",
+        "data": "0x7f28a39200000000000000000000000099b8ae3c16559b80424a45c92dd530d50d970a460000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000100000000000000000000000057ee21f9acffcba7f1e8cb51f9b96afd33b4cb87000000000000000000000000000000000000000000000000000000000000001b000000000000000000000000000000000000000000000000000000000000001b000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006af28b4e0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001e1333a0000000000000000000000000000000000000000000000000058d15e17628000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001c00000000000000000000000000000000000000000000000000000000000000042697066733a2f2f62616679626569617365786c79366837727a6d666872717074636a713568726f697963776c6a6c6c7435766d62616363666f7337346c6337647334000000000000000000000000000000000000000000000000000000000000",
+        "nonce": 11635,
+        "value": "0",
+        "account": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+        "chainId": 31337,
+        "expiresAt": "2026-11-06T23:15:47.572Z",
+        "estimatedGas": "233024",
+        "maxFeePerGas": "1018465747",
+        "maximumNetworkFee": "296658702786160",
+        "maxPriorityFeePerGas": "1000000000"
+      },
+      "drop": {
+        "supply": "27",
+        "baseUri": "ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4",
+        "dropType": 1,
+        "allowance": "10",
+        "decayRate": "0",
+        "startTime": "1794280270",
+        "publicCost": "25000000000000000",
+        "presaleCost": "0",
+        "initialSupply": "27",
+        "payoutReceiver": "0x57eE21f9aCFFCBa7F1E8cB51f9b96aFd33b4CB87",
+        "publicDuration": "31535930",
+        "currencyAddress": "0x0000000000000000000000000000000000000000",
+        "presaleDuration": "0",
+        "presaleMerkleRoot": "0x0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "kind": "go721_launch",
+      "round": 2,
+      "action": {
+        "type": "configure",
+        "round": 2,
+        "startTime": 1794280270
+      },
+      "quantity": 0,
+      "snapshot": "0x207f4bc7504163f3c14a21e5a4a3a7a6afd419ea5e9d49627f19456a26f020f3",
+      "approvalKey": "0x6a7ce24aa09e2e90f6de348e033c3c2d790d7058e2c2b76dbda1b91bd183a5a9",
+      "attestation": {
+        "role": "admin",
+        "block": "26359014",
+        "owner": "0xbeE916aBC292D4EfF57702fABbA1AAC4d4046036",
+        "chainId": 31337,
+        "contract": "0x99B8AE3C16559B80424a45C92Dd530d50d970a46",
+        "blockHash": "0x661d7ebd043d5b0f086fdcf26356226887fbaad91ea35911df31c63d5c5bbdd3",
+        "runtimeHash": "0x3ef32f426fbb9aadd50d894e5c9a8cfea059f7c02106e692e871508da62b05f4",
+        "sourceCommit": "a2ef226db2e6df9d07e002c7c11ddab17c1df3f5",
+        "supplyLocked": false,
+        "stacksRuntime": "0xd63c5a1f574a2c03b17985a72615c25f51362f38e8369cb75ad0c9232fdbc9ce",
+        "implementation": "0xEA573D90cFD624bed1344a7a7eb44785ae1AD540",
+        "renderingContract": "0x0000000000000000000000000000000000000000"
+      },
+      "campaignKey": "0x581901b39a0bec6702ea75a176977625c87af9fd60f4d72df4a854f7c6f17e4f",
+      "draftVersion": 10,
+      "mintPriceWei": "0",
+      "protocolFeeWei": "900000000000000",
+      "counterAtReview": "3",
+      "presaleEvidence": {
+        "block": "26359014",
+        "tokenIds": [
+          "1",
+          "2",
+          "3"
+        ],
+        "blockHash": "0x661d7ebd043d5b0f086fdcf26356226887fbaad91ea35911df31c63d5c5bbdd3",
+        "transactionHashes": [
+          "0x6e63db11c7fa0dd29a611fecfc44e6478824d650cd9f58d7fb6eb1fb87435fce"
+        ]
+      }
+    },
+    "tx_hash": null,
+    "chain_id": 31337,
+    "contract": "0x99b8ae3c16559b80424a45c92dd530d50d970a46",
+    "revision": null,
+    "created_at": "2026-11-06T23:10:47.573+00:00",
+    "updated_at": "2026-11-06T23:10:47.573+00:00",
+    "signingEnabled": true
+  },
+  "publicCheckoutReview": {
+    "id": "9182cb9e-2654-47c8-83c4-251be7251711",
+    "actor": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
+    "status": "PREPARED",
+    "page_id": null,
+    "payload": {
+      "tx": {
+        "to": "0x384092784cfaa91efaa77870c04d958e20840242",
+        "gas": "1821067",
+        "data": "0xafdcf23c00000000000000000000000099b8ae3c16559b80424a45c92dd530d50d970a4600000000000000000000000070997970c51812dc3a010c7d01b50e0d17dc79c8000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000",
+        "nonce": 5344,
+        "value": "259000000000000000",
+        "account": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "chainId": 31337,
+        "expiresAt": "2026-11-06T23:15:54.679Z",
+        "estimatedGas": "1456853",
+        "maxFeePerGas": "1014190241",
+        "maximumNetworkFee": "1846908379607147",
+        "maxPriorityFeePerGas": "1000000000"
+      },
+      "drop": null,
+      "kind": "go721_launch",
+      "round": 2,
+      "action": {
+        "type": "purchase",
+        "quantity": 10
+      },
+      "quantity": 10,
+      "snapshot": "0xc6eaafc6f44a3995dc567a926427f658f876e6763d62607ef64235ba2dee62bf",
+      "approvalKey": "0x1bf5d8794ed1faf072670b9dd17580099b9ceb037b7a3aaa9615abc887138660",
+      "attestation": {
+        "role": "viewer",
+        "block": "26359016",
+        "owner": "0xbeE916aBC292D4EfF57702fABbA1AAC4d4046036",
+        "chainId": 31337,
+        "contract": "0x99B8AE3C16559B80424a45C92Dd530d50d970a46",
+        "blockHash": "0xb7231b6e95e33eee31ffdc3a8b3690130e3f2a70798c9f5c33a88080ce2d27bf",
+        "runtimeHash": "0x3ef32f426fbb9aadd50d894e5c9a8cfea059f7c02106e692e871508da62b05f4",
+        "sourceCommit": "a2ef226db2e6df9d07e002c7c11ddab17c1df3f5",
+        "supplyLocked": false,
+        "stacksRuntime": "0xd63c5a1f574a2c03b17985a72615c25f51362f38e8369cb75ad0c9232fdbc9ce",
+        "implementation": "0xEA573D90cFD624bed1344a7a7eb44785ae1AD540",
+        "renderingContract": "0x0000000000000000000000000000000000000000"
+      },
+      "campaignKey": "0x581901b39a0bec6702ea75a176977625c87af9fd60f4d72df4a854f7c6f17e4f",
+      "draftVersion": 10,
+      "mintPriceWei": "250000000000000000",
+      "protocolFeeWei": "900000000000000",
+      "counterAtReview": "3",
+      "presaleEvidence": null
+    },
+    "tx_hash": null,
+    "chain_id": 31337,
+    "contract": "0x99b8ae3c16559b80424a45c92dd530d50d970a46",
+    "revision": null,
+    "created_at": "2026-11-06T23:10:54.679+00:00",
+    "updated_at": "2026-11-06T23:10:54.679+00:00",
+    "signingEnabled": true
+  },
+  "final": {
+    "counter": "30",
+    "burned": "0",
+    "remaining": "0",
+    "publicPayoutWei": "675000000000000000",
+    "metadataPathsVerified": 30
+  }
+}

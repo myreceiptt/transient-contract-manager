@@ -6,6 +6,8 @@ import {readGo721SaleReadiness} from '@/server/erc721-sale-readiness';
 import {downloadGo721MetadataArchive} from '@/server/erc721-metadata-archive';
 import {pinGo721Folder,verifyGo721UploadedFolder} from '@/server/go721-folder-pin';
 import {readPublicGo721Status} from '@/server/go721-public-sale';
+import {prepareGo721,getGo721Intent,preflightGo721,attachGo721,confirmGo721,
+  cancelGo721,go721History,go721Readiness} from '@/server/go721-transactions';
 import {auditSavedGo721Folder} from '@/server/go721-folder-audit';
 import {readErc721Transfers} from '@/server/erc721-activity';
 import {readErc721Royalties} from '@/server/erc721-royalty-observer';
@@ -153,8 +155,9 @@ export async function POST(req: NextRequest) {
         holderOffset:z.number().int().min(0).max(10000).default(0)}).parse(p);
       result=await publicCollectorData(a.slug,a.holder,a.activityOffset,a.holderOffset);
     } else if (op === 'public_go721_status') {
-      const a=z.object({recipient:addressSchema.optional()}).parse(p);
-      result=await readPublicGo721Status(a.recipient);
+      const a=z.object({recipient:addressSchema.optional(),quantity:z.number().int().min(1).max(10).default(1),
+        chainId:z.union([z.literal(1),z.literal(31337)]).default(1)}).strict().parse(p);
+      result=await readPublicGo721Status(a.recipient,a.quantity,a.chainId);
     } else if (op === 'public') {
       result = await publicPage(z.string().min(3).max(80).parse(p.slug));
     } else {
@@ -163,6 +166,16 @@ export async function POST(req: NextRequest) {
       release = acquireSlot(req, budget);
       await rateLimit(req, budget, s.wallet);
       if (op === 'session') result = s;
+      else if (op === 'prepare_go721') result=await prepareGo721(chainSchema.parse(p.chainId),p.action,s);
+      else if (op === 'go721_readiness') result=await go721Readiness(chainSchema.parse(p.chainId),s);
+      else if (op === 'history_go721') result=await go721History(chainSchema.parse(p.chainId),s);
+      else if (op === 'intent_go721') result=await getGo721Intent(idSchema.parse(p.id),s);
+      else if (op === 'preflight_go721') result=await preflightGo721(idSchema.parse(p.id),s);
+      else if (op === 'attach_go721') result=await attachGo721(idSchema.parse(p.id),
+        z.string().regex(/^0x[0-9a-fA-F]{64}$/).parse(p.txHash) as Hex,s);
+      else if (op === 'confirm_go721') result=await confirmGo721(idSchema.parse(p.id),s);
+      else if (op === 'cancel_go721') result=await cancelGo721(idSchema.parse(p.id),
+        z.string().regex(/^0x[0-9a-fA-F]{64}$/).parse(p.txHash) as Hex,s);
       else if (op === 'prepare_erc721_mint') {
         const a=identity.parse(p);
         result=await prepareCreatorMint(a.chainId,a.contract,{recipient:p.recipient,uri:p.uri},s);

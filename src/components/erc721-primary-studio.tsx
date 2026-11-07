@@ -7,6 +7,7 @@ import {Artwork} from './safe-media';
 import {Erc721MintCoverPicker} from './erc721-mint-cover-picker';
 import {Erc721SalePreparation} from './erc721-sale-preparation';
 import {Erc721SaleReadinessPanel} from './erc721-sale-readiness-panel';
+import {Go721LaunchPanel} from './go721-launch-panel';
 import {GO_APPROVED_TERMS,inspectDraftAgainstApprovedTerms} from '@/lib/erc721-sale-terms';
 import {useErc721Drafts,type SavedErc721Draft} from './erc721-draft-storage';
 
@@ -72,6 +73,7 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
     ['Public metadata folder',publicMetadataBaseUri||'Not pinned'],
   ];
   return <div className="erc721-workflow">
+    {goSaleTerms&&<Go721LaunchPanel chainId={chainId} authorized={authorized}/>}
     <section className="panel creator-studio-banner">
       <span className="eyebrow">PRIMARY MINT · TLSTACKS721</span>
       <h2>A home for every original.</h2>
@@ -107,8 +109,8 @@ export function Erc721PrimaryStudio({chainId,contract,authorized}:{
         </button>
         <small>Review and choose Save Mint Page draft yourself. No automatic database or blockchain change.</small>
       </div>}
-      <Notice>{storage.statusNote} There is no collector-facing page, configured sale,
-        approval, payment, or mint transaction in this release.</Notice>
+      <Notice>{storage.statusNote} {goSaleTerms ? 'The public Mint Page and launch reviews are available above. Editing this draft does not activate checkout.' :
+        'This collection remains in preparation; no sale is configured by editing this draft.'}</Notice>
       <div className="erc721-draft-storage">
         <div className="button-row">
           <button type="button" className="button secondary" disabled={!authorized||!storage.enabled||storage.busy||coverUploading}

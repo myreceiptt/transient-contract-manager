@@ -34,6 +34,8 @@ export function requestIdentity(req: Request) {
 }
 
 export function operationBudget(op: string): Budget {
+  if (['prepare_go721','preflight_go721','attach_go721','confirm_go721','cancel_go721'].includes(op)) return 'transaction';
+  if (['intent_go721','history_go721','go721_readiness'].includes(op)) return 'workspace';
   if (['challenge', 'login', 'logout'].includes(op)) return 'auth';
   if (op === 'inventory' || op === 'mint_inventory' || op === 'scan_erc721' || op === 'erc721_transfers') return 'inventory';
   if (op === 'metadata') return 'metadata';

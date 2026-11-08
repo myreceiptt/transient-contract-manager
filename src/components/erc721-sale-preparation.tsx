@@ -255,7 +255,7 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
         </button>
       </div>
       <div className="erc721-cover-editor">
-        <label>Verify original Official Artwork Order v1 identities (local JSON; never uploaded)
+        <label>Verify Official Artwork Order v1 identities (local JSON; never uploaded)
           <input type="file" accept=".json,application/json" disabled={!loaded||busy} onChange={e=>{
             const f=e.target.files?.[0];e.target.value='';void verify(f);
           }}/>

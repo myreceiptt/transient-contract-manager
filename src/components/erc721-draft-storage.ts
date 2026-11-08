@@ -6,7 +6,7 @@ import {useSession} from './providers';
 export type SavedErc721Draft={
   id:string;kind:'ARTWORK'|'MINT_PAGE'|'AUCTION';
   identity:string;actor:string;version:number;
-  draft:Record<string,unknown>;archived_at:string|null;updated_at:string;
+  draft:Record<string,unknown>;archived_at:string|null;created_at:string;updated_at:string;
 };
 type Kind=SavedErc721Draft['kind'];
 

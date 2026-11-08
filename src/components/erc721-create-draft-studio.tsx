@@ -34,29 +34,40 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
   }
   const [error,setError]=useState('');
   const [note,setNote]=useState('');
+  const [dirty,setDirty]=useState(false);
   const admin=role==='owner'||role==='admin';
+  const go721=chainId===1&&contract.toLowerCase()==='0x99b8ae3c16559b80424a45c92dd530d50d970a46';
   const storage=useErc721Drafts('ARTWORK',chainId,contract,admin);
   const locked=!!busy||storage.busy||!!mintReview;
+  // Official Artwork Order v1 is the first-save order, NEVER the last-update order.
+  const ordered=go721?[...storage.records].sort((a,b)=>
+    String(a.created_at||'').localeCompare(String(b.created_at||''))||a.id.localeCompare(b.id)):storage.records;
+  const selectedPosition=go721&&storage.active?ordered.findIndex(x=>x.id===storage.active?.id)+1:0;
   function useSaved(row:SavedErc721Draft){
     clearLocalPreview();
     storage.setActive(row);
     setName(String(row.draft.title||''));setDescription(String(row.draft.description||''));
     setImage(String(row.draft.image||''));setExternalUrl(String(row.draft.externalUrl||''));
     setPinned(String(row.draft.metadataUri||''));setRecipient(String(row.draft.recipient||owner));
-    setSimulation(undefined);setNote('Loaded saved artwork draft revision '+row.version+'.');
+    setSimulation(undefined);setDirty(false);
+    setNote('Loaded saved artwork draft revision '+row.version+'.');
     setError('');
   }
   function clearDraft(){
     clearLocalPreview();
     storage.setActive(null);setName('');setDescription('');setImage('');
     setExternalUrl('');setPinned('');setRecipient(owner);setSimulation(undefined);
-    setNote('New unsaved artwork draft.');setError('');
+    setNote('New unsaved artwork draft.');setError('');setDirty(false);
   }
   async function saveDraft(){
-    await storage.save({title:name,description,image,externalUrl,metadataUri:pinned,recipient});
+    if(go721 && (!storage.active || !pinned)){
+      setError('Select an existing GO#|O artwork and pin its latest JSON before saving.');return;
+    }
+    const saved=await storage.save({title:name,description,image,externalUrl,metadataUri:pinned,recipient});
+    if(saved){setDirty(false);setNote('Saved metadata revision '+saved.version+' for the original artwork. No NFT was minted.');}
   }
   function change(setter:(v:string)=>void,value:string){
-    setter(value);setPinned('');setSimulation(undefined);setNote('');setError('');
+    setter(value);setPinned('');setSimulation(undefined);setDirty(true);setNote('');setError('');
   }
   async function task(label:string,fn:()=>Promise<void>){
     if(!admin){setError('Only a verified owner or ADMIN_ROLE wallet can prepare a creator mint.');return;}
@@ -75,7 +86,7 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
     const localUrl=URL.createObjectURL(file);
     localPreviewRef.current=localUrl;
     setLocalPreview(localUrl);setFileName(file.name);setProgress(undefined);
-    setImage('');setPinned('');setSimulation(undefined);setError('');setNote('');
+    setImage('');setPinned('');setSimulation(undefined);setDirty(true);setError('');setNote('');
     await task('upload',async()=>{
       const result=await uploadOriginalArtwork({
         file,kind:'artwork',chainId,contract,standard:'ERC721TL',onProgress:setProgress,
@@ -91,7 +102,7 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
         name,description,image,external_url:externalUrl,attributes:[],
       });
       const result=await api('metadata_pin_erc721',{chainId,contract,metadata});
-      setPinned(result.uri);setSimulation(undefined);
+      setPinned(result.uri);setSimulation(undefined);setDirty(true);
       setNote('Metadata JSON pinned to immutable public IPFS: '+result.uri+'. No NFT was created.');
     });
   }
@@ -113,13 +124,17 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
   }
   return <section className="panel nft-metadata-studio erc721-draft-studio">
     <div className="section-top">
-      <div><span className="eyebrow">CREATE 1 OF 1 · CREATOR MINT</span>
-        <h2>Prepare an original NFT</h2></div>
+      <div><span className="eyebrow">{go721?'GO#|O · FINAL METADATA REVIEW':'CREATE 1 OF 1 · CREATOR MINT'}</span>
+        <h2>{go721?'Review original artwork metadata':'Prepare an original NFT'}</h2></div>
       <span className="tag">EXPLICIT APPROVAL REQUIRED</span>
     </div>
-    <p>Prepare unique artwork and immutable IPFS metadata, then review one creator mint.
-      The review checks the exact runtime, current owner/admin permission, metadata integrity
-      and network fee. Wallet signing remains locked until this exact transaction is approved.</p>
+    {go721?<Notice>Review the existing 30 artworks in first-save order. For each changed artwork:
+      edit fields, pin the new JSON, then Save artwork draft. Unchanged artworks keep their original CID.
+      The server checks the pinned JSON against the saved fields. This does not change the sale folders,
+      Mint Page v10, or Ethereum contract. Do not use direct creator mint for GO#|O.</Notice>:
+      <p>Prepare unique artwork and immutable IPFS metadata, then review one creator mint.
+        The review checks the exact runtime, current owner/admin permission, metadata integrity
+        and network fee. Wallet signing remains locked until this exact transaction is approved.</p>}
     {!admin&&<Notice>Connect a wallet with on-chain owner or ADMIN_ROLE permission
       to pin creator metadata or simulate minting. This does not grant contract-write access.</Notice>}
     <div className="erc721-draft-storage panel">
@@ -131,22 +146,26 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
       <div className="button-row">
         <button type="button" className="button secondary" disabled={!admin||!storage.enabled||locked}
           onClick={()=>void storage.load()}>Load saved artworks</button>
-        <button type="button" className="button secondary" disabled={!admin||locked}
-          onClick={clearDraft}>New artwork draft</button>
-        <button type="button" className="button" disabled={!admin||!storage.enabled||locked}
+        {!go721&&<button type="button" className="button secondary" disabled={!admin||locked}
+          onClick={clearDraft}>New artwork draft</button>}
+        <button type="button" className="button" disabled={!admin||!storage.enabled||locked||(go721&&(!storage.active||!pinned))}
           onClick={()=>void saveDraft()}>{storage.busy?'Saving…':'Save artwork draft'}</button>
       </div>
-      {storage.records.length>0&&<label>Saved versions
+      {storage.records.length>0&&<label>{go721?'Official artwork order · select position #1–#30':'Saved versions'}
         <select disabled={locked} value={storage.active?.id||''} onChange={e=>{
+          if(dirty){setError('There are unsaved edits. Save and pin the revised JSON first, or reload this page to discard changes.');return;}
           const row=storage.records.find(r=>r.id===e.target.value);if(row)useSaved(row);
         }}>
           <option value="">Choose a saved artwork</option>
-          {storage.records.map(row=><option key={row.id} value={row.id}>
-            {String(row.draft.title||'Untitled')} · rev {row.version}
+          {ordered.map((row,i)=><option key={row.id} value={row.id}>
+            {go721?'#'+String(i+1).padStart(2,'0')+' · ':''}{String(row.draft.title||'Untitled')} · rev {row.version}{go721?' · ID '+row.id.slice(0,8):''}
           </option>)}
         </select>
       </label>}
-      {storage.active&&<button type="button" className="button secondary compact"
+      {go721&&storage.active&&<p className="fineprint">Review position #{selectedPosition} of 30 · original draft ID {storage.active.id} ·
+        first saved {storage.active.created_at}. Saving revisions keeps this ID and its first-save order.</p>}
+      {dirty&&<Notice type="error">Unsaved artwork edits. Pin the updated metadata JSON, then save this existing draft before selecting another artwork.</Notice>}
+      {!go721&&storage.active&&<button type="button" className="button secondary compact"
         disabled={!storage.enabled||locked} onClick={()=>void storage.archive(storage.active!)}>
         Archive selected draft
       </button>}
@@ -205,18 +224,18 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
     {pinned&&<div className="metadata-pinned">
       <strong>Immutable NFT metadata URI</strong>
       <code>{pinned}</code>
-      <div className="form-grid"><label>Recipient wallet
+      {!go721&&<div className="form-grid"><label>Recipient wallet
         <input value={recipient} disabled={!admin||locked}
           onChange={e=>{setRecipient(e.target.value);setSimulation(undefined);}}/>
         <small>ERC721TL mints a unique Token ID directly to this recipient.</small>
-      </label></div>
-      <button className="button secondary" type="button" onClick={()=>void runSimulation()}
+      </label></div>}
+      {!go721&&<button className="button secondary" type="button" onClick={()=>void runSimulation()}
         disabled={!admin||locked}>
         {busy==='simulate'?'Simulating on Ethereum…':'Simulate ERC721TL mint (read-only)'}
-      </button>
-      <button className="button" type="button" onClick={()=>void reviewMint()} disabled={!admin||locked}>
+      </button>}
+      {!go721&&<button className="button" type="button" onClick={()=>void reviewMint()} disabled={!admin||locked}>
         {busy==='review'?'Checking creator mint…':'Review creator mint'}
-      </button>
+      </button>}
     </div>}
     {localPreview&&<Notice>Only the text and URI fields are included when you save
       an Artwork draft. The selected local image is not stored in your draft.
@@ -234,7 +253,7 @@ export function Erc721CreateDraftStudio({chainId,contract,owner,role}:Props){
       </dl>
       <Notice>{simulation.warning}</Notice>
     </section>}
-    <Erc721MintLedger chainId={chainId} contract={contract}/>
+    {!go721&&<Erc721MintLedger chainId={chainId} contract={contract}/>} 
     {mintReview&&<Erc721MintReview key={mintReview.id} intent={mintReview}
       onClose={()=>setMintReview(undefined)} onConfirmed={()=>setNote('Mint confirmed. The verified Token ID and tokenURI are recorded in your creator mint review.')}/>}
   </section>;

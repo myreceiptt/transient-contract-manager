@@ -33,8 +33,11 @@ describe('GO#|O local metadata 3+27 ZIP package',()=>{
     const route=readFileSync('src/app/api/route.ts','utf8');
     const ui=readFileSync('src/components/erc721-sale-preparation.tsx','utf8');
     expect(server).toContain("listErc721Drafts('ARTWORK'");
-    expect(server).toContain("verifyCreatorMetadata(a.sourceMetadataUri,bytes)");
-    expect(server).toContain("validat");
+    const attestation=readFileSync('src/server/go721-artwork-source.ts','utf8');
+    expect(server).toContain("verifyGo721ArtworkSource");
+    expect(attestation).toContain("verifyCreatorMetadata(draft.metadataUri, bytes)");
+    expect(attestation).toContain("validatedMetadata(metadata)");
+    expect(server).not.toContain("listRecords('history'");
     expect(server).toContain("pinnedToIpfs:false");
     expect(route).toContain("download_erc721_metadata_archive");
     expect(ui).toContain("Download verified 3+27 metadata folders ZIP");

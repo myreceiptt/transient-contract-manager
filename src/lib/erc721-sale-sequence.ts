@@ -51,7 +51,8 @@ export function prepareSequence(rows:readonly Draft[]):SequenceItem[] {
   });
 }
 /** Approved original snapshot is supplied privately in the browser; never hard-coded in public source. */
-export function verifyApprovedManifest(raw:unknown, live:readonly SequenceItem[],chainId:number,contract:string) {
+export function verifyApprovedManifest(raw:unknown, live:readonly SequenceItem[],chainId:number,contract:string,
+  options?:{allowUpdatedMetadata?:boolean}) {
   if(!raw || typeof raw!=='object')throw new Error('Select the approved JSON Manifest v1.');
   const obj=raw as Record<string,unknown>;
   const collection=obj.collection as Record<string,unknown>|undefined;
@@ -63,16 +64,24 @@ export function verifyApprovedManifest(raw:unknown, live:readonly SequenceItem[]
       throw new Error('Manifest schema, collection or approval does not match.');
   if(!Array.isArray(obj.artworks)||obj.artworks.length!==30||live.length!==30)
     throw new Error('Approved sequence requires exactly 30 artworks.');
+  let metadataChanges=0;
   for(let i=0;i<30;i++){
     const a=obj.artworks[i] as Record<string,unknown>|null, b=live[i];
     if(!a||a.position!==b.position||a.draftId!==b.draftId||
       a.draftCreatedAtUtc!==b.draftCreatedAtUtc||a.round!==b.round||
       a.folderFile!==b.folderFile)
       throw new Error('Approved order mismatch at #'+(i+1));
-    if(a.sourceMetadataUri!==b.sourceMetadataUri||a.imageUri!==b.imageUri)
-      throw new Error('Metadata or image CID changed at #'+(i+1)+'; review a new manifest version.');
+    if(a.sourceMetadataUri!==b.sourceMetadataUri||a.imageUri!==b.imageUri){
+      if(!options?.allowUpdatedMetadata)
+        throw new Error('Metadata or image CID changed at #'+(i+1)+'; review a new manifest version.');
+      metadataChanges++;
+    }
   }
-  return {approved:true,checked:30} as const;
+  // Original identity, first-save timestamp, round and numbered path remain
+  // strictly fixed. Only immutable metadata/image CID changes are permitted.
+  return options?.allowUpdatedMetadata
+    ? {approved:true,checked:30,metadataChanges} as const
+    : {approved:true,checked:30} as const;
 }
 export function exportSalePreparation(chainId:number,contract:string,artworks:readonly SequenceItem[]) {
   if(chainId!==1||!/^0x[0-9a-fA-F]{40}$/.test(contract)||artworks.length!==30)

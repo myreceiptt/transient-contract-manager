@@ -45,6 +45,13 @@ describe('GO#|O 30-artwork source order, off-chain only',()=>{
     expect(()=>verifyApprovedManifest(changed,items,1,contract)).toThrow('order mismatch');
     const edited=structuredClone(approved(items));edited.artworks[1].sourceMetadataUri=items[2].sourceMetadataUri;
     expect(()=>verifyApprovedManifest(edited,items,1,contract)).toThrow('CID changed');
+    const revised=structuredClone(items);
+    revised[1].sourceMetadataUri=items[2].sourceMetadataUri;
+    expect(verifyApprovedManifest(approved(items),revised,1,contract,
+      {allowUpdatedMetadata:true})).toMatchObject({approved:true,checked:30,metadataChanges:1});
+    revised[1].draftId=items[2].draftId;
+    expect(()=>verifyApprovedManifest(approved(items),revised,1,contract,
+      {allowUpdatedMetadata:true})).toThrow('order mismatch');
   });
   it('never creates an executable on-chain drop or sends transaction',()=>{
     const x=exportSalePreparation(1,contract,prepareSequence(sample()));

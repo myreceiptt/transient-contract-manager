@@ -46,9 +46,11 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
     setApproved(false);setError('');setNote('');
     try{
       if(file.size>256*1024)throw new Error('Manifest JSON is too large.');
-      verifyApprovedManifest(JSON.parse(await file.text()),items,chainId,contract);
+      const result=verifyApprovedManifest(JSON.parse(await file.text()),items,chainId,contract,
+        {allowUpdatedMetadata:true});
       setApproved(true);
-      setNote('Official order v1 verified. All 30 draft IDs, creation times and source CIDs match.');
+      setNote('Official order v1 identities, first-save positions and folder paths verified. '
+        +result.metadataChanges+' artwork metadata/image CID(s) have been revised.');
     }catch(e){setError(e instanceof Error?e.message:'Approved manifest validation failed.');}
   }
   function confirmWallet(){
@@ -181,7 +183,7 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
           <Download size={15}/>{archiveBusy?'Checking 30 metadata files…':'Download verified 3+27 metadata folders ZIP'}
         </button>
       </div>
-      <small>You can pin directly using the two actions below. No ZIP extraction, new wallet signature,
+      <small>You can pin directly using the two actions below only when the saved folder still matches the finalized artwork CIDs. An existing, different folder is never overwritten automatically. No ZIP extraction, new wallet signature,
         Ethereum transaction or manual Merkle proof entry is required. These actions upload public metadata to Pinata.</small>
       <div className="button-row">
         <button type="button" className="button secondary" disabled={pinBusy!==null||archiveBusy}
@@ -253,13 +255,13 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
         </button>
       </div>
       <div className="erc721-cover-editor">
-        <label>Verify Official Artwork Order v1 (local JSON; never uploaded)
+        <label>Verify Official Artwork Order v1 identities (local JSON; never uploaded)
           <input type="file" accept=".json,application/json" disabled={!loaded||busy} onChange={e=>{
             const f=e.target.files?.[0];e.target.value='';void verify(f);
           }}/>
         </label>
         {!loaded&&<small>First load the 30 drafts to enable file verification.</small>}
-        {loaded&&<small>{items.length} artwork positions loaded. Verify against your local manifest if needed.</small>}
+        {loaded&&<small>{items.length} artwork positions loaded. The v1 manifest preserves IDs and numbered positions even if metadata was revised.</small>}
       </div>
       {loaded&&<>
         <div className="button-row">

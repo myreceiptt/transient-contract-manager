@@ -1,22 +1,21 @@
-import {createHash} from 'node:crypto';
 import {type Address} from 'viem';
 import {AppError} from '../lib/domain';
 import {listErc721Drafts} from './erc721-drafts';
-import {listRecords} from './db';
 import {type Session} from './auth';
 import {prepareSequence} from '../lib/erc721-sale-sequence';
-import {validatedMetadata} from '../lib/nft-metadata';
-import {verifyCreatorMetadata} from './erc721-creator-mint';
+import {verifyGo721ArtworkSource} from './go721-artwork-source';
 import {buildGo721MetadataZip} from '../lib/erc721-metadata-zip';
 import {GO_APPROVED_TERMS} from '../lib/erc721-sale-terms';
 const GO721_COLLECTION=GO_APPROVED_TERMS.collection;
 
 /**
- * Zero public exposure. Owner/Admin access comes from verified on-chain role in
- * listErc721Drafts(), not an actor supplied by the caller. Source review records
- * must match the pinned CID cryptographically for all 30 artworks; fail closed.
+ * Each of the 30 immutable source CIDs is verified against the live saved draft.
+ * Earlier creator-mint reviews are NOT needed: GO#|O direct creator mint review
+ * is intentionally blocked to preserve mint order, and a legitimate later edit
+ * may have a different metadata CID.
  *
- * This creates a ZIP in memory but NEVER pins, publishes or creates a drop.
+ * Only the existing owner/admin-authorized draft-list endpoint invokes this.
+ * This creates bytes for the archive but never publishes or signs anything.
  */
 export async function verifiedGo721MetadataItems(chainId:number,contract:Address,s:Session){
   if(chainId!==1||contract.toLowerCase()!==GO721_COLLECTION.toLowerCase())
@@ -24,37 +23,25 @@ export async function verifiedGo721MetadataItems(chainId:number,contract:Address
   const raw=await listErc721Drafts('ARTWORK',chainId,contract,s);
   if(!Array.isArray(raw))throw new AppError('ARCHIVE_DRAFTS','Draft storage is unavailable.',503);
   const sequence=prepareSequence(raw);
-  // Existing history endpoint has a capped page size; repeat until exhausted.
-  // These database reads have no write effects and use server-side service-role only.
-  const latest=new Map<string,any>();
-  let complete=false;
-  for(let offset=0;offset<200;offset+=25){
-    const rows=await listRecords('history',{chainId,contract,limit:25,offset});
-    if(!Array.isArray(rows))throw new AppError('ARCHIVE_HISTORY','Review history unavailable.',503);
-    for(const item of rows){
-      const p=item?.payload;
-      if(p?.kind!=='erc721_creator_mint'||p?.action?.uri===undefined)continue;
-      const uri=String(p.action.uri);
-      if(!latest.has(uri))latest.set(uri,p.metadata);
+  const byId=new Map(raw.map(row=>[row.id,row]));
+  const items: Array<{round:1|2;file:string;json:Buffer}> = new Array(sequence.length);
+  let cursor=0;
+  // Bounded concurrency protects gateways; no creator mint review is created.
+  const workers=Array.from({length:6},async()=>{
+    while(cursor<sequence.length){
+      const i=cursor++;
+      const a=sequence[i],row=byId.get(a.draftId);
+      if(!row)throw new AppError('ARCHIVE_DRAFT_MISSING','Artwork position '+a.position+' is missing.',409);
+      const draft=row.draft;
+      const checked=await verifyGo721ArtworkSource({
+        title:String(draft.title??''),description:String(draft.description??''),
+        image:String(draft.image??''),externalUrl:String(draft.externalUrl??''),
+        metadataUri:a.sourceMetadataUri,
+      });
+      items[i]={round:a.round,file:a.folderFile,json:checked.json};
     }
-    if(rows.length<25){complete=true;break;}
-  }
-  if(!complete)throw new AppError('ARCHIVE_HISTORY_LIMIT','Review history exceeds bounded scan.',409);
-  const items=sequence.map((a)=>{
-    const reviewed=latest.get(a.sourceMetadataUri);
-    if(!reviewed||typeof reviewed.sha256!=='string'||!reviewed.metadata)
-      throw new AppError('ARCHIVE_REVIEW_MISSING','No matching review for artwork position '+a.position,409);
-    // parse & reserialize in the same field order as the original Pin Metadata
-    const canonical=validatedMetadata(reviewed.metadata);
-    const bytes=Buffer.from(canonical.bytes);
-    const verified=verifyCreatorMetadata(a.sourceMetadataUri,bytes);
-    const actualSha=createHash('sha256').update(bytes).digest('hex');
-    if(verified.sha256!==reviewed.sha256||actualSha!==reviewed.sha256||
-      verified.metadata.image!==a.imageUri||
-      verified.metadata.name!==a.titleAtSnapshot)
-      throw new AppError('ARCHIVE_INTEGRITY','Metadata, image or title changed at position '+a.position,409);
-    return {round:a.round,file:a.folderFile,json:bytes};
   });
+  await Promise.all(workers);
   return {items,sequence};
 }
 

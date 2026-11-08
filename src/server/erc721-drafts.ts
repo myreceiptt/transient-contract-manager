@@ -4,6 +4,7 @@ import {AppError,addressSchema,positive,safeUrl} from '../lib/domain';
 import {inspectErc721Candidate,scanErc721Candidates} from './erc721-probe';
 import {command,listGo721ArtworkRows} from './db';
 import {requireSessionChain,type Session} from './auth';
+import {verifyGo721ArtworkSource} from './go721-artwork-source';
 
 /** ERC721 app-only editorial drafts. No blockchain calldata, sale execution,
  * approval, escrow, token transfer or public mint publication here.
@@ -11,6 +12,10 @@ import {requireSessionChain,type Session} from './auth';
  */
 export const erc721DraftKind=z.enum(['ARTWORK','MINT_PAGE','AUCTION']);
 export type Erc721DraftKind=z.infer<typeof erc721DraftKind>;
+const GO721='0x99b8ae3c16559b80424a45c92dd530d50d970a46';
+function isReservedGoArtwork(kind:Erc721DraftKind,chainId:number,contract:string){
+  return kind==='ARTWORK'&&chainId===1&&contract.toLowerCase()===GO721;
+}
 
 const decimal=z.string().max(50).regex(/^(?:0|[1-9]\d*)(?:\.\d{1,18})?$/);
 const optDecimal=z.union([z.literal(''),decimal]);
@@ -104,6 +109,9 @@ export async function createErc721Draft(kind:Erc721DraftKind,chainId:number,cont
   draftStorageEnabled();
   const data=parseErc721Draft(kind,raw);
   const allowed=await scope(kind,chainId,contract,s,'create',data);
+  if(isReservedGoArtwork(kind,chainId,contract))
+    throw new AppError('GO721_FIXED_ARTWORK_SET',
+      'All 30 original GO#|O artwork drafts already exist. Load and revise an existing artwork; never create a replacement.',409);
   const identity=kind==='MINT_PAGE'?'collection':
     kind==='AUCTION'?(data as {tokenId:string}).tokenId+':'+s.wallet.toLowerCase():randomUUID();
   return command('erc721_draft',{action:'create',kind,chainId,contract:contract.toLowerCase(),identity,data,...allowed});
@@ -113,12 +121,17 @@ export async function saveErc721Draft(kind:Erc721DraftKind,chainId:number,contra
   draftStorageEnabled();
   const data=parseErc721Draft(kind,raw);
   const allowed=await scope(kind,chainId,contract,s,'save',data);
+  if(isReservedGoArtwork(kind,chainId,contract))
+    await verifyGo721ArtworkSource(data as z.infer<typeof artData>);
   return command('erc721_draft',{action:'save',kind,chainId,contract:contract.toLowerCase(),
     id,expectedVersion,data,...allowed});
 }
 export async function archiveErc721Draft(kind:Erc721DraftKind,chainId:number,contract:string,
  id:string,expectedVersion:number,s:Session){
   draftStorageEnabled();
+  if(isReservedGoArtwork(kind,chainId,contract))
+    throw new AppError('GO721_FIXED_ARTWORK_SET',
+      'The original 30 artworks cannot be archived during sale preparation.',409);
   if(kind==='MINT_PAGE')
     throw new AppError('MINT_PAGE_CANONICAL',
       'The one collection-wide primary Mint Page draft has a permanent identity. Edit it instead of archiving.',409);

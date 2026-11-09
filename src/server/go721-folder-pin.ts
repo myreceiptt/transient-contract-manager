@@ -7,6 +7,7 @@ import {fetchMediaWithFallback} from './media';
 import {verifiedGo721MetadataItems} from './erc721-metadata-archive';
 import {listErc721Drafts,saveErc721Draft} from './erc721-drafts';
 import {prepareSequence,type SequenceItem} from '../lib/erc721-sale-sequence';
+import {readGo721State} from './go721-launch-state';
 import type {Session} from './auth';
 
 const GO=getAddress(GO_APPROVED_TERMS.collection);
@@ -20,6 +21,13 @@ export function allowGo721FolderReplacement(existing:unknown,baseUri:string,repl
   if(existing && existing!==baseUri && !replaceExisting)
     throw new AppError('FOLDER_CONFLICT',
       'An existing verified folder may only be replaced by the explicit final-metadata action.',409);
+}
+async function assertFinalFolderPrelaunch(chainId:number){
+  const current=await readGo721State(chainId);
+  if(current.counter!==0n || current.burns!==0n || current.round!==0n ||
+     current.phase!==0 || current.approved)
+    throw new AppError('GO721_FOLDER_RELEASE_CLOSED',
+      'Metadata folder replacement is only available before minter authorization, configuration and the first mint.',409);
 }
 async function assertArtworkSnapshot(chainId:number,contract:Address,s:Session,before:readonly SequenceItem[]){
   const current=prepareSequence(await listErc721Drafts('ARTWORK',chainId,contract,s));
@@ -86,6 +94,7 @@ export async function pinGo721Folder(round:Round,chainId:number,contract:Address
   if(chainId!==1||getAddress(contract)!==GO)
     throw new AppError('FOLDER_SCOPE','Folder pinning is available only for GO#|O on Ethereum Mainnet.',403);
   const {items,sequence}=await verifiedGo721MetadataItems(chainId,contract,s);
+  if(replaceExisting)await assertFinalFolderPrelaunch(chainId);
   const {form,folder,subset}=pinataFolderUploadForm(round,items);
   const saved=await listErc721Drafts('MINT_PAGE',chainId,contract,s) as {
     id:string;version:number;draft:Record<string,unknown>;
@@ -121,6 +130,7 @@ export async function pinGo721Folder(round:Round,chainId:number,contract:Address
   };
   allowGo721FolderReplacement(existing,baseUri,replaceExisting);
   await assertArtworkSnapshot(chainId,contract,s,sequence);
+  if(replaceExisting)await assertFinalFolderPrelaunch(chainId);
   if(existing!==baseUri){
     await saveErc721Draft('MINT_PAGE',chainId,contract,
       saved[0].id,saved[0].version,{...saved[0].draft,[key]:baseUri},s);
@@ -142,6 +152,7 @@ export async function verifyGo721UploadedFolder(round:Round,rawCid:string,
   if(!validUploadCid(rawCid))
     throw new AppError('FOLDER_CID','Enter the exact IPFS directory CID returned by Pinata.',422);
   const {items,sequence}=await verifiedGo721MetadataItems(chainId,contract,s);
+  if(replaceExisting)await assertFinalFolderPrelaunch(chainId);
   const {folder,subset}=pinataFolderUploadForm(round,items);
   const baseUri=await verifyPinnedFolderPath(rawCid,folder,subset);
   if(!baseUri)return {
@@ -157,6 +168,7 @@ export async function verifyGo721UploadedFolder(round:Round,rawCid:string,
   const existing=saved[0].draft[key];
   allowGo721FolderReplacement(existing,baseUri,replaceExisting);
   await assertArtworkSnapshot(chainId,contract,s,sequence);
+  if(replaceExisting)await assertFinalFolderPrelaunch(chainId);
   if(existing!==baseUri)
     await saveErc721Draft('MINT_PAGE',chainId,contract,
       saved[0].id,saved[0].version,{...saved[0].draft,[key]:baseUri},s);

@@ -32,7 +32,7 @@ async function withRpcExplanation<T>(stage:string,work:()=>Promise<T>):Promise<T
   catch(error){
     if(transientGo721RpcError(error))
       throw new AppError('GO721_ETHEREUM_RPC_UNAVAILABLE',
-        'Ethereum Mainnet RPC could not verify '+stage+'. No metadata was re-uploaded or committed. Keep the existing CID and retry verification after RPC connectivity recovers.',503);
+        'Ethereum Mainnet RPC could not verify '+stage+'. The folder has not been confirmed as saved by this request. Preserve any existing Pinata CID; do not upload the folder again. Retry CID verification once the RPC is available.',503);
     throw error;
   }
 }

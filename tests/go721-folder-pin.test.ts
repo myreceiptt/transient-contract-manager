@@ -65,7 +65,7 @@ describe('GO#|O 3+27 metadata folder publication',()=>{
     const route=readFileSync('src/app/api/route.ts','utf8');
     expect(operationBudget('pin_go721_metadata_folder')).toBe('media');
     expect(operationBudget('verify_go721_metadata_folder')).toBe('workspace');
-    expect(source).toContain('verifiedGo721MetadataItems(chainId,contract,s)');
+    expect(source).toContain('verifiedGo721MetadataItems(chainId,contract,s,round)');
     expect(source).toContain('process.env.PINATA_JWT');
     expect(source).toContain("saveErc721Draft('MINT_PAGE'");
     expect(source).toContain('verifyPinnedFolderPath');

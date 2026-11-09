@@ -26,6 +26,8 @@ export function mediaTarget(uri: string) {
     'gateway.pinata.cloud',
     'dweb.link',
     'w3s.link',
+    'ipfs.filebase.io',
+    'nftstorage.link',
     'cloudflare-ipfs.com',
     ...(process.env.MEDIA_ALLOWED_HOSTS || '')
       .split(',')
@@ -43,7 +45,8 @@ export function mediaTarget(uri: string) {
       'This media host is not approved. Use an IPFS URI or ask the operator to approve its HTTPS hostname.',
     );
   if (
-    ['ipfs.io', 'gateway.pinata.cloud', 'cloudflare-ipfs.com', 'dweb.link', 'w3s.link'].includes(url.hostname) &&
+    ['ipfs.io', 'gateway.pinata.cloud', 'cloudflare-ipfs.com', 'dweb.link', 'w3s.link',
+      'ipfs.filebase.io', 'nftstorage.link'].includes(url.hostname) &&
     !url.pathname.startsWith('/ipfs/')
   )
     throw new AppError('MEDIA_PATH', 'Use the gateway IPFS path');
@@ -108,7 +111,7 @@ export async function fetchMedia(uri: string, max: number, callerSignal?: AbortS
             fail(
               new AppError(
                 'MEDIA_UNAVAILABLE',
-                'Media gateway failed or attempted a redirect',
+                'Media gateway '+url.hostname+' returned HTTP '+res.statusCode+'. Redirects are never followed.',
                 502,
               ),
             );
@@ -163,13 +166,22 @@ export async function fetchMediaWithFallback(uri: string, max: number, callerSig
   if (!isSafeUrl(uri))
     throw new AppError('MEDIA_URL', 'Use a valid IPFS URI');
   const cidPath = uri.slice('ipfs://'.length);
+  // Prefer the content owner's dedicated Pinata gateway if it was explicitly
+  // approved by the deployment operator. Other hosts remain static, allowlisted,
+  // DNS-checked, IP-pinned and TLS-authenticated; no redirects are followed.
+  const dedicated=(process.env.MEDIA_ALLOWED_HOSTS||'').split(',').map(x=>x.trim())
+    .filter(x=>/^[a-z0-9-]+\.mypinata\.cloud$/.test(x))
+    .map(x=>'https://'+x+'/ipfs/');
   const gateways = [
-    'https://dweb.link/ipfs/',
+    ...dedicated,
     'https://gateway.pinata.cloud/ipfs/',
+    'https://w3s.link/ipfs/',
+    'https://dweb.link/ipfs/',
+    'https://ipfs.filebase.io/ipfs/',
     'https://ipfs.io/ipfs/',
   ];
   const signal = AbortSignal.any([
-    AbortSignal.timeout(12000),
+    AbortSignal.timeout(18000),
     ...(callerSignal ? [callerSignal] : []),
   ]);
   let lastError: unknown;

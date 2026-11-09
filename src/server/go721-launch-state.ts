@@ -6,7 +6,7 @@ import { GO721_DRAFT_ID, GO721_FOLDERS, GO721_RUNTIME, GO721_MINTER_ROLE, go721C
 import { planGo721Drop } from '../lib/go721-sale-plan';
 import { erc721CreatorAbi } from '../lib/erc721-creator';
 import { attestCreator, localCreatorExecution } from './erc721-creator-mint';
-import { client, exactChain } from './chain';
+import { client,go721ReadClient, exactChain } from './chain';
 import { command } from './db';
 
 export function go721Scope(chainId: number) {
@@ -34,12 +34,12 @@ export async function savedGo721Campaign() {
 
 export async function readGo721State(chainId = 1, wallet?: Address, finalized = false) {
   go721Scope(chainId);
-  const c = client(chainId);
+  const c = chainId===1?go721ReadClient():client(chainId);
   await exactChain(c, chainId);
   const block = await c.getBlock(finalized && chainId === 1 ? { blockTag: 'finalized' } : {});
   const at = { blockNumber: block.number };
   const [creator, code, drop, round, phase, paused, fee, approved, counterHex, burnsHex, supply, version, mintedByWallet] = await Promise.all([
-    attestCreator(chainId, GO721_COLLECTION, wallet, block.number),
+    attestCreator(chainId, GO721_COLLECTION, wallet, block.number, chainId===1),
     c.getCode({ address: GO721_STACKS, ...at }),
     c.readContract({ address: GO721_STACKS, abi: go721DropAbi, functionName: 'getDrop', args: [GO721_COLLECTION], ...at }),
     c.readContract({ address: GO721_STACKS, abi: go721ViewsAbi, functionName: 'getDropRound', args: [GO721_COLLECTION], ...at }),

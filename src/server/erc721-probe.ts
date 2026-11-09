@@ -1,7 +1,7 @@
 import { getAddress, keccak256, parseAbi, type Address } from 'viem';
 import { AppError, serializable } from '../lib/domain';
 import { ADMIN_ROLE } from '../lib/chains';
-import { client, exactChain } from './chain';
+import { client,go721ReadClient, exactChain } from './chain';
 import { erc721Creator } from '../lib/erc721-creator';
 
 /**
@@ -54,7 +54,8 @@ function parseImplementation(code:`0x${string}`):Address | null {
   return clone?getAddress('0x'+clone[1]):null;
 }
 export async function inspectErc721Candidate(chainId:number,contract:Address,wallet?:Address){
-  const c=client(chainId);
+  const c=chainId===1&&contract.toLowerCase()==='0x99b8ae3c16559b80424a45c92dd530d50d970a46'
+    ? go721ReadClient():client(chainId);
   await exactChain(c,chainId);
   const block=await c.getBlock();
   const code=await c.getCode({address:contract,blockNumber:block.number});

@@ -14,7 +14,7 @@ import { ADMIN_ROLE } from '../lib/chains';
 import { AppError, nonzeroAddress, fingerprint, serializable } from '../lib/domain';
 import { nftMetadataSchema } from '../lib/nft-metadata';
 import { requireSessionChain, type Session } from './auth';
-import { client, exactChain } from './chain';
+import { client, go721ReadClient, exactChain } from './chain';
 import { command, listRecords } from './db';
 import { fetchMediaWithFallback } from './media';
 
@@ -49,14 +49,14 @@ export function localCreatorExecution(chainId: number) {
   }
 }
 
-export async function attestCreator(chainId: number, contract: Address, wallet?: Address, atBlock?: bigint) {
+export async function attestCreator(chainId: number, contract: Address, wallet?: Address, atBlock?: bigint, resilientRead=false) {
   if (chainId !== 1 && !localCreatorExecution(chainId))
     throw new AppError(
       'ERC721_CHAIN_SCOPE',
       'Creator mint supports Ethereum or an isolated local fork',
       403,
     );
-  const c = client(chainId);
+  const c = resilientRead&&chainId===1?go721ReadClient():client(chainId);
   await exactChain(c, chainId);
   const block = await c.getBlock(atBlock === undefined ? {} : { blockNumber: atBlock });
   const code = await c.getCode({ address: contract, blockNumber: block.number });

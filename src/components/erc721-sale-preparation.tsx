@@ -23,6 +23,7 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
   const [busy,setBusy]=useState(false),[archiveBusy,setArchiveBusy]=useState(false);
   const [error,setError]=useState(''),[note,setNote]=useState('');
   const [pinBusy,setPinBusy]=useState<1|2|null>(null);
+  const [pinMode,setPinMode]=useState<'upload'|'verify'|null>(null);
   const [auditBusy,setAuditBusy]=useState(false);
   const [auditResults,setAuditResults]=useState<Record<number,{verifiedPaths:number;expectedPaths:number;sourceSha256:string;verifiedAt:string}>>({});
   const [folders,setFolders]=useState<Record<number,{cid:string;baseUri:string|null;verified:boolean;saved:boolean}>>({});
@@ -108,7 +109,7 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
   }
   async function pinRound(round:1|2){
     if(pinBusy||archiveBusy||!authorized||!saleTerms)return;
-    setPinBusy(round);setError('');setNote('');
+    setPinBusy(round);setPinMode('upload');setError('');setNote('');
     try {
       await ensureSession(chainId);
       const result=await api('pin_go721_metadata_folder',{chainId,contract,round,replaceExisting:true}) as {
@@ -119,16 +120,16 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
       if(!result.verified)setError(result.message+' CID: '+result.cid);
       else setNote('Round '+round+': '+result.message+' Base URI '+result.baseUri);
     }catch(e){setError(e instanceof Error?e.message:'Could not pin the IPFS folder.');}
-    finally{setPinBusy(null);}
+    finally{setPinBusy(null);setPinMode(null);}
   }
   async function recheckFolder(round:1|2){
     const candidate=(recoveryCids[round]||folders[round]?.cid||'').trim();
     if(!candidate||pinBusy||!authorized||!saleTerms)return;
-    setPinBusy(round);setError('');setNote('');
+    setPinBusy(round);setPinMode('verify');setError('');setNote('');
     try{
       await ensureSession(chainId);
       const result=await api('verify_go721_metadata_folder',
-        {chainId,contract,round,cid:candidate,replaceExisting:true}) as {
+        {chainId,contract,round,cid:candidate,replaceExisting:true},{timeoutMs:90000}) as {
           round:1|2;cid:string;baseUri:string|null;verified:boolean;saved:boolean;message:string;
         };
       setFolders(prev=>({...prev,[round]:result}));
@@ -137,7 +138,7 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
         setNote('Round '+round+': '+result.message+' Base URI '+result.baseUri);
       else setError(result.message+' CID: '+result.cid);
     }catch(e){setError(e instanceof Error?e.message:'Could not verify the existing CID.');}
-    finally{setPinBusy(null);}
+    finally{setPinBusy(null);setPinMode(null);}
   }
   async function auditAllSavedFolders(){
     if(auditBusy||pinBusy||archiveBusy||!authorized||!saleTerms)return;
@@ -199,13 +200,17 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
       <div className="button-row">
         <button type="button" className="button secondary" disabled={pinBusy!==null||archiveBusy}
           onClick={()=>void pinRound(1)}>
-          {pinBusy===1?'Pinning and validating…':'Replace presale folder with final 3 NFTs'}
+          {pinBusy===1?(pinMode==='verify'?'Verifying existing presale CID…':'Pinning and validating…'):'Replace presale folder with final 3 NFTs'}
         </button>
         <button type="button" className="button secondary" disabled={pinBusy!==null||archiveBusy}
           onClick={()=>void pinRound(2)}>
-          {pinBusy===2?'Pinning and validating…':'Replace public folder with final 27 NFTs'}
+          {pinBusy===2?(pinMode==='verify'?'Verifying existing public CID…':'Pinning and validating…'):'Replace public folder with final 27 NFTs'}
         </button>
       </div>
+      {pinBusy!==null&&pinMode==='verify'&&
+        <Notice>Verifying the existing Round {pinBusy} CID. This button never uploads again or
+          signs a transaction. It checks the saved metadata, current Ethereum contract
+          state, and the numbered IPFS folder. A gateway/RPC failure will be shown below.</Notice>}
       <div className="erc721-cover-editor">
         <strong>Recover a previously pinned CID — no upload</strong>
         <p>If a folder upload produced a CID but the public gateway could not be checked,
@@ -221,7 +226,7 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
           <button type="button" className="button secondary compact"
             disabled={!recoveryCids[round]?.trim()||pinBusy!==null||archiveBusy}
             onClick={()=>void recheckFolder(round)}>
-            Verify this existing CID (no upload)
+            {pinBusy===round&&pinMode==='verify'?'Verifying this CID…':'Verify this existing CID (no upload)'}
           </button>
         </div>)}
       </div>

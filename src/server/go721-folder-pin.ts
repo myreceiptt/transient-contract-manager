@@ -14,6 +14,28 @@ const GO=getAddress(GO_APPROVED_TERMS.collection);
 const MAX_DIRECTORY_BYTES=1024*1024;
 const folderNames={1:'go-one-of-one-presale-3',2:'go-one-of-one-public-27'} as const;
 type Round=1|2;
+/** Preserve Mainnet contract checks; report a transient upstream outage without
+ * ever accepting an unverified CID or granting minting permissions.
+ */
+export function transientGo721RpcError(error:unknown){
+  let e:unknown=error;
+  for(let i=0;i<6&&e&&typeof e==='object';i++){
+    const name=String((e as {name?:unknown}).name??'');
+    if(/ResourceNotFoundRpcError|HttpRequestError|TimeoutError|RpcRequestError|RequestTimeoutError|SocketError/.test(name))
+      return true;
+    e=(e as {cause?:unknown}).cause;
+  }
+  return false;
+}
+async function withRpcExplanation<T>(stage:string,work:()=>Promise<T>):Promise<T>{
+  try{return await work();}
+  catch(error){
+    if(transientGo721RpcError(error))
+      throw new AppError('GO721_ETHEREUM_RPC_UNAVAILABLE',
+        'Ethereum Mainnet RPC could not verify '+stage+'. The folder has not been confirmed as saved by this request. Preserve any existing Pinata CID; do not upload the folder again. Retry CID verification once the RPC is available.',503);
+    throw error;
+  }
+}
 /** A changed saved folder can only be replaced after an explicit Owner/Admin
  * request. A stale browser action must never overwrite a newly saved CID.
  */
@@ -93,8 +115,8 @@ export async function verifyPinnedFolderPath(
 export async function pinGo721Folder(round:Round,chainId:number,contract:Address,s:Session,replaceExisting=false){
   if(chainId!==1||getAddress(contract)!==GO)
     throw new AppError('FOLDER_SCOPE','Folder pinning is available only for GO#|O on Ethereum Mainnet.',403);
-  const {items,sequence}=await verifiedGo721MetadataItems(chainId,contract,s,round);
-  if(replaceExisting)await assertFinalFolderPrelaunch(chainId);
+  const {items,sequence}=await withRpcExplanation('Owner/Admin access and saved artwork sources',()=>verifiedGo721MetadataItems(chainId,contract,s,round));
+  if(replaceExisting)await withRpcExplanation('the unminted, unconfigured GO#|O collection state',()=>assertFinalFolderPrelaunch(chainId));
   const {form,folder,subset}=pinataFolderUploadForm(round,items);
   const saved=await listErc721Drafts('MINT_PAGE',chainId,contract,s) as {
     id:string;version:number;draft:Record<string,unknown>;
@@ -129,8 +151,8 @@ export async function pinGo721Folder(round:Round,chainId:number,contract:Address
     message:'IPFS folder upload accepted but gateway validation is pending. Preserve this CID; do not use it for a sale until independently verified.'
   };
   allowGo721FolderReplacement(existing,baseUri,replaceExisting);
-  await assertArtworkSnapshot(chainId,contract,s,sequence);
-  if(replaceExisting)await assertFinalFolderPrelaunch(chainId);
+  await withRpcExplanation('unchanged artwork identities',()=>assertArtworkSnapshot(chainId,contract,s,sequence));
+  if(replaceExisting)await withRpcExplanation('the unminted, unconfigured GO#|O collection state',()=>assertFinalFolderPrelaunch(chainId));
   if(existing!==baseUri){
     await saveErc721Draft('MINT_PAGE',chainId,contract,
       saved[0].id,saved[0].version,{...saved[0].draft,[key]:baseUri},s);
@@ -151,8 +173,8 @@ export async function verifyGo721UploadedFolder(round:Round,rawCid:string,
   if(round!==1&&round!==2)throw new AppError('INVALID_ROUND','Expected presale or public round.',422);
   if(!validUploadCid(rawCid))
     throw new AppError('FOLDER_CID','Enter the exact IPFS directory CID returned by Pinata.',422);
-  const {items,sequence}=await verifiedGo721MetadataItems(chainId,contract,s,round);
-  if(replaceExisting)await assertFinalFolderPrelaunch(chainId);
+  const {items,sequence}=await withRpcExplanation('Owner/Admin access and saved artwork sources',()=>verifiedGo721MetadataItems(chainId,contract,s,round));
+  if(replaceExisting)await withRpcExplanation('the unminted, unconfigured GO#|O collection state',()=>assertFinalFolderPrelaunch(chainId));
   const {folder,subset}=pinataFolderUploadForm(round,items);
   const baseUri=await verifyPinnedFolderPath(rawCid,folder,subset);
   if(!baseUri)return {
@@ -167,8 +189,8 @@ export async function verifyGo721UploadedFolder(round:Round,rawCid:string,
   const key=round===1?'presaleMetadataBaseUri':'publicMetadataBaseUri';
   const existing=saved[0].draft[key];
   allowGo721FolderReplacement(existing,baseUri,replaceExisting);
-  await assertArtworkSnapshot(chainId,contract,s,sequence);
-  if(replaceExisting)await assertFinalFolderPrelaunch(chainId);
+  await withRpcExplanation('unchanged artwork identities',()=>assertArtworkSnapshot(chainId,contract,s,sequence));
+  if(replaceExisting)await withRpcExplanation('the unminted, unconfigured GO#|O collection state',()=>assertFinalFolderPrelaunch(chainId));
   if(existing!==baseUri)
     await saveErc721Draft('MINT_PAGE',chainId,contract,
       saved[0].id,saved[0].version,{...saved[0].draft,[key]:baseUri},s);

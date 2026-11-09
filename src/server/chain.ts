@@ -1,6 +1,7 @@
 import {
   createPublicClient,
   http,
+  fallback,
   getAddress,
   keccak256,
   parseAbi,
@@ -51,6 +52,21 @@ export function client(id: number) {
     transport: http(process.env[rpcKeys[id]] || rpcDefaults[id], { retryCount: 1, timeout: 12000 }),
   });
 }
+/** Read-only provider failover for GO#|O metadata finalization and launch
+ * observations. Never applies to wallet submission; both RPCs must return
+ * Ethereum chain 1 and all original runtime/role/counter checks still execute.
+ * Do not add RPC credentials or enable a private write transport here.
+ */
+export function go721ReadClient() {
+  const primary=process.env.ETHEREUM_RPC_URL||rpcDefaults[1];
+  return createPublicClient({
+    chain:getChain(1),
+    transport:fallback([
+      http(primary,{retryCount:0,timeout:7000}),
+      http('https://ethereum.reth.rs/rpc',{retryCount:0,timeout:7000}),
+    ],{rank:false,retryCount:0}),
+  });
+}
 export function stacksAddress(id: number): Address {
   if (id === 31337) {
     if (!process.env.LOCAL_STACKS_ADDRESS)
@@ -59,7 +75,7 @@ export function stacksAddress(id: number): Address {
   }
   return STACKS;
 }
-export async function exactChain(c: ReturnType<typeof client>, id: number) {
+export async function exactChain(c: Pick<ReturnType<typeof client>, 'getChainId'>, id: number) {
   if ((await c.getChainId()) !== id)
     throw new AppError('CHAIN_MISMATCH', 'RPC returned a different chain ID', 503);
 }

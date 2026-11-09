@@ -26,6 +26,9 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
   const [auditBusy,setAuditBusy]=useState(false);
   const [auditResults,setAuditResults]=useState<Record<number,{verifiedPaths:number;expectedPaths:number;sourceSha256:string;verifiedAt:string}>>({});
   const [folders,setFolders]=useState<Record<number,{cid:string;baseUri:string|null;verified:boolean;saved:boolean}>>({});
+  // The pending CID is public, not secret. Allow manual recovery after a
+  // deployment refresh: never require another Pinata upload just to recheck.
+  const [recoveryCids,setRecoveryCids]=useState<Record<number,string>>({});
   const [walletInput,setWalletInput]=useState(isApprovedCollection?GO_APPROVED_TERMS.presaleRecipient:'');
   const [presale,setPresale]=useState<OneWalletPresale|null>(
     isApprovedCollection?prepareOneWalletPresale(GO_APPROVED_TERMS.presaleRecipient,chainId,contract):null);
@@ -112,13 +115,14 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
         round:1|2;cid:string;baseUri:string|null;verified:boolean;saved:boolean;message:string;
       };
       setFolders(prev=>({...prev,[round]:result}));
+      setRecoveryCids(prev=>({...prev,[round]:result.cid}));
       if(!result.verified)setError(result.message+' CID: '+result.cid);
       else setNote('Round '+round+': '+result.message+' Base URI '+result.baseUri);
     }catch(e){setError(e instanceof Error?e.message:'Could not pin the IPFS folder.');}
     finally{setPinBusy(null);}
   }
   async function recheckFolder(round:1|2){
-    const candidate=folders[round]?.cid;
+    const candidate=(recoveryCids[round]||folders[round]?.cid||'').trim();
     if(!candidate||pinBusy||!authorized||!saleTerms)return;
     setPinBusy(round);setError('');setNote('');
     try{
@@ -128,6 +132,7 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
           round:1|2;cid:string;baseUri:string|null;verified:boolean;saved:boolean;message:string;
         };
       setFolders(prev=>({...prev,[round]:result}));
+      setRecoveryCids(prev=>({...prev,[round]:result.cid}));
       if(result.verified&&result.saved)
         setNote('Round '+round+': '+result.message+' Base URI '+result.baseUri);
       else setError(result.message+' CID: '+result.cid);
@@ -201,6 +206,25 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
           {pinBusy===2?'Pinning and validating…':'Replace public folder with final 27 NFTs'}
         </button>
       </div>
+      <div className="erc721-cover-editor">
+        <strong>Recover a previously pinned CID — no upload</strong>
+        <p>If a folder upload produced a CID but the public gateway could not be checked,
+          paste that exact CID below. This is read-only IPFS verification; it never
+          submits a second Pinata upload or an Ethereum transaction.</p>
+        {([1,2] as const).map(round=><div key={round}>
+          <label>Round {round} existing folder CID
+            <input type="text" className="mono" spellCheck={false}
+              value={recoveryCids[round]||''}
+              onChange={e=>setRecoveryCids(prev=>({...prev,[round]:e.target.value.trim()}))}
+              placeholder="bafy… — paste the CID shown after the first upload"/>
+          </label>
+          <button type="button" className="button secondary compact"
+            disabled={!recoveryCids[round]?.trim()||pinBusy!==null||archiveBusy}
+            onClick={()=>void recheckFolder(round)}>
+            Verify this existing CID (no upload)
+          </button>
+        </div>)}
+      </div>
       {[1,2].map(round=>folders[round]&&<div key={round} className="erc721-campaign-fact">
         <span>Round {round} metadata · {folders[round].verified?'IPFS gateway checked':'Awaiting gateway verification'}</span>
         <strong className="mono">{folders[round].baseUri||folders[round].cid}</strong>
@@ -226,8 +250,9 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
           {' '}original JSON files verified · {auditResults[round].verifiedAt}
         </small>)}
       </div>
-      <small>Before upload, all 30 latest saved source JSON CIDs are individually verified.
-        Each new folder's numbered first and last files are checked before saving the new
+      <small>Before uploading or checking a selected folder, the saved source CIDs
+        for that round (3 or 27 files) are individually verified, while all 30 artwork
+        identities and positions remain checked. Each new folder's numbered first and last files are checked before saving the new
         Mint Page revision. Use the full-directory audit above to verify all 30 published
         files. Repeating a completed folder action reuses the verified CID.</small>
     </div>

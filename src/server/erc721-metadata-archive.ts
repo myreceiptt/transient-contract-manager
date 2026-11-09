@@ -17,27 +17,39 @@ const GO721_COLLECTION=GO_APPROVED_TERMS.collection;
  * Only the existing owner/admin-authorized draft-list endpoint invokes this.
  * This creates bytes for the archive but never publishes or signs anything.
  */
-export async function verifiedGo721MetadataItems(chainId:number,contract:Address,s:Session){
+export async function verifiedGo721MetadataItems(chainId:number,contract:Address,s:Session,round?:1|2){
   if(chainId!==1||contract.toLowerCase()!==GO721_COLLECTION.toLowerCase())
     throw new AppError('ARCHIVE_SCOPE','Only the approved GO#|O collection can export metadata.',403);
   const raw=await listErc721Drafts('ARTWORK',chainId,contract,s);
   if(!Array.isArray(raw))throw new AppError('ARCHIVE_DRAFTS','Draft storage is unavailable.',503);
   const sequence=prepareSequence(raw);
   const byId=new Map(raw.map(row=>[row.id,row]));
-  const items: Array<{round:1|2;file:string;json:Buffer}> = new Array(sequence.length);
+  // The archive still verifies all 30. Folder pin/recovery verifies ONLY the
+  // affected round, after validating all 30 identities and CID assignments.
+  // This reduces transient gateway requests during presale recovery 30 -> 3.
+  const targets=round?sequence.filter(a=>a.round===round):sequence;
+  const items: Array<{round:1|2;file:string;json:Buffer}> = new Array(targets.length);
   let cursor=0;
   // Bounded concurrency protects gateways; no creator mint review is created.
-  const workers=Array.from({length:6},async()=>{
-    while(cursor<sequence.length){
+  const workers=Array.from({length:Math.min(6,targets.length)},async()=>{
+    while(cursor<targets.length){
       const i=cursor++;
-      const a=sequence[i],row=byId.get(a.draftId);
+      const a=targets[i],row=byId.get(a.draftId);
       if(!row)throw new AppError('ARCHIVE_DRAFT_MISSING','Artwork position '+a.position+' is missing.',409);
       const draft=row.draft;
-      const checked=await verifyGo721ArtworkSource({
-        title:String(draft.title??''),description:String(draft.description??''),
-        image:String(draft.image??''),externalUrl:String(draft.externalUrl??''),
-        metadataUri:a.sourceMetadataUri,
-      });
+      let checked;
+      try{
+        checked=await verifyGo721ArtworkSource({
+          title:String(draft.title??''),description:String(draft.description??''),
+          image:String(draft.image??''),externalUrl:String(draft.externalUrl??''),
+          metadataUri:a.sourceMetadataUri,
+        });
+      }catch(error){
+        if(error instanceof AppError && error.code.startsWith('MEDIA_'))
+          throw new AppError('GO721_SOURCE_GATEWAY',
+            'Artwork #'+a.position+' source JSON gateway is temporarily unavailable. No IPFS folder re-upload is required.',502);
+        throw error;
+      }
       items[i]={round:a.round,file:a.folderFile,json:checked.json};
     }
   });

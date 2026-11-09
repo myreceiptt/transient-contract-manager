@@ -72,7 +72,7 @@ export async function auditSavedGo721Folder(round:Round,chainId:number,
   contract:Address,s:Session){
   if(chainId!==1||getAddress(contract).toLowerCase()!==GO_APPROVED_TERMS.collection.toLowerCase())
     throw new AppError('FOLDER_SCOPE','Only GO#|O on Ethereum Mainnet is supported.',403);
-  const {items}=await verifiedGo721MetadataItems(chainId,contract,s);
+  const {items}=await verifiedGo721MetadataItems(chainId,contract,s,round);
   const saved=await listErc721Drafts('MINT_PAGE',chainId,contract,s) as Array<{
     id:string;draft:Record<string,unknown>;
   }>;

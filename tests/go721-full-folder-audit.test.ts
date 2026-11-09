@@ -67,7 +67,7 @@ describe('GO#|O complete IPFS directory audit (no chain writes)',()=>{
     const api=readFileSync('src/app/api/route.ts','utf8');
     const ui=readFileSync('src/components/erc721-sale-preparation.tsx','utf8');
     expect(operationBudget('audit_go721_folder_paths')).toBe('media');
-    expect(src).toContain("verifiedGo721MetadataItems(chainId,contract,s)");
+    expect(src).toContain("verifiedGo721MetadataItems(chainId,contract,s,round)");
     expect(src).toContain("listErc721Drafts('MINT_PAGE',chainId,contract,s)");
     expect(src).toContain("fetchMediaWithFallback");
     expect(api).toContain("op === 'audit_go721_folder_paths'");

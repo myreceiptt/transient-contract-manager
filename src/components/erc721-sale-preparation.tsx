@@ -108,7 +108,7 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
     setPinBusy(round);setError('');setNote('');
     try {
       await ensureSession(chainId);
-      const result=await api('pin_go721_metadata_folder',{chainId,contract,round}) as {
+      const result=await api('pin_go721_metadata_folder',{chainId,contract,round,replaceExisting:true}) as {
         round:1|2;cid:string;baseUri:string|null;verified:boolean;saved:boolean;message:string;
       };
       setFolders(prev=>({...prev,[round]:result}));
@@ -124,7 +124,7 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
     try{
       await ensureSession(chainId);
       const result=await api('verify_go721_metadata_folder',
-        {chainId,contract,round,cid:candidate}) as {
+        {chainId,contract,round,cid:candidate,replaceExisting:true}) as {
           round:1|2;cid:string;baseUri:string|null;verified:boolean;saved:boolean;message:string;
         };
       setFolders(prev=>({...prev,[round]:result}));
@@ -173,26 +173,32 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
     </div>
     <div className="erc721-release-next">
       <span className="eyebrow">NEXT PREPARATION STEP</span>
-      <h3>Get the two IPFS metadata folders</h3>
-      <p>The 30 artworks already have individually pinned metadata. The download below packages
-        them into two numbered folders: 3 for the reserved presale and 27 for public sale.
-        The server independently checks each source metadata CID before sending the ZIP.</p>
+      <h3>Finalize the two revised IPFS metadata folders</h3>
+      <p>Your 30 saved artworks now have their finalized individual JSON metadata CIDs.
+        The two actions below build new numbered folder CIDs from exactly those saved revisions.
+        Each action explicitly replaces only that round's previously saved folder link in
+        the canonical Mint Page draft, without deleting the older IPFS folder. No Ethereum
+        transaction is performed. The server verifies every source JSON CID before uploading.</p>
       <div className="button-row">
         <button type="button" className="button" disabled={archiveBusy||!saleTerms}
           onClick={()=>void downloadVerifiedFolderArchive()}>
           <Download size={15}/>{archiveBusy?'Checking 30 metadata files…':'Download verified 3+27 metadata folders ZIP'}
         </button>
       </div>
-      <small>You can pin directly using the two actions below only when the saved folder still matches the finalized artwork CIDs. An existing, different folder is never overwritten automatically. No ZIP extraction, new wallet signature,
-        Ethereum transaction or manual Merkle proof entry is required. These actions upload public metadata to Pinata.</small>
+      <Notice>Final metadata folder release: pin presale (3), then pin public (27),
+        then select Verify all 30 published IPFS files below. Because the old launch
+        fingerprint deliberately remains locked, do not attempt Owner authorization yet.
+        The app's approved campaign CIDs must be reconciled and tested after both new
+        folders have been saved. These explicit clicks publish metadata to Pinata only,
+        not NFTs or Mainnet transactions.</Notice>
       <div className="button-row">
         <button type="button" className="button secondary" disabled={pinBusy!==null||archiveBusy}
           onClick={()=>void pinRound(1)}>
-          {pinBusy===1?'Pinning and validating…':'Pin presale folder (3 NFTs) to IPFS'}
+          {pinBusy===1?'Pinning and validating…':'Replace presale folder with final 3 NFTs'}
         </button>
         <button type="button" className="button secondary" disabled={pinBusy!==null||archiveBusy}
           onClick={()=>void pinRound(2)}>
-          {pinBusy===2?'Pinning and validating…':'Pin public folder (27 NFTs) to IPFS'}
+          {pinBusy===2?'Pinning and validating…':'Replace public folder with final 27 NFTs'}
         </button>
       </div>
       {[1,2].map(round=>folders[round]&&<div key={round} className="erc721-campaign-fact">
@@ -220,9 +226,10 @@ export function Erc721SalePreparation({chainId,contract,authorized}:{
           {' '}original JSON files verified · {auditResults[round].verifiedAt}
         </small>)}
       </div>
-      <small>For every folder, the app verifies all 30 original source CIDs and checks the
-        first and last uploaded paths against the original JSON bytes before saving a base URI.
-        Repeating a completed upload reuses an existing verified CID.</small>
+      <small>Before upload, all 30 latest saved source JSON CIDs are individually verified.
+        Each new folder's numbered first and last files are checked before saving the new
+        Mint Page revision. Use the full-directory audit above to verify all 30 published
+        files. Repeating a completed folder action reuses the verified CID.</small>
     </div>
     {error&&<Notice type="error">{error}</Notice>}
     {note&&<Notice type="success">{note}</Notice>}

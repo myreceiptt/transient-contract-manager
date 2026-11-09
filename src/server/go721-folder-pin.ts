@@ -6,12 +6,39 @@ import {validUploadCid} from './upload-cid';
 import {fetchMediaWithFallback} from './media';
 import {verifiedGo721MetadataItems} from './erc721-metadata-archive';
 import {listErc721Drafts,saveErc721Draft} from './erc721-drafts';
+import {prepareSequence,type SequenceItem} from '../lib/erc721-sale-sequence';
+import {readGo721State} from './go721-launch-state';
 import type {Session} from './auth';
 
 const GO=getAddress(GO_APPROVED_TERMS.collection);
 const MAX_DIRECTORY_BYTES=1024*1024;
 const folderNames={1:'go-one-of-one-presale-3',2:'go-one-of-one-public-27'} as const;
 type Round=1|2;
+/** A changed saved folder can only be replaced after an explicit Owner/Admin
+ * request. A stale browser action must never overwrite a newly saved CID.
+ */
+export function allowGo721FolderReplacement(existing:unknown,baseUri:string,replaceExisting=false){
+  if(existing && existing!==baseUri && !replaceExisting)
+    throw new AppError('FOLDER_CONFLICT',
+      'An existing verified folder may only be replaced by the explicit final-metadata action.',409);
+}
+async function assertFinalFolderPrelaunch(chainId:number){
+  const current=await readGo721State(chainId);
+  if(current.counter!==0n || current.burns!==0n || current.round!==0n ||
+     current.phase!==0 || current.approved)
+    throw new AppError('GO721_FOLDER_RELEASE_CLOSED',
+      'Metadata folder replacement is only available before minter authorization, configuration and the first mint.',409);
+}
+async function assertArtworkSnapshot(chainId:number,contract:Address,s:Session,before:readonly SequenceItem[]){
+  const current=prepareSequence(await listErc721Drafts('ARTWORK',chainId,contract,s));
+  if(current.length!==before.length || current.some((row,i)=>
+      row.draftId!==before[i].draftId ||
+      row.draftRevisionAtSnapshot!==before[i].draftRevisionAtSnapshot ||
+      row.sourceMetadataUri!==before[i].sourceMetadataUri ||
+      row.imageUri!==before[i].imageUri))
+    throw new AppError('FOLDER_ARTWORK_CHANGED',
+      'An artwork draft changed while IPFS folder was being pinned. Recheck the final 30 before saving this folder.',409);
+}
 
 export function pinataFolderUploadForm(round:Round,items:readonly {round:1|2;file:string;json:Buffer}[]){
   if(round!==1&&round!==2)throw new AppError('INVALID_ROUND','Only presale or public sale folders are supported.',422);
@@ -63,10 +90,11 @@ export async function verifyPinnedFolderPath(
  * metadata directories, not NFTs, and does NOT sign any Ethereum transaction.
  * Use existing Pinata server secret; never relay it to the browser.
  */
-export async function pinGo721Folder(round:Round,chainId:number,contract:Address,s:Session){
+export async function pinGo721Folder(round:Round,chainId:number,contract:Address,s:Session,replaceExisting=false){
   if(chainId!==1||getAddress(contract)!==GO)
     throw new AppError('FOLDER_SCOPE','Folder pinning is available only for GO#|O on Ethereum Mainnet.',403);
-  const {items}=await verifiedGo721MetadataItems(chainId,contract,s);
+  const {items,sequence}=await verifiedGo721MetadataItems(chainId,contract,s);
+  if(replaceExisting)await assertFinalFolderPrelaunch(chainId);
   const {form,folder,subset}=pinataFolderUploadForm(round,items);
   const saved=await listErc721Drafts('MINT_PAGE',chainId,contract,s) as {
     id:string;version:number;draft:Record<string,unknown>;
@@ -80,8 +108,8 @@ export async function pinGo721Folder(round:Round,chainId:number,contract:Address
     const verified=await verifyPinnedFolderPath(raw,folder,subset);
     if(verified===existing)return {round,fileCount:subset.length,cid:raw,baseUri:existing,
       verified:true,saved:true,reused:true,message:'Already pinned and re-verified. No new upload or blockchain transaction.'};
-    throw new AppError('FOLDER_SAVED_UNVERIFIED',
-      'Saved metadata base URI could not be independently revalidated. Do not repin automatically.',409);
+    if(!replaceExisting)throw new AppError('FOLDER_SAVED_UNVERIFIED',
+      'Saved metadata differs from the revised artworks. Use the explicit final-folder replacement action.',409);
   }
   const jwt=process.env.PINATA_JWT;
   if(!jwt)throw new AppError('PINATA_DISABLED','Server IPFS pinning is not configured.',503);
@@ -100,14 +128,15 @@ export async function pinGo721Folder(round:Round,chainId:number,contract:Address
     round,fileCount:subset.length,cid,baseUri:null,verified:false,saved:false,
     message:'IPFS folder upload accepted but gateway validation is pending. Preserve this CID; do not use it for a sale until independently verified.'
   };
-  if(existing&&existing!==baseUri)
-    throw new AppError('FOLDER_CONFLICT','A different metadata base URI was saved. Do not silently overwrite.',409);
+  allowGo721FolderReplacement(existing,baseUri,replaceExisting);
+  await assertArtworkSnapshot(chainId,contract,s,sequence);
+  if(replaceExisting)await assertFinalFolderPrelaunch(chainId);
   if(existing!==baseUri){
     await saveErc721Draft('MINT_PAGE',chainId,contract,
       saved[0].id,saved[0].version,{...saved[0].draft,[key]:baseUri},s);
   }
-  return {round,fileCount:subset.length,cid,baseUri,verified:true,saved:true,
-    message:'The numbered metadata files were verified on IPFS and saved into the Mint Page draft. No Ethereum transaction occurred.'};
+  return {round,fileCount:subset.length,cid,baseUri,verified:true,saved:true,replaced:!!existing&&existing!==baseUri,
+    message:'Final indexed metadata folder verified and saved as a new canonical Mint Page revision. Old IPFS CID remains immutable. No Ethereum transaction occurred.'};
 }
 
 
@@ -116,13 +145,14 @@ export async function pinGo721Folder(round:Round,chainId:number,contract:Address
  * hash check on all 3/27 JSON paths is mandatory before saving to a draft.
  */
 export async function verifyGo721UploadedFolder(round:Round,rawCid:string,
-  chainId:number,contract:Address,s:Session){
+  chainId:number,contract:Address,s:Session,replaceExisting=false){
   if(chainId!==1||getAddress(contract)!==GO)
     throw new AppError('FOLDER_SCOPE','Folder checks are only for GO#|O on Ethereum Mainnet.',403);
   if(round!==1&&round!==2)throw new AppError('INVALID_ROUND','Expected presale or public round.',422);
   if(!validUploadCid(rawCid))
     throw new AppError('FOLDER_CID','Enter the exact IPFS directory CID returned by Pinata.',422);
-  const {items}=await verifiedGo721MetadataItems(chainId,contract,s);
+  const {items,sequence}=await verifiedGo721MetadataItems(chainId,contract,s);
+  if(replaceExisting)await assertFinalFolderPrelaunch(chainId);
   const {folder,subset}=pinataFolderUploadForm(round,items);
   const baseUri=await verifyPinnedFolderPath(rawCid,folder,subset);
   if(!baseUri)return {
@@ -136,11 +166,12 @@ export async function verifyGo721UploadedFolder(round:Round,rawCid:string,
     throw new AppError('FOLDER_DRAFT_MISSING','One canonical Mint Page draft is required.',409);
   const key=round===1?'presaleMetadataBaseUri':'publicMetadataBaseUri';
   const existing=saved[0].draft[key];
-  if(existing&&existing!==baseUri)
-    throw new AppError('FOLDER_CONFLICT','An alternate folder URI is already saved. Do not replace it automatically.',409);
+  allowGo721FolderReplacement(existing,baseUri,replaceExisting);
+  await assertArtworkSnapshot(chainId,contract,s,sequence);
+  if(replaceExisting)await assertFinalFolderPrelaunch(chainId);
   if(existing!==baseUri)
     await saveErc721Draft('MINT_PAGE',chainId,contract,
       saved[0].id,saved[0].version,{...saved[0].draft,[key]:baseUri},s);
-  return {round,cid:rawCid,baseUri,fileCount:subset.length,verified:true,saved:true,
-    message:'Verified existing CID and saved its indexed folder URI without another upload or Ethereum transaction.'};
+  return {round,cid:rawCid,baseUri,fileCount:subset.length,verified:true,saved:true,replaced:!!existing&&existing!==baseUri,
+    message:'Verified this final folder CID and saved it to the canonical Mint Page without another upload or Ethereum transaction.'};
 }

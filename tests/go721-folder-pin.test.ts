@@ -1,6 +1,6 @@
 import {describe,expect,it} from 'vitest';
 import {readFileSync} from 'node:fs';
-import {pinataFolderUploadForm,verifyPinnedFolderPath} from '../src/server/go721-folder-pin';
+import {pinataFolderUploadForm,verifyPinnedFolderPath,allowGo721FolderReplacement} from '../src/server/go721-folder-pin';
 import {operationBudget} from '../src/server/abuse';
 const input=Array.from({length:30},(_,i)=>({
   round:(i<3?1:2) as 1|2,file:String(i<3?i:i-3),
@@ -39,6 +39,26 @@ describe('GO#|O 3+27 metadata folder publication',()=>{
       .toBe('ipfs://'+cid+'/'+folder);
     expect(await verifyPinnedFolderPath(cid,folder,subset,async()=>Buffer.from('WRONG BYTES')))
       .toBeNull();
+  });
+  it('fails closed on unapproved replacement of a previously saved directory',()=>{
+    const old='ipfs://'+cid;
+    const revised='ipfs://bafybeie5uy556z3ba4wkwe2domvbpsprozhcliqz35dza3k4bk27cswyfu';
+    expect(()=>allowGo721FolderReplacement(old,revised)).toThrow('explicit final-metadata action');
+    expect(()=>allowGo721FolderReplacement(old,revised,false)).toThrow();
+    expect(()=>allowGo721FolderReplacement(old,revised,true)).not.toThrow();
+    expect(()=>allowGo721FolderReplacement(old,old)).not.toThrow();
+  });
+  it('requires explicit replacement flag through the Owner/Admin-only API and UI',()=>{
+    const src=readFileSync('src/server/go721-folder-pin.ts','utf8');
+    const route=readFileSync('src/app/api/route.ts','utf8');
+    const ui=readFileSync('src/components/erc721-sale-preparation.tsx','utf8');
+    expect(route).toContain('replaceExisting:z.literal(true).optional()');
+    expect(route).toContain('a.replaceExisting===true');
+    expect(ui).toContain("contract,round,replaceExisting:true");
+    expect(ui).toContain("cid:candidate,replaceExisting:true");
+    expect(src).toContain('assertArtworkSnapshot');
+    expect(src).not.toContain('writeContract(');
+    expect(src).not.toContain('sendTransaction(');
   });
   it('requires user-initiated SIWE owner permission and existing Pinata secret',()=>{
     const source=readFileSync('src/server/go721-folder-pin.ts','utf8');

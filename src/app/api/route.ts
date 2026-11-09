@@ -191,15 +191,17 @@ export async function POST(req: NextRequest) {
         result=await downloadGo721MetadataArchive(a.chainId,a.contract,s);
       }
       else if (op === 'pin_go721_metadata_folder') {
-        const a=identity.extend({round:z.union([z.literal(1),z.literal(2)])}).parse(p);
+        const a=identity.extend({round:z.union([z.literal(1),z.literal(2)]),
+          replaceExisting:z.literal(true).optional()}).parse(p);
         requireSessionChain(s,a.chainId);
-        result=await pinGo721Folder(a.round,a.chainId,a.contract,s);
+        result=await pinGo721Folder(a.round,a.chainId,a.contract,s,a.replaceExisting===true);
       }
       else if (op === 'verify_go721_metadata_folder') {
         const a=identity.extend({round:z.union([z.literal(1),z.literal(2)]),
-          cid:z.string().min(46).max(100)}).parse(p);
+          cid:z.string().min(46).max(100),
+          replaceExisting:z.literal(true).optional()}).parse(p);
         requireSessionChain(s,a.chainId);
-        result=await verifyGo721UploadedFolder(a.round,a.cid,a.chainId,a.contract,s);
+        result=await verifyGo721UploadedFolder(a.round,a.cid,a.chainId,a.contract,s,a.replaceExisting===true);
       }
       else if (op === 'audit_go721_folder_paths') {
         const a=identity.extend({round:z.union([z.literal(1),z.literal(2)])}).parse(p);

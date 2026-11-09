@@ -93,7 +93,7 @@ export async function verifyPinnedFolderPath(
 export async function pinGo721Folder(round:Round,chainId:number,contract:Address,s:Session,replaceExisting=false){
   if(chainId!==1||getAddress(contract)!==GO)
     throw new AppError('FOLDER_SCOPE','Folder pinning is available only for GO#|O on Ethereum Mainnet.',403);
-  const {items,sequence}=await verifiedGo721MetadataItems(chainId,contract,s);
+  const {items,sequence}=await verifiedGo721MetadataItems(chainId,contract,s,round);
   if(replaceExisting)await assertFinalFolderPrelaunch(chainId);
   const {form,folder,subset}=pinataFolderUploadForm(round,items);
   const saved=await listErc721Drafts('MINT_PAGE',chainId,contract,s) as {
@@ -151,7 +151,7 @@ export async function verifyGo721UploadedFolder(round:Round,rawCid:string,
   if(round!==1&&round!==2)throw new AppError('INVALID_ROUND','Expected presale or public round.',422);
   if(!validUploadCid(rawCid))
     throw new AppError('FOLDER_CID','Enter the exact IPFS directory CID returned by Pinata.',422);
-  const {items,sequence}=await verifiedGo721MetadataItems(chainId,contract,s);
+  const {items,sequence}=await verifiedGo721MetadataItems(chainId,contract,s,round);
   if(replaceExisting)await assertFinalFolderPrelaunch(chainId);
   const {folder,subset}=pinataFolderUploadForm(round,items);
   const baseUri=await verifyPinnedFolderPath(rawCid,folder,subset);

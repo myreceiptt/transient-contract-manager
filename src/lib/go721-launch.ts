@@ -1,11 +1,13 @@
 import { keccak256, stringToHex, parseAbi } from 'viem';
 import { GO_APPROVED_TERMS } from './erc721-sale-terms';
 
-// Already pinned, saved and audited by the Owner/Admin on 7 November 2026.
-// Launch reads these immutable identities; it never uploads or audits them again.
+// Final 3+27 indexed IPFS folders were pinned to immutable CIDs and audited
+// 3/3 and 27/27 by Owner/Admin on 10 November 2026. The canonical Mint Page
+// v12 must carry these exact addresses; any later revision or CID drift fails
+// the savedGo721Campaign() launch gate. This file never uploads metadata.
 export const GO721_FOLDERS = {
-  1: 'ipfs://bafybeie5uy556z3ba4wkwe2domvbpsprozhcliqz35dza3k4bk27cswyfu',
-  2: 'ipfs://bafybeiasexly6h7rzmfhrqptcjq5hroiycwljllt5vmbaccfos74lc7ds4',
+  1: 'ipfs://bafybeigwxzrvb4qh5asn4fuw3gvo3vk5g47eph32l4y3oyc5l4m7tnzhsm',
+  2: 'ipfs://bafybeiclzrvhrjjwtdmbcc7qcvzeomoxpajzjcbyfxi3gnpyzwknmwrofm',
 } as const;
 export const GO721_RUNTIME = '0xd63c5a1f574a2c03b17985a72615c25f51362f38e8369cb75ad0c9232fdbc9ce';
 export const GO721_DRAFT_ID = '4b1754ec-ca94-492f-aca5-d2aa69394781';

@@ -5,6 +5,7 @@ import { GO721_COLLECTION, GO721_STACKS, go721DropAbi, go721Phase } from '../lib
 import { GO721_CAMPAIGN_KEY, GO721_FOLDERS, GO721_MINTER_ROLE, GO721_RUNTIME,
   go721CreatorStateAbi, go721PurchaseAbi, type Go721Action } from '../lib/go721-launch';
 import { erc721CreatorAbi } from '../lib/erc721-creator';
+import { GO_APPROVED_TERMS } from '../lib/erc721-sale-terms';
 import { AppError, fingerprint, serializable } from '../lib/domain';
 import { requireSessionChain, type Session } from './auth';
 import { client, exactChain } from './chain';
@@ -29,9 +30,31 @@ function validUntil(iso: string, maxDays: number) {
   const expiry = Date.parse(iso);
   return expiry > Date.now() && expiry <= Date.now() + maxDays * 86400000;
 }
+/** A production-only, campaign-scoped operator release. This does not send or
+ * sign Ethereum transactions. Each role-grant, round configuration and mint
+ * still requires a fresh, calldata-specific preflight and wallet confirmation.
+ * It never inherits GO1's global MAINNET_WRITES_ENABLED setting.
+ */
+const releaseSchema=permissionBase.extend({
+  campaignKey:z.literal(GO721_CAMPAIGN_KEY),
+  release:z.literal('GO721_3_PLUS_27_OWNER_WALLET_APPROVAL'),
+  maxProtocolFeeWei:z.string().regex(/^[0-9]{1,25}$/),
+  maxQuantity:z.number().int().min(1).max(10),
+}).strict();
+export function go721OperatorReleasePermission(){
+  if(process.env.VERCEL_ENV!=='production')return null;
+  try{
+    const p=releaseSchema.parse(JSON.parse(process.env.GO721_OPERATOR_RELEASE_APPROVAL||''));
+    return validUntil(p.expiresAt,5)?p:null;
+  }catch{return null;}
+}
 export function go721CheckoutPermission(round: number, fee: bigint, chainId = 1) {
   if (localCreatorExecution(chainId)) return { maxQuantity: 10, maxNetworkFeeWei: '100000000000000000' };
-  if (chainId !== 1 || !hostedWrites()) return null;
+  if (chainId !== 1) return null;
+  const release=go721OperatorReleasePermission();
+  if(release && fee<=BigInt(release.maxProtocolFeeWei))
+    return {...release,round};
+  if(!hostedWrites())return null;
   try {
     const p = permissionBase.extend({ campaignKey: z.literal(GO721_CAMPAIGN_KEY),
       round: z.union([z.literal(1), z.literal(2)]),
@@ -44,11 +67,19 @@ export function go721CheckoutPermission(round: number, fee: bigint, chainId = 1)
 export function go721SigningPermission(i: any) {
   const tx = i.payload.tx;
   if (localCreatorExecution(Number(i.chain_id))) return { maxNetworkFeeWei: tx.maximumNetworkFee };
-  if (Number(i.chain_id) !== 1 || !hostedWrites()) return null;
+  if (Number(i.chain_id) !== 1) return null;
   if (i.payload.action.type === 'purchase') {
     const p = go721CheckoutPermission(i.payload.round, BigInt(i.payload.protocolFeeWei));
-    return p && i.payload.quantity <= p.maxQuantity ? p : null;
+    return p && i.payload.quantity <= p.maxQuantity &&
+      BigInt(tx.maximumNetworkFee) <= BigInt(p.maxNetworkFeeWei) ? p : null;
   }
+  const release=go721OperatorReleasePermission();
+  if(release && ['grant','configure'].includes(i.payload.action.type) &&
+      i.actor===GO_APPROVED_TERMS.presaleRecipient.toLowerCase() &&
+      i.payload.campaignKey===GO721_CAMPAIGN_KEY &&
+      BigInt(tx.maximumNetworkFee)<=BigInt(release.maxNetworkFeeWei))
+    return release;
+  if(!hostedWrites())return null;
   try {
     const p = permissionBase.extend({ key: z.string().regex(/^0x[0-9a-f]{64}$/) }).strict()
       .parse(JSON.parse(process.env.GO721_TRANSACTION_APPROVAL || ''));
@@ -301,5 +332,5 @@ export async function go721Readiness(chainId: number, s: Session) {
     publicRoundReady, reason, observedBlock: state.block.number, blockTimestamp: state.block.timestamp,
     campaignKey: GO721_CAMPAIGN_KEY, presalePlan,
     proposedPresaleStart:presalePlan?proposedPresaleStart:null,
-    transactionExecutionEnabled: false });
+    transactionExecutionEnabled: !!go721OperatorReleasePermission() });
 }

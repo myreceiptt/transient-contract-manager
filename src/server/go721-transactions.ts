@@ -84,10 +84,16 @@ async function inspect(chainId: number, raw: unknown, session: Session) {
     if (round === 1) {
       if (s.counter !== 0n || s.burns !== 0n || s.round !== 0n || s.phase !== 0)
         throw new AppError('GO721_INITIAL_STATE', 'Presale must start with historical Token ID counter 0 and an unconfigured drop.', 409);
-      if (action.startTime !== undefined) throw new AppError('GO721_START', 'Presale uses the approved 10 November 10:10 WIB start.', 409);
-      drop = expectedGo721Drop(1);
-      if (s.block.timestamp >= drop.startTime)
-        throw new AppError('GO721_START_PASSED', 'The approved presale start has passed. A revised launch needs explicit review.', 409);
+      const start = action.startTime;
+      // Every configuration has an explicit, fixed start in its review calldata.
+      // Fifteen minutes after a readiness read gives time for the 5-minute review
+      // and a separate wallet approval; preflight refuses a stale start.
+      if (!start || BigInt(start) < s.block.timestamp + 300n ||
+          BigInt(start) > s.block.timestamp + 3600n)
+        throw new AppError('GO721_START_PASSED',
+          'Presale requires a fresh, explicitly reviewed start 5–60 minutes after the current Ethereum block.', 409);
+      try { drop = expectedGo721Drop(1, start); }
+      catch { throw new AppError('GO721_START', 'The reviewed presale start must still be on 10 November 2026 WIB.', 409); }
     } else {
       assertGo721Drop(s, 1);
       presaleEvidence = await verifyFinalPresale(chainId);
@@ -284,11 +290,16 @@ export async function go721Readiness(chainId: number, s: Session) {
     try { await verifyFinalPresale(chainId); publicRoundReady = true; }
     catch (e) { reason = (e as Error).message; }
   }
+  const proposedPresaleStart=Number(state.block.timestamp)+900;
+  let presalePlan:ReturnType<typeof expectedGo721Drop>|null=null;
+  try { presalePlan=expectedGo721Drop(1,proposedPresaleStart); }
+  catch { reason=reason||'Same-day presale scheduling window has ended. A separate approved date revision is needed.'; }
   return serializable({ role: state.creator.role, owner: state.creator.owner, approvedMinter: state.approved,
     counter: state.counter, burned: state.burns, round: Number(state.round) + 1,
     phase: go721Phase[state.phase], phaseCode: state.phase, remaining: state.drop.supply,
     runtimeVerified: true, draftVersion: saved.version, protocolFeeWei: state.fee,
     publicRoundReady, reason, observedBlock: state.block.number, blockTimestamp: state.block.timestamp,
-    campaignKey: GO721_CAMPAIGN_KEY, presalePlan: expectedGo721Drop(1),
+    campaignKey: GO721_CAMPAIGN_KEY, presalePlan,
+    proposedPresaleStart:presalePlan?proposedPresaleStart:null,
     transactionExecutionEnabled: false });
 }

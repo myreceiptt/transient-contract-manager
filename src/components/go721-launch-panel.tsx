@@ -21,6 +21,30 @@ export function Go721LaunchPanel({ chainId, authorized }: { chainId: number; aut
     } catch (e) { setError((e as Error).message); }
     finally { setBusy(false); }
   }
+  async function advanceOwnerLaunch(){
+    if(busy)return;
+    setBusy(true);setError('');setIntent(undefined);
+    try{
+      await ensureSession(chainId);
+      const fresh=await api('go721_readiness',{chainId});
+      setState(fresh);
+      if(fresh.role!=='owner')
+        throw new Error('Connect the real GO#|O collection Owner wallet.');
+      if(!fresh.transactionExecutionEnabled)
+        throw new Error('This Production launch has not been approved for wallet confirmation.');
+      if(fresh.counter!=='0'||fresh.burned!=='0'||fresh.phaseCode!==0)
+        throw new Error('The collection is no longer in the original prelaunch state. Review on-chain status.');
+      const action=!fresh.approvedMinter
+        ? {type:'grant'}
+        : fresh.proposedPresaleStart
+          ? {type:'configure',round:1,startTime:Number(fresh.proposedPresaleStart)}
+          : null;
+      if(!action)
+        throw new Error('Same-day presale window closed. Do not submit outdated calldata.');
+      setIntent(await api('prepare_go721',{chainId,action}));
+    }catch(e){setError((e as Error).message);}
+    finally{setBusy(false);}
+  }
   return <section className="panel go721-launch-panel">
     <span className="eyebrow">GO#|O · LAUNCH CONTROL</span>
     <div className="section-top"><h2>Launch the 3 + 27 sale</h2>
@@ -39,8 +63,15 @@ export function Go721LaunchPanel({ chainId, authorized }: { chainId: number; aut
     </ol>
     <Notice>Preparing a review does not send a transaction. Mainnet signing and checkout remain locked until explicit approval.
       Direct creator minting is reserved to protect Token IDs #1–#30.</Notice>
-    <button className="button secondary" disabled={!authorized || busy} onClick={() => void run()}>
+    <div className="button-row">
+      <button className="button" disabled={!authorized||busy} onClick={()=>void advanceOwnerLaunch()}>
+        {busy?'Checking and preparing…':'Continue Owner launch — review next transaction'}
+      </button>
+      <button className="button secondary" disabled={!authorized || busy} onClick={() => void run()}>
       {busy ? 'Checking Ethereum…' : 'Read launch readiness'}</button>
+    </div>
+    <small>One action per wallet confirmation: first authorize the verified minter;
+      after final confirmation, review and sign the presale configuration. Nothing signs automatically.</small>
     {!authorized && <p>Connect the collection Owner/Admin wallet to prepare launch reviews.</p>}
     {error && <Notice type="error">{error}</Notice>}
     {state && <>

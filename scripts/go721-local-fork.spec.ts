@@ -117,7 +117,7 @@ describeWhen('GO#|O guarded application lifecycle on real forked contracts',()=>
     report.checks.push('actor filtering precedes the recovery ledger limit');
   });
   it('blocks expired reviews, revoked roles, changed nonce and altered saved CID',async()=>{
-    const a={type:'configure',round:1};const i=await api.call('prepare_go721',{chainId:31337,action:a});
+    const a={type:'configure',round:1,startTime:Number((await c.getBlock()).timestamp)+900};const i=await api.call('prepare_go721',{chainId:31337,action:a});
     expect((await api.request('intent',{id:i.id})).body.error).toBe('WRONG_TRANSACTION_FLOW');
     await db.query("update public.publication_records set payload=jsonb_set(payload,'{tx,expiresAt}','\"2020-01-01T00:00:00.000Z\"') where id=$1",[i.id]);
     expect((await api.request('preflight_go721',{id:i.id})).body.error).toBe('REVIEW_EXPIRED');
@@ -132,7 +132,7 @@ describeWhen('GO#|O guarded application lifecycle on real forked contracts',()=>
     report.checks.push('expiry + revoked admin + nonce change + CID change + GO1 separation');
   });
   it('recovers a same-nonce cancellation without resending or configuring a drop',async()=>{
-    const i=await api.call('prepare_go721',{chainId:31337,action:{type:'configure',round:1}});
+    const i=await api.call('prepare_go721',{chainId:31337,action:{type:'configure',round:1,startTime:Number((await c.getBlock()).timestamp)+900}});
     const tx=await server.preflightGo721(i.id,session(admin));
     await rpcCall('anvil_setAutomine',[false]);
     try{
@@ -148,13 +148,13 @@ describeWhen('GO#|O guarded application lifecycle on real forked contracts',()=>
     }finally{await rpcCall('anvil_setAutomine',[true]);}
   });
   it('configures the exact presale through the authenticated API and rejects early public round',async()=>{
-    const i=await api.call('prepare_go721',{chainId:31337,action:{type:'configure',round:1}});report.presaleReview=i;
+    const i=await api.call('prepare_go721',{chainId:31337,action:{type:'configure',round:1,startTime:Number((await c.getBlock()).timestamp)+900}});report.presaleReview=i;
     const result=await execute(i,admin);expect(result.payload.receipt.action).toBe('configure');
     expect((await api.request('prepare_go721',{chainId:31337,action:{type:'configure',round:2,startTime:Number((await c.getBlock()).timestamp)+300}})).status).toBe(409);
     await expect(server.prepareGo721(31337,{type:'purchase',quantity:3},session(owner))).rejects.toThrow('phase');
   });
   it('rejects unlisted recipients and burned history; quotes free artwork plus protocol fee',async()=>{
-    await advance(GO721_APPROVED.presale.startTimestampSeconds+5);
+    await advance(Number(report.presaleReview.payload.drop.startTime)+5);
     const no=new ApiSession(buyers[0]);await no.login();expect((await no.request('prepare_go721',{chainId:31337,action:{type:'purchase',quantity:1}})).body.error).toBe('GO721_ELIGIBILITY');
     // No RPC transport or metadata mocks: altered local storage must fail closed.
     const snap=await rpcCall('evm_snapshot');await rpcCall('anvil_setStorageAt',[GO721_COLLECTION,toHex(0,{size:32}),toHex(1,{size:32})]);

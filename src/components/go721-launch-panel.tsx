@@ -29,8 +29,10 @@ export function Go721LaunchPanel({ chainId, authorized }: { chainId: number; aut
       Launch checks use those identities without uploading or auditing the files again.</p>
     <ol>
       <li><strong>Owner: authorize TLStacks721.</strong> Grant the official sale contract its minting role.</li>
-      <li><strong>Owner or Admin: configure presale.</strong> 3 NFTs for the allowlisted wallet, artwork price 0 ETH,
-        starting 10 Nov 2026 at 10:10 WIB. Proposed presale window: 24 hours; no automatic public phase.</li>
+      <li><strong>Owner or Admin: configure presale.</strong> 3 NFTs for the allowlisted wallet, artwork price 0 ETH.
+        The original 10 Nov 2026 10:10 WIB target has passed. A new start is explicitly reviewed for later
+        the same day, 15 minutes after the latest observed Ethereum block. Presale lasts 24 hours,
+        with no automatic public phase.</li>
       <li><strong>Collectors: mint through the public page.</strong> Each review separates artwork price, protocol fee and gas.</li>
       <li><strong>After three finalized mints: configure public sale.</strong> 27 NFTs at 0.025 ETH; limit 10 per recipient.
         Round 2 needs its own configuration transaction and checkout approval.</li>
@@ -48,19 +50,28 @@ export function Go721LaunchPanel({ chainId, authorized }: { chainId: number; aut
         <div className="erc721-campaign-fact"><span>Minter permission</span><strong>{state.approvedMinter ? 'Granted' : 'Owner grant required'}</strong></div>
         <div className="erc721-campaign-fact"><span>On-chain sale</span><strong>Round {state.round} · {state.phase}</strong></div>
         <div className="erc721-campaign-fact"><span>Protocol fee per NFT</span><strong>{formatEther(BigInt(state.protocolFeeWei))} ETH + gas</strong></div>
+        <div className="erc721-campaign-fact"><span>Proposed presale start (WIB)</span>
+          <strong>{state.proposedPresaleStart
+            ? new Intl.DateTimeFormat('en-GB',{dateStyle:'medium',timeStyle:'long',timeZone:'Asia/Jakarta'})
+              .format(new Date(Number(state.proposedPresaleStart)*1000))
+            : 'No valid same-day start remains'}</strong></div>
       </div>
       {state.reason && <Notice>{state.reason}</Notice>}
       <div className="button-row">
         <button className="button secondary" disabled={busy || state.approvedMinter || state.role !== 'owner'}
           onClick={() => void run({ type: 'grant' })}>Review Owner minter authorization</button>
-        <button className="button" disabled={busy || !state.approvedMinter || state.phaseCode !== 0 || state.counter !== '0'}
-          onClick={() => void run({ type: 'configure', round: 1 })}>Review presale configuration</button>
+        <button className="button" disabled={busy || !state.approvedMinter || state.phaseCode !== 0 ||
+            state.counter !== '0' || !state.proposedPresaleStart}
+          onClick={() => void run({ type: 'configure', round: 1, startTime: Number(state.proposedPresaleStart) })}>
+          Review presale configuration</button>
         <button className="button" disabled={busy || !state.publicRoundReady}
           onClick={() => void run({ type: 'configure', round: 2, startTime: Number(state.blockTimestamp) + 300 })}>
           Review public round configuration</button>
       </div>
-      <small>Public review proposes a start five minutes after this Ethereum observation.
-        Refresh readiness before preparing it. Ethereum finality usually takes several minutes.</small>
+      <small>Presale proposals use a specific timestamp 15 minutes after the last Ethereum observation,
+        valid only if still at least 5 minutes in the future at signing. Refresh readiness if delayed.
+        Both this start and the later public-round start are visible in transaction review before wallet approval.
+        This action does not enable Mainnet signing. Public review proposes five minutes after its Ethereum observation.</small>
     </>}
     <Go721TransactionLedger chainId={chainId} contract={GO721_COLLECTION}/>
     {intent && <Go721TransactionReview key={intent.id} intent={intent} onClose={() => setIntent(undefined)} onConfirmed={() => void run()}/>}

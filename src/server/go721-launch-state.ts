@@ -67,10 +67,14 @@ export type Go721State = Awaited<ReturnType<typeof readGo721State>>;
 export function expectedGo721Drop(round: 1 | 2, startTime?: number) {
   return planGo721Drop({ round, metadataBaseUri: GO721_FOLDERS[round],
     historicalTokenCounterVerified: true, presaleDurationSeconds: 86400,
-    confirmedPresaleMints: round === 2 ? 3 : undefined, round2StartSeconds: startTime });
+    confirmedPresaleMints: round === 2 ? 3 : undefined,
+    round1StartSeconds: round === 1 ? startTime : undefined,
+    round2StartSeconds: round === 2 ? startTime : undefined });
 }
 export function assertGo721Drop(s: Go721State, round: 1 | 2) {
-  const expected = expectedGo721Drop(round, round === 2 ? Number(s.drop.startTime) : undefined);
+  // All parameters remain pinned except the operator-reviewed same-day start.
+  // The plan rejects a date outside 10 Nov 2026 or before 10:10 WIB.
+  const expected = expectedGo721Drop(round, Number(s.drop.startTime));
   for (const [key, value] of Object.entries(expected)) {
     if (key === 'supply') continue;
     if (String(s.drop[key as keyof typeof s.drop]).toLowerCase() !== String(value).toLowerCase())

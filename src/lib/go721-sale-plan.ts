@@ -3,6 +3,10 @@ import {GO_APPROVED_TERMS,approvedGoTerms} from './erc721-sale-terms';
 import {GO721_COLLECTION} from './go721-sale-engine';
 
 export const GO721_PROPOSED_PRESALE_DURATION_SECONDS=24*60*60;
+// Operator accepts late same-day presale on 10 November 2026. This is a
+// bounded *review* policy, never an automatic Mainnet transaction.
+// The historical 10:10 WIB target stays in GO_APPROVED_TERMS and canonical v12.
+export const GO721_LATEST_SAME_DAY_START_SECONDS=Math.floor(Date.parse('2026-11-10T23:59:59+07:00')/1000);
 export type PlannedDrop={
   dropType:1;payoutReceiver:Address;initialSupply:bigint;supply:bigint;
   allowance:bigint;currencyAddress:Address;startTime:bigint;
@@ -20,6 +24,7 @@ function baseUri(uri:string){
  */
 export function planGo721Drop(args:{
   round:1|2;metadataBaseUri:string;
+  round1StartSeconds?:number;
   round2StartSeconds?:number;
   presaleDurationSeconds?:number;
   confirmedPresaleMints?:number;
@@ -33,10 +38,14 @@ export function planGo721Drop(args:{
     const duration=args.presaleDurationSeconds??GO721_PROPOSED_PRESALE_DURATION_SECONDS;
     if(!Number.isSafeInteger(duration)||duration<3600||duration>7*86400)
       throw new Error('Presale duration must be 1 hour to 7 days.');
+    const start=args.round1StartSeconds??info.presale.startTimestampSeconds;
+    if(!Number.isSafeInteger(start)||start<info.presale.startTimestampSeconds||
+        start>GO721_LATEST_SAME_DAY_START_SECONDS)
+      throw new Error('Presale start must be on 10 November 2026 at or after 10:10 WIB.');
     return {
       dropType:1,payoutReceiver,initialSupply:3n,supply:3n,
       allowance:0n,currencyAddress:zeroAddress,
-      startTime:BigInt(info.presale.startTimestampSeconds),
+      startTime:BigInt(start),
       presaleDuration:BigInt(duration),presaleCost:0n,
       presaleMerkleRoot:info.presale.merkleRoot,
       publicDuration:0n,publicCost:0n,decayRate:0n,baseUri:base,
